@@ -5,6 +5,7 @@ import Logo from "../../assets/navbar/agrilink_logo.png";
 import ac_Logo from "../../assets/navbar/account_logo.png";
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
   return (
     <nav className="bg-white shadow-md w-full fixed top-0 left-0 z-50">
       {/*Logo of site */}

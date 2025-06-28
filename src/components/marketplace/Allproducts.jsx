@@ -1,13 +1,12 @@
 import React from "react";
-
-// Import images
+import { Link } from "react-router-dom";
 import brown from "../../assets/marketplace/all/brown.jpg";
-import brown1 from "../../assets/marketplace/all/brown.jpg";
+import brown1 from "../../assets/marketplace/all/brown1.jpg";
 import cinnamon from "../../assets/marketplace/all/cinnamon.jpg";
 import plantea from "../../assets/marketplace/all/plantea.jpg";
 import yello from "../../assets/marketplace/all/yello.jpg";
 
-const Allproducts = () => {
+const AllProducts = () => {
   const products = [
     {
       id: 1,
@@ -15,7 +14,7 @@ const Allproducts = () => {
       details: "High-quality organic wheat seeds for sustainable farming.",
       price: 12.99,
       category: "Seeds",
-      image: brown,
+      image: yello, // Updated to yello.jpg
     },
     {
       id: 2,
@@ -23,7 +22,7 @@ const Allproducts = () => {
       details: "Robust tomato plants for year-round harvest.",
       price: 8.5,
       category: "Products",
-      image: cinnamon,
+      image: cinnamon, // Updated to cinnamon.jpg
     },
     {
       id: 3,
@@ -31,7 +30,7 @@ const Allproducts = () => {
       details: "Non-GMO corn seeds for optimal yield.",
       price: 15.75,
       category: "Seeds",
-      image: plantea,
+      image: brown1, // Updated to brown1.jpg
     },
     {
       id: 4,
@@ -39,7 +38,7 @@ const Allproducts = () => {
       details: "Limited-time offer on organic fertilizer blend.",
       price: 9.99,
       category: "Offers",
-      image: yello,
+      image: plantea, // Updated to plantea.jpg
     },
     {
       id: 5,
@@ -47,7 +46,7 @@ const Allproducts = () => {
       details: "Enhance crop growth with this premium fertilizer.",
       price: 14.5,
       category: "Fertilizer",
-      image: brown1,
+      image: brown, // Updated to brown.jpg
     },
   ];
 
@@ -58,17 +57,22 @@ const Allproducts = () => {
           key={product.id}
           className="bg-white p-4 rounded-xl shadow-lg border border-green-100"
         >
-          <img
-            src={product.image}
-            alt={product.name}
-            className="w-full h-48 object-cover rounded-lg mb-4"
-          />
-          <h3
-            className="text-lg sm:text-xl font-semibold text-green-700 mb-2 hover:underline cursor-pointer"
-            // Removed window.location.href, keeping hover effect for future use
-          >
-            {product.name}
-          </h3>
+          <Link to={`/product/${product.id}`}>
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full h-48 object-cover rounded-lg mb-4"
+              onError={(e) => {
+                e.target.src =
+                  "https://via.placeholder.com/300x200?text=Image+Not+Found";
+              }}
+            />
+          </Link>
+          <Link to={`/product/${product.id}`}>
+            <h3 className="text-lg sm:text-xl font-semibold text-green-700 mb-2 cursor-pointer">
+              {product.name}
+            </h3>
+          </Link>
           <p className="text-gray-600 text-sm sm:text-base mb-4">
             {product.details}
           </p>
@@ -76,8 +80,8 @@ const Allproducts = () => {
             ${product.price.toFixed(2)}
           </p>
           <button
-            className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
-            onClick={() => alert(`Added ${product.name} to cart!`)} // Placeholder for cart logic
+            className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition cursor-pointer"
+            onClick={() => alert(`Added ${product.name} to cart!`)}
           >
             Add to Cart
           </button>
@@ -87,4 +91,4 @@ const Allproducts = () => {
   );
 };
 
-export default Allproducts;
+export default AllProducts;

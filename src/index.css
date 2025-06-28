@@ -1,0 +1,23 @@
+@import url("https://fonts.googleapis.com/css2?family=Libertinus+Mono&family=Lora:ital,wght");
+@import url("https://fonts.googleapis.com/css2?family=Libertinus+Mono&family=Lora:ital,wght@0,400..700;1,400..700&family=UoqMunThenKhung&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Libertinus+Mono&family=Lora:ital,wght@0,400..700;1,400..700&family=UoqMunThenKhung&display=swap");
+@import "tailwindcss";
+
+.libertinus-mono-regular {
+  font-family: "Libertinus Mono", monospace;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.uoqmunthenkhung-regular {
+  font-family: "UoqMunThenKhung", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.inter-regular {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}

@@ -5,57 +5,58 @@ import brown1 from "../../assets/marketplace/all/brown1.jpg";
 import cinnamon from "../../assets/marketplace/all/cinnamon.jpg";
 import plantea from "../../assets/marketplace/all/plantea.jpg";
 import yello from "../../assets/marketplace/all/yello.jpg";
+import tea from "../../assets/marketplace/products/tea.jpg";
 
-const AllProducts = () => {
-  const products = [
-    {
-      id: 1,
-      name: "Organic Wheat Seeds",
-      details: "High-quality organic wheat seeds for sustainable farming.",
-      price: 12.99,
-      category: "Seeds",
-      image: yello, // Updated to yello.jpg
-    },
-    {
-      id: 2,
-      name: "Premium Tomato Plant",
-      details: "Robust tomato plants for year-round harvest.",
-      price: 8.5,
-      category: "Products",
-      image: cinnamon, // Updated to cinnamon.jpg
-    },
-    {
-      id: 3,
-      name: "Corn Seed Pack",
-      details: "Non-GMO corn seeds for optimal yield.",
-      price: 15.75,
-      category: "Seeds",
-      image: brown1, // Updated to brown1.jpg
-    },
-    {
-      id: 4,
-      name: "Special Fertilizer Offer",
-      details: "Limited-time offer on organic fertilizer blend.",
-      price: 9.99,
-      category: "Offers",
-      image: plantea, // Updated to plantea.jpg
-    },
-    {
-      id: 5,
-      name: "Nitrogen-Rich Fertilizer",
-      details: "Enhance crop growth with this premium fertilizer.",
-      price: 14.5,
-      category: "Fertilizer",
-      image: brown, // Updated to brown.jpg
-    },
-  ];
+export const products = [
+  {
+    id: 1,
+    name: "Organic Wheat Seeds",
+    details: "High-quality organic wheat seeds for sustainable farming.",
+    price: 12.99,
+    category: "Seeds",
+    image: yello,
+  },
+  {
+    id: 2,
+    name: "Premium Tomato Plant",
+    details: "Robust tomato plants for year-round harvest.",
+    price: 8.5,
+    category: "Products",
+    image: cinnamon,
+  },
+  {
+    id: 3,
+    name: "Corn Seed Pack",
+    details: "Non-GMO corn seeds for optimal yield.",
+    price: 15.75,
+    category: "Seeds",
+    image: brown1,
+  },
+  {
+    id: 4,
+    name: "Special Fertilizer Offer",
+    details: "Limited-time offer on organic fertilizer blend.",
+    price: 9.99,
+    category: "Offers",
+    image: plantea,
+  },
+  {
+    id: 5,
+    name: "Nitrogen-Rich Fertilizer",
+    details: "Enhance crop growth with this premium fertilizer.",
+    price: 14.5,
+    category: "Fertilizer",
+    image: brown,
+  },
+];
 
+const Allproducts = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {products.map((product) => (
         <div
           key={product.id}
-          className="bg-white p-4 rounded-xl shadow-lg border border-green-100"
+          className="bg-white p-4 rounded-xl shadow-md border border-green-100 hover:shadow-lg transition"
         >
           <Link to={`/product/${product.id}`}>
             <img
@@ -69,7 +70,7 @@ const AllProducts = () => {
             />
           </Link>
           <Link to={`/product/${product.id}`}>
-            <h3 className="text-lg sm:text-xl font-semibold text-green-700 mb-2 cursor-pointer">
+            <h3 className="text-lg sm:text-xl font-semibold text-green-700 mb-2 cursor-pointer hover:text-green-800">
               {product.name}
             </h3>
           </Link>
@@ -80,7 +81,7 @@ const AllProducts = () => {
             ${product.price.toFixed(2)}
           </p>
           <button
-            className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition cursor-pointer"
+            className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
             onClick={() => alert(`Added ${product.name} to cart!`)}
           >
             Add to Cart
@@ -91,4 +92,4 @@ const AllProducts = () => {
   );
 };
 
-export default AllProducts;
+export default Allproducts;

@@ -11,15 +11,17 @@ const Marketplace = () => {
 
   return (
     <>
-      <section className="bg-green-50 min-h-screen py-20 px-4 sm:px-6 lg:px-20">
+      <section className="bg-green-50 min-h-screen py-16 px-4 sm:px-6 lg:px-20">
         <div className="max-w-7xl mx-auto">
-          {/* Filter Options */}
-          <div className="flex flex-wrap gap-4 mb-8">
+          <h2 className="text-4xl font-bold text-[#14452F] text-center mb-10">
+            Explore Our Marketplace
+          </h2>
+          <div className="flex flex-wrap justify-center gap-3 mb-12">
             <button
               onClick={() => setFilter("All")}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-5 py-2 rounded-full ${
                 filter === "All"
-                  ? "bg-white text-green-700 border border-green-300 "
+                  ? "bg-green-600 text-white"
                   : "bg-white text-green-700 border border-green-300"
               } hover:bg-green-700 hover:text-white transition`}
             >
@@ -27,7 +29,7 @@ const Marketplace = () => {
             </button>
             <button
               onClick={() => setFilter("Products")}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-5 py-2 rounded-full ${
                 filter === "Products"
                   ? "bg-green-600 text-white"
                   : "bg-white text-green-700 border border-green-300"
@@ -37,7 +39,7 @@ const Marketplace = () => {
             </button>
             <button
               onClick={() => setFilter("Seeds")}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-5 py-2 rounded-full ${
                 filter === "Seeds"
                   ? "bg-green-600 text-white"
                   : "bg-white text-green-700 border border-green-300"
@@ -47,7 +49,7 @@ const Marketplace = () => {
             </button>
             <button
               onClick={() => setFilter("Offers")}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-5 py-2 rounded-full ${
                 filter === "Offers"
                   ? "bg-green-600 text-white"
                   : "bg-white text-green-700 border border-green-300"
@@ -57,7 +59,7 @@ const Marketplace = () => {
             </button>
             <button
               onClick={() => setFilter("Fertilizer")}
-              className={`px-4 py-2 rounded-lg ${
+              className={`px-5 py-2 rounded-full ${
                 filter === "Fertilizer"
                   ? "bg-green-600 text-white"
                   : "bg-white text-green-700 border border-green-300"
@@ -66,8 +68,6 @@ const Marketplace = () => {
               Fertilizer
             </button>
           </div>
-
-          {/* Render Category Component */}
           {filter === "All" && <Allproducts />}
           {filter === "Products" && <Products />}
           {filter === "Seeds" && <Seeds />}

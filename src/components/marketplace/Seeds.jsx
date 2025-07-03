@@ -28,7 +28,7 @@ const Seeds = () => {
       {products.map((product) => (
         <div
           key={product.id}
-          className="bg-white p-4 rounded-xl shadow-lg border border-green-100"
+          className="bg-white p-4 rounded-xl shadow-md border border-green-100 hover:shadow-lg transition"
         >
           <Link to={`/product/${product.id}`}>
             <img
@@ -42,7 +42,7 @@ const Seeds = () => {
             />
           </Link>
           <Link to={`/product/${product.id}`}>
-            <h3 className="text-lg sm:text-xl font-semibold text-green-700 mb-2 cursor-pointer">
+            <h3 className="text-lg sm:text-xl font-semibold text-green-700 mb-2 cursor-pointer hover:text-green-800">
               {product.name}
             </h3>
           </Link>
@@ -53,7 +53,7 @@ const Seeds = () => {
             ${product.price.toFixed(2)}
           </p>
           <button
-            className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition cursor-pointer"
+            className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
             onClick={() => alert(`Added ${product.name} to cart!`)}
           >
             Add to Cart

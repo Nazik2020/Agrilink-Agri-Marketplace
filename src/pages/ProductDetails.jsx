@@ -1,249 +1,328 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { FaHeart, FaStar, FaArrowRight } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { FaHeart, FaStar, FaArrowLeft, FaShoppingCart } from "react-icons/fa";
+import Footer from "../components/common/Footer";
+// Placeholder images (replace with dynamic data later)
 import brown from "../assets/marketplace/all/brown.jpg";
 import brown1 from "../assets/marketplace/all/brown1.jpg";
-import cinnamon from "../assets/marketplace/fertilzers/cinnamon.jpg"; // fixed path
-import plantea from "../assets/marketplace/all/plantea.jpg";
-import tea from "../assets/marketplace/products/tea.jpg"; // fixed path
-import yello from "../assets/marketplace/seeds/yello.jpg"; // corrected to seeds folder
 
-const ProductDetails = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [product, setProduct] = useState(null);
-  const [isInWishlist, setIsInWishlist] = useState(false);
-  const [customization, setCustomization] = useState("");
-  const [reviews, setReviews] = useState([
-    {
-      id: 1,
-      user: "John Doe",
-      rating: 4,
-      comment: "Great product, fast delivery!",
-    },
-    { id: 2, user: "Jane Smith", rating: 5, comment: "Highly recommend this!" },
-  ]);
-  const [newReview, setNewReview] = useState({ rating: 0, comment: "" });
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  useEffect(() => {
-    const products = [
-      {
-        id: 1,
-        name: "Organic Wheat Seeds",
-        details: "High-quality organic wheat seeds for sustainable farming.",
-        price: 12.99,
-        category: "Seeds",
-        images: [yello, brown1], // Using yello.jpg and brown1.jpg
-      },
-      {
-        id: 2,
-        name: "Premium Tomato Plant",
-        details: "Robust tomato plants for year-round harvest.",
-        price: 8.5,
+// Placeholder for fetching product details (simulate API call)
+const fetchProductDetails = async (productId) => {
+  // Simulate API delay
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        id: productId,
+        name: "Organic Tomatoes",
         category: "Products",
-        images: [tea, cinnamon], // Using tea.jpg and cinnamon.jpg
-      },
-      {
-        id: 3,
-        name: "Corn Seed Pack",
-        details: "Non-GMO corn seeds for optimal yield.",
-        price: 15.75,
-        category: "Seeds",
-        images: [brown1, yello], // Using brown1.jpg and yello.jpg
-      },
-      {
-        id: 4,
-        name: "Special Fertilizer Offer",
-        details: "Limited-time offer on organic fertilizer blend.",
-        price: 9.99,
-        category: "Offers",
-        images: [plantea, brown], // Using planta.jpg and brown.jpg
-      },
-      {
-        id: 5,
-        name: "Nitrogen-Rich Fertilizer",
-        details: "Enhance crop growth with this premium fertilizer.",
-        price: 14.5,
-        category: "Fertilizer",
-        images: [cinnamon, tea], // Using cinnamon.jpg and tea.jpg (from fertilzers/)
-      },
-    ];
-    const foundProduct = products.find((p) => p.id === parseInt(id));
-    setProduct(foundProduct);
-  }, [id]);
+        price: 4.99,
+        oldPrice: 5.99,
+        discount: 20,
+        description:
+          "Fresh, juicy organic tomatoes grown without pesticides. Perfect for salads and cooking. These premium tomatoes are harvested at peak ripeness to ensure maximum flavor and nutritional value.",
+        images: [
+          { src: brown, alt: "Birthday Cake" },
+          { src: brown1, alt: "Tomatoes" },
+        ],
+        rating: 4.8,
+        reviews: [
+          {
+            name: "John Doe",
+            rating: 5,
+            text: "Excellent quality tomatoes, very fresh!",
+          },
+          {
+            name: "Sarah Smith",
+            rating: 4,
+            text: "Good product, fast delivery.",
+          },
+        ],
+      });
+    }, 500);
+  });
+};
 
-  if (!product) return <div>Loading...</div>;
+// SECTION: ProductDetails Page
+function ProductDetails() {
+  const navigate = useNavigate();
+  // SECTION: State Management
+  const [product, setProduct] = useState(null);
+  const [mainImg, setMainImg] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [showCustomize, setShowCustomize] = useState(false);
+  const [customText, setCustomText] = useState("");
+  const [reviewText, setReviewText] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviews, setReviews] = useState([]);
+  const [isWishlisted, setIsWishlisted] = useState(false);
 
-  const handleNextImage = () => {
-    if (currentImageIndex < product.images.length - 1) {
-      setCurrentImageIndex(currentImageIndex + 1);
-    } else {
-      setCurrentImageIndex(0);
-    }
+  // SECTION: Data Fetching
+  useEffect(() => {
+    // Replace '1' with dynamic product ID from route params later
+    fetchProductDetails(1).then((data) => {
+      setProduct(data);
+      setMainImg(data.images[0].src);
+      setReviews(data.reviews);
+    });
+  }, []);
+
+  // SECTION: Action Handlers
+  const handleAddToCart = () => {
+    // TODO: Connect to backend
+    alert("Added to cart! (Connect to backend later)");
   };
-
-  const handleReviewSubmit = (e) => {
-    e.preventDefault();
-    if (newReview.rating > 0 && newReview.comment.trim()) {
+  const handleBuyNow = () => {
+    // TODO: Connect to backend
+    alert("Proceed to buy now! (Connect to backend later)");
+  };
+  const handleWishlist = () => {
+    // Toggle wishlist state
+    setIsWishlisted((prev) => !prev);
+    // TODO: Connect to backend
+    // alert("Added to wishlist! (Connect to backend later)");
+  };
+  const handleSubmitReview = () => {
+    if (reviewText.trim()) {
+      // TODO: Send review to backend
       setReviews([
         ...reviews,
-        { id: Date.now(), user: "Current User", ...newReview },
+        { name: "You", rating: reviewRating, text: reviewText },
       ]);
-      setNewReview({ rating: 0, comment: "" });
+      setReviewText("");
+      setReviewRating(5);
     }
   };
 
+  if (!product) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <span className="text-lg text-gray-500">
+          Loading product details...
+        </span>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-green-50 min-h-screen py-20 px-4 sm:px-6 lg:px-20">
-      <div className="max-w-7xl mx-auto">
-        <button
-          onClick={() => navigate("/marketplace")}
-          className="mb-6 text-green-600 hover:text-green-800 font-semibold cursor-pointer"
-          //style={{ background: "green" }}
-        >
-          ← Back to Marketplace
-        </button>
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className="lg:w-1/2 relative">
-            <div className="h-96 overflow-hidden rounded-lg">
+    <div className="bg-[#fafbfc] min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 py-2 mt-20">
+        <div className="flex flex-col md:flex-row gap-10">
+          {/* SECTION: Product Image and Thumbnails */}
+          <div className="md:w-1/2 flex flex-col items-center">
+            {/* Back button above the main image, aligned left */}
+            <button
+              onClick={() => navigate(-1)}
+              className="mb-4 px-4 py-2 rounded-lg border border-gray-200 bg-white text-lg flex items-center gap-2 hover:bg-gray-100 shadow self-start cursor-pointer"
+            >
+              <FaArrowLeft /> Back
+            </button>
+            <div className="w-full max-w-[600px] aspect-square bg-gray-100 rounded-xl flex items-center justify-center mb-4 overflow-hidden">
               <img
-                src={product.images[currentImageIndex]}
-                alt={`${product.name} Image ${currentImageIndex + 1}`}
-                className="w-full h-full object-cover"
+                src={mainImg}
+                alt="Product"
+                className="object-cover w-full h-full rounded-xl"
               />
-              <button
-                onClick={handleNextImage}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white text-green-600 hover:text-green-800 rounded-full p-2"
-              >
-                <FaArrowRight />
-              </button>
             </div>
-          </div>
-          <div className="lg:w-1/2">
-            <h2 className="text-3xl font-bold text-green-700 mb-4">
-              {product.name}
-            </h2>
-            <p className="text-gray-600 mb-4">{product.details}</p>
-            <p className="text-2xl text-green-600 font-bold mb-4">
-              ${product.price.toFixed(2)}
-            </p>
-            <div className="flex items-center mb-4">
-              <button
-                onClick={() => setIsInWishlist(!isInWishlist)}
-                className="flex items-center gap-2 text-green-600 hover:text-green-800"
-              >
-                <FaHeart className={isInWishlist ? "text-red-500" : ""} />
-                {isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
-              </button>
-            </div>
-            <div className="mb-4">
-              <button
-                onClick={() => alert(`Customizing ${product.name}...`)}
-                className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition cursor-pointer"
-              >
-                Customize Product
-              </button>
-            </div>
-            <div className="flex gap-4 mb-4">
-              <button
-                className="w-1/2 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition cursor-pointer"
-                onClick={() => alert(`Added ${product.name} to cart!`)}
-              >
-                Add to Cart
-              </button>
-              <button
-                className="w-1/2 bg-green-600 text-white py-2 rounded-lg hover:bg-green-800 transition cursor-pointer"
-                onClick={() => alert(`Buying ${product.name} now!`)}
-              >
-                Buy Now
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="mt-8">
-          <h3 className="text-2xl font-semibold text-green-700 mb-4">
-            Customer Comments
-          </h3>
-          {reviews.length === 0 ? (
-            <p className="text-gray-600">No comments yet.</p>
-          ) : (
-            <div className="space-y-4">
-              {reviews.map((review) => (
-                <div
-                  key={review.id}
-                  className="bg-white p-4 rounded-lg shadow-md"
+            {/* Thumbnails aligned left under main image */}
+            <div className="flex gap-4 mt-2 w-full max-w-[600px] justify-start">
+              {product.images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setMainImg(img.src)}
+                  className={`border-2 rounded-lg p-1 transition ${
+                    mainImg === img.src
+                      ? "border-green-500"
+                      : "border-transparent"
+                  }`}
                 >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-semibold">{review.user}</span>
-                    <div className="flex">
-                      {Array(5)
-                        .fill()
-                        .map((_, i) => (
-                          <FaStar
-                            key={i}
-                            className={
-                              i < review.rating
-                                ? "text-yellow-400"
-                                : "text-gray-300"
-                            }
-                          />
-                        ))}
-                    </div>
-                  </div>
-                  <p className="text-gray-600">{review.comment}</p>
-                </div>
+                  <img
+                    src={img.src}
+                    alt={img.alt}
+                    className="w-16 h-16 object-cover rounded"
+                  />
+                </button>
               ))}
             </div>
-          )}
-          <div className="mt-4">
-            <h4 className="text-xl font-semibold text-green-700 mb-2">
-              Add Your Review
-            </h4>
-            <form onSubmit={handleReviewSubmit} className="space-y-2">
-              <div>
-                <label className="block text-gray-700 mb-1">
-                  Rating (1-5):
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="5"
-                  value={newReview.rating}
-                  onChange={(e) =>
-                    setNewReview({
-                      ...newReview,
-                      rating: parseInt(e.target.value),
-                    })
-                  }
-                  className="w-full p-2 border border-green-300 rounded-lg"
+          </div>
+
+          {/* SECTION: Product Info */}
+          <div className="md:w-1/2 flex flex-col justify-start mt-15">
+            <div className="mb-2 text-green-700 font-semibold text-lg">
+              {product.category}
+            </div>
+            <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="flex">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <FaStar
+                    key={star}
+                    className={
+                      star <= Math.round(product.rating)
+                        ? "text-yellow-400"
+                        : "text-gray-300"
+                    }
+                  />
+                ))}
+              </span>
+              <span className="text-gray-600 text-base ml-2">
+                ({product.rating}) • 3 reviews
+              </span>
+            </div>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-green-600 text-3xl font-bold">
+                ${product.price}
+              </span>
+              <span className="line-through text-gray-400 text-xl">
+                ${product.oldPrice}
+              </span>
+              <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-base font-semibold">
+                -{product.discount}%
+              </span>
+            </div>
+            <p className="text-gray-700 mb-6 text-lg">{product.description}</p>
+            {/* SECTION: Quantity Selector */}
+            <div className="flex items-center gap-3 mb-6">
+              <span className="font-semibold text-lg">Quantity:</span>
+              <button
+                className="border px-3 py-1 rounded text-xl cursor-pointer"
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              >
+                -
+              </button>
+              <span className="text-lg">{quantity}</span>
+              <button
+                className="border px-3 py-1 rounded text-xl cursor-pointer"
+                onClick={() => setQuantity((q) => q + 1)}
+              >
+                +
+              </button>
+            </div>
+            {/* SECTION: Action Buttons */}
+            <div className="flex gap-3 mb-3">
+              <button
+                className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg text-lg flex items-center justify-center gap-2 cursor-pointer"
+                onClick={handleAddToCart}
+              >
+                <FaShoppingCart /> Add to Cart
+              </button>
+              <button
+                onClick={handleWishlist}
+                title="Add to Wishlist"
+                className={`w-12 h-12 flex items-center justify-center rounded-lg border-1 border-green-500 transition-colors duration-200 bg-gray-100 cursor-pointer`}
+                style={{ lineHeight: 0 }}
+              >
+                <FaHeart
+                  size={24}
+                  style={{
+                    fill: isWishlisted ? '#ec4899' : '#fff', // pink-500 or white (so inside is white)
+                    stroke: isWishlisted ? '#ec4899' : '#22c55e', // pink-500 or green-500
+                    strokeWidth: 2.5,
+                  }}
                 />
+              </button>
+            </div>
+            <button
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg text-lg font-semibold mb-3 cursor-pointer"
+              onClick={handleBuyNow}
+            >
+              Buy Now
+            </button>
+            <button
+              className="w-full border border-gray-300 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 cursor-pointer"
+              onClick={() => setShowCustomize((s) => !s)}
+            >
+              Request Customization
+            </button>
+            {/* SECTION: Customization Textarea */}
+            {showCustomize && (
+              <textarea
+                className="w-full border border-gray-300 focus:border-gray-500 rounded p-3 mt-2 focus:outline-none"
+                rows={2}
+                placeholder="Describe your customization request..."
+                value={customText}
+                onChange={(e) => setCustomText(e.target.value)}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* SECTION: Customer Reviews */}
+        <div className="w-full flex justify-center mt-12">
+          <div className="w-full max-w-[1500px] mx-auto">
+            <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
+            <div className="bg-white rounded-xl shadow p-6 mb-6">
+              <h3 className="text-xl font-semibold mb-2">Write a Review</h3>
+              <div className="mb-2">
+                <span className="font-semibold">Rating:</span>
+                <span className="ml-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <FaStar
+                      key={star}
+                      className={`inline mr-1 cursor-pointer text-2xl ${
+                        reviewRating >= star
+                          ? "text-yellow-400"
+                          : "text-gray-300"
+                      }`}
+                      onClick={() => setReviewRating(star)}
+                    />
+                  ))}
+                </span>
               </div>
-              <div>
-                <label className="block text-gray-700 mb-1">Comment:</label>
+              <div className="mb-4">
+                <span className="font-semibold">Your Review:</span>
                 <textarea
-                  value={newReview.comment}
-                  onChange={(e) =>
-                    setNewReview({ ...newReview, comment: e.target.value })
-                  }
-                  className="w-full p-2 border border-green-300 rounded-lg"
-                  rows="3"
-                  placeholder="Enter your review..."
+                  className="w-full border border-gray-300 focus:border-gray-500 rounded p-3 mt-2 focus:outline-none"
+                  rows={2}
+                  placeholder="Share your experience with this product..."
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
                 />
               </div>
               <button
-                type="submit"
-                className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition cursor-pointer"
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold cursor-pointer"
+                onClick={handleSubmitReview}
               >
                 Submit Review
               </button>
-            </form>
+            </div>
+            {/* SECTION: List of Reviews */}
+            <div className="space-y-4">
+              {reviews.length === 0 && (
+                <div className="text-gray-500">No reviews yet.</div>
+              )}
+              {reviews.map((review, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white rounded-xl shadow p-4 flex flex-col gap-1"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-green-700">
+                      {review.name}
+                    </span>
+                    <span className="flex">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <FaStar
+                          key={star}
+                          className={
+                            star <= review.rating
+                              ? "text-yellow-400"
+                              : "text-gray-300"
+                          }
+                        />
+                      ))}
+                    </span>
+                  </div>
+                  <div className="text-gray-700">{review.text}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
-      {/* <Footer /> */}
+      {/* SECTION: Footer (full width) */}
+      <Footer />
     </div>
   );
-};
+}
 
 export default ProductDetails;

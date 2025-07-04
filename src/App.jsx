@@ -9,6 +9,7 @@ import ContactUs from "./pages/ContactUs";
 import Faq from "./pages/Faq";
 import ProductDetails from "./pages/ProductDetails";
 import Aboutus from "./pages/Aboutus";
+import Welcoming from "./pages/Welcoming";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/about" element={<Aboutus />} />
             <Route path="/faq" element={<Faq />} />
+            <Route path="/Welcoming" element={<Welcoming />} />
           </Routes>
         </main>
       </div>

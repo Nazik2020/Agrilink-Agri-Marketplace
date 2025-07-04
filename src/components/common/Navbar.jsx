@@ -91,7 +91,7 @@ const Navbar = () => {
                   <FaUserCircle className="text-lg text-green-600" /> Login
                 </Link>
                 <Link
-                  to="/signup"
+                  to="/Welcoming"
                   className="flex items-center gap-2 px-5 py-3 hover:bg-gray-100 text-green-600 text-base rounded-b-lg cursor-pointer"
                   onClick={() => setIsAccountDropdownOpen(false)}
                 >
@@ -191,7 +191,7 @@ const Navbar = () => {
                   <FaUserCircle className="text-lg text-green-600" /> Login
                 </Link>
                 <Link
-                  to="/signup"
+                  to="/Welcoming"
                   className="flex items-center gap-2 px-5 py-3 hover:bg-gray-100 text-green-600 text-base rounded-b-lg cursor-pointer"
                   onClick={() => {
                     setIsAccountDropdownOpen(false);

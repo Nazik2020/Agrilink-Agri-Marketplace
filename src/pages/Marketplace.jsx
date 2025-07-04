@@ -11,7 +11,7 @@ const Marketplace = () => {
 
   return (
     <>
-      <section className="bg-green-50 min-h-screen py-16 px-4 sm:px-6 lg:px-20">
+      <section className="bg-white min-h-screen py-16 px-4 sm:px-6 lg:px-20">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl font-bold text-[#14452F] text-center mb-10">
             Explore Our Marketplace

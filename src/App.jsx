@@ -2,6 +2,8 @@ import { Route, Routes } from "react-router";
 import Navbar from "./components/common/Navbar"; //"./components/common/Navbar";
 //import Hero from "./components/Hero";
 
+// import nazik hooooooooooooooooooooooo
+
 import Home from "./pages/Home";
 import Marketplace from "./pages/Marketplace";
 import Blog from "./pages/Blog";

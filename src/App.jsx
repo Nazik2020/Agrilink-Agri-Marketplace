@@ -10,6 +10,7 @@ import Faq from "./pages/Faq";
 import ProductDetails from "./pages/ProductDetails";
 import Aboutus from "./pages/Aboutus";
 import Welcoming from "./pages/Welcoming";
+import Login from "./pages/Login"; 
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route path="/about" element={<Aboutus />} />
             <Route path="/faq" element={<Faq />} />
             <Route path="/Welcoming" element={<Welcoming />} />
+            <Route path="/Login" element={<Login />} /> 
           </Routes>
         </main>
       </div>

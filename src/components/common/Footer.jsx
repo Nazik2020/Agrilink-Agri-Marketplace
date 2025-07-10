@@ -6,7 +6,7 @@ const Footer = () => {
 
   return (
     <footer
-      className={`bg-[#14452F] text-white px-4 sm:px-6 lg:px-8 transition-all duration-300 ${
+      className={`bg-[#14452F] text-white min-w-screen px-4 sm:px-6 lg:px-8 transition-all duration-300 ${
         isHovered ? "py-22" : "py-18"
       }`}
       onMouseEnter={() => setIsHovered(true)}

@@ -12,13 +12,14 @@ import Faq from "./pages/Faq";
 import ProductDetails from "./pages/ProductDetails";
 import Aboutus from "./pages/Aboutus";
 import Welcoming from "./pages/Welcoming";
+import Login from "./pages/Login";
 
 function App() {
   return (
     <>
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Navbar />
-        <main className="flex-grow pt-16">
+        <main className="">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/blog" element={<Blog />} />
@@ -28,6 +29,7 @@ function App() {
             <Route path="/about" element={<Aboutus />} />
             <Route path="/faq" element={<Faq />} />
             <Route path="/Welcoming" element={<Welcoming />} />
+            <Route path="/Login" element={<Login />} />
           </Routes>
         </main>
       </div>

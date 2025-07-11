@@ -1,12 +1,45 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Logo from '../../assets/login/AgriLink.png';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 export default function RightSection() {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage('');
+    if (!formData.email || !formData.password) {
+      setMessage('Please enter both email and password.');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const res = await axios.post('http://localhost/backend/Login.php', {
+        email: formData.email,
+        password: formData.password,
+      });
+      setMessage(res.data.message); // Show the backend's exact message
+    } catch (error) {
+      setMessage('Network error. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="w-full md:w-1/2 bg-white p-4 md:p-8 flex flex-col justify-center items-center">
       <div className="w-full max-w-sm sm:max-w-md md:max-w-lg">
-        
         <div className="flex items-center justify-center mb-6">
           <img
             src={Logo}
@@ -16,14 +49,14 @@ export default function RightSection() {
           <div className="h-12 sm:h-16 border-l border-gray-300 mx-4"></div>
           <div className="text-left">
             <h2 className="text-xl sm:text-2xl font-light text-gray-600">
-              Agricultural<br/>Marketplace
+              Agricultural<br />Marketplace
             </h2>
           </div>
         </div>
         <div className="bg-gray-100 bg-opacity-30 rounded-lg p-6" style={{
-          background: 'rgba(239, 243, 240, 0.06)', 
-          backdropFilter: 'blur(10px)',            
-          WebkitBackdropFilter: 'blur(10px)',     
+          background: 'rgba(239, 243, 240, 0.06)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
           border: '1px solid rgba(255, 255, 255, 0.18)',
           boxShadow: '4px 10px 10px 0 rgba(31, 135, 71, 0.1)'
         }}>
@@ -37,17 +70,23 @@ export default function RightSection() {
           </div>
 
           {/* Form */}
-          <form className="space-y-4" style={{ padding: '10px 30px 20px 30px' }}>
+          <form className="space-y-4" style={{ padding: '10px 30px 20px 30px' }} onSubmit={handleSubmit}>
             <div>
               <input
-                type="text"
-                placeholder="Enter your username"
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Enter your email"
                 className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg"
               />
             </div>
             <div>
               <input
                 type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
                 placeholder="Enter your password"
                 className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg"
               />
@@ -55,11 +94,15 @@ export default function RightSection() {
             <a href="#" className="text-green-600 text-sm block text-right">
               Forgot Password?
             </a>
-            <button type="submit" className="w-full bg-gray-200 text-gray-500 p-2 sm:p-3 rounded-lg  hover:bg-green-600 hover:text-white shadow-lg hover:shadow-xl">
-              Login
+            <button type="submit" className="w-full bg-gray-200 text-gray-500 p-2 sm:p-3 rounded-lg  hover:bg-green-600 hover:text-white shadow-lg hover:shadow-xl" disabled={isLoading}>
+              {isLoading ? 'Logging in...' : 'Login'}
             </button>
+            {/* Show backend message */}
+            {message && (
+              <div className={`text-center text-sm mt-2 ${message.includes('success') ? 'text-green-600' : 'text-red-600'}`}>{message}</div>
+            )}
             <p className="text-center text-sm text-gray-500 mt-2">
-              Don't have an account? <Link to ="/Welcoming" className="text-green-600 font-bold">Sign up</Link>
+              Don't have an account? <Link to="/Welcoming" className="text-green-600 font-bold">Sign up</Link>
             </p>
           </form>
         </div>

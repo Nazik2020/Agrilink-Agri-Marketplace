@@ -2,7 +2,7 @@ import { Link } from "react-router-dom"
 import React from "react"
 import Logo from "../../assets/login/AgriLink.png"
 
-const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) => {
+const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit, message }) => {
   return (
     <div className="w-full min-h-screen lg:w-1/2 flex items-center justify-center p-4 sm:p-6 md:p-8 bg-gray-50 overflow-auto ">
       <div className="w-full max-w-md space-y-4">
@@ -45,26 +45,24 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
             />
             {errors.fullName && <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>}
           </div>
-
-          {/* UserName */}
+          {/* Username */}
           <div>
-            <label htmlFor="username" className="block text-base font-medium text-gray-600 mb-2">
+            <label htmlFor="userName" className="block text-base font-medium text-gray-600 mb-2">
               Username
             </label>
             <input
               type="text"
-              id="username"
-              name="username"
-              value={formData.username}
+              id="userName"
+              name="userName"
+              value={formData.userName}
               onChange={onInputChange}
               placeholder="Enter your username"
               className={`w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                errors.username ? "border-red-500" : "border-gray-300"
+                errors.userName ? "border-red-500" : "border-gray-300"
               }`}
             />
-            {errors.username && <p className="mt-1 text-sm text-red-600">{errors.username}</p>}
+            {errors.userName && <p className="mt-1 text-sm text-red-600">{errors.userName}</p>}
           </div>
-          
           {/* Email */}
           <div>
             <label htmlFor="email" className="block text-base font-medium text-gray-600 mb-2">
@@ -83,7 +81,6 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
             />
             {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
           </div>
-
           {/* Password */}
           <div>
             <label htmlFor="password" className="block text-base font-medium text-gray-600 mb-2">
@@ -102,7 +99,6 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
             />
             {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
           </div>
-
           {/* Confirm Password */}
           <div>
             <label htmlFor="confirmPassword" className="block text-base font-medium text-gray-600 mb-2">
@@ -121,7 +117,6 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
             />
             {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
           </div>
-
           {/* Submit Button */}
           <button
             type="submit"
@@ -149,7 +144,10 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
               "Sign Up"
             )}
           </button>
-
+          {/* Show backend message */}
+          {message && (
+            <div className={`text-center text-sm mt-2 ${message.includes("successfully") ? "text-green-600" : "text-red-600"}`}>{message}</div>
+          )}
           {/* Login Link */}
           <div className="text-center">
             <p className="text-sm text-gray-600">

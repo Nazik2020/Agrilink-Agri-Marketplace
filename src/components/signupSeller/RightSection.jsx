@@ -2,7 +2,7 @@ import React from "react"
 import Logo from "../../assets/login/AgriLink.png"
 import { Link } from "react-router-dom"
 
-const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) => {
+const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit, message }) => {
   const countries = [
     "Select your country",
     "United States",
@@ -87,7 +87,6 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
             />
             {errors.businessName && <p className="mt-1 text-sm text-red-600">{errors.businessName}</p>}
           </div>
-
           {/* Business Description */}
           <div>
             <label htmlFor="businessDescription" className="block text-base font-medium text-gray-600 mb-2">
@@ -98,15 +97,14 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
               name="businessDescription"
               value={formData.businessDescription}
               onChange={onInputChange}
-              placeholder="Brief description of your business..."
-              rows={3}
-              className={`w-full px-4 py-2 border rounded-2xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors resize-none ${
+              placeholder="Describe your business"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
                 errors.businessDescription ? "border-red-500" : "border-gray-300"
               }`}
+              rows={3}
             />
             {errors.businessDescription && <p className="mt-1 text-sm text-red-600">{errors.businessDescription}</p>}
           </div>
-
           {/* Country */}
           <div>
             <label htmlFor="country" className="block text-base font-medium text-gray-600 mb-2">
@@ -117,19 +115,18 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
               name="country"
               value={formData.country}
               onChange={onInputChange}
-              className={`w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors appearance-none bg-white ${
+              className={`w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
                 errors.country ? "border-red-500" : "border-gray-300"
               }`}
             >
-              {countries.map((country, index) => (
-                <option key={index} value={index === 0 ? "" : country} disabled={index === 0}>
+              {countries.map((country) => (
+                <option key={country} value={country === "Select your country" ? "" : country}>
                   {country}
                 </option>
               ))}
             </select>
             {errors.country && <p className="mt-1 text-sm text-red-600">{errors.country}</p>}
           </div>
-
           {/* Email */}
           <div>
             <label htmlFor="email" className="block text-base font-medium text-gray-600 mb-2">
@@ -148,7 +145,6 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
             />
             {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
           </div>
-
           {/* Password */}
           <div>
             <label htmlFor="password" className="block text-base font-medium text-gray-600 mb-2">
@@ -167,7 +163,6 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
             />
             {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
           </div>
-
           {/* Confirm Password */}
           <div>
             <label htmlFor="confirmPassword" className="block text-base font-medium text-gray-600 mb-2">
@@ -186,30 +181,20 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
             />
             {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
           </div>
-
-          {/* Terms Agreement */}
-          <div className="flex items-start space-x-3">
+          {/* Agree to Terms */}
+          <div className="flex items-center">
             <input
               type="checkbox"
               id="agreeToTerms"
               name="agreeToTerms"
               checked={formData.agreeToTerms}
               onChange={onInputChange}
-              className="mt-1 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+              className="mr-2"
             />
             <label htmlFor="agreeToTerms" className="text-sm text-gray-600">
-              I agree to the{" "}
-              <Link to="/terms" className="text-green-600 hover:text-green-700 underline">
-                Terms of Service
-              </Link>{" "}
-              and{" "}
-              <Link to="/privacy" className="text-green-600 hover:text-green-700 underline">
-                Privacy Policy
-              </Link>
+              I agree to the <a href="#" className="text-green-600 hover:underline">Terms of Service</a> and <a href="#" className="text-green-600 hover:underline">Privacy Policy</a>
             </label>
           </div>
-          {errors.agreeToTerms && <p className="text-sm text-red-600">{errors.agreeToTerms}</p>}
-
           {/* Submit Button */}
           <button
             type="submit"
@@ -237,7 +222,10 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
               "Sign Up"
             )}
           </button>
-
+          {/* Show backend message */}
+          {message && (
+            <div className={`text-center text-sm mt-2 ${message.includes("successfully") ? "text-green-600" : "text-red-600"}`}>{message}</div>
+          )}
           {/* Login Link */}
           <div className="text-center">
             <p className="text-sm text-gray-600">

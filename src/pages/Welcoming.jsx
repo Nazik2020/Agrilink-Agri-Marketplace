@@ -11,7 +11,7 @@ const Welcoming = () => {
       <Navbar />
       <div className="bg-white min-h-[70vh]">
         <div className="text-center mt-10">
-          <h1 className="text-[#219653] font-semibold text-4xl md:text-5xl italic py-16">
+          <h1 className="text-[#219653] font-semibold text-4xl md:text-5xl italic py-30">
             Welcome to AgriLink
           </h1>
         </div>
@@ -46,14 +46,6 @@ const Welcoming = () => {
               customers.
             </p>
           </div>
-        </div>
-        <div className="text-center mb-20 mt-16">
-          <button
-            className="bg-[#B7EFC5] text-black font-semibold text-lg rounded-lg px-8 py-3 cursor-pointer opacity-80 transition-colors duration-200 hover:bg-[#219653] hover:text-white"
-            // onClick={() => navigate("/signup")}
-          >
-            Create an Account
-          </button>
         </div>
       </div>
       <Footer />

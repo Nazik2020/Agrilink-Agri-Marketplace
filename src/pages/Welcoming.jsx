@@ -1,11 +1,14 @@
 import React from "react";
 import Navbar from "../components/common/Navbar";
+import { useNavigate } from "react-router-dom";
 import Footer from "../components/common/Footer";
 // You can replace these with your own images
 import customerImg from "../assets/WelcomingPage/CustomerSignup.jpg";
 import sellerImg from "../assets/WelcomingPage/SellerSignup.jpg";
 
 const Welcoming = () => {
+const Navigate = useNavigate();
+
   return (
     <>
       <Navbar />
@@ -23,7 +26,8 @@ const Welcoming = () => {
               alt="Customer"
               className="w-40 h-40 rounded-full shadow-md mb-5 object-cover mx-auto"
             />
-            <button className="text-[#219653] font-semibold text-[15px] bg-[#E8F8EF] rounded-md px-4 py-2 mt-2 mb-2 transition-colors duration-200 hover:bg-[#219653] hover:text-white cursor-pointer">
+            <button className="text-[#219653] font-semibold text-[15px] bg-[#E8F8EF] rounded-md px-4 py-2 mt-2 mb-2 transition-colors duration-200 hover:bg-[#219653] hover:text-white cursor-pointer"
+            onClick={() => Navigate("/CustomerSignup")}>
               I'm a Customer
             </button>
             <p className="text-gray-500 text-base mt-2">
@@ -38,7 +42,8 @@ const Welcoming = () => {
               alt="Seller"
               className="w-40 h-40 rounded-full shadow-md mb-5 object-cover mx-auto"
             />
-            <button className="text-[#219653] font-semibold text-[15px] bg-[#E8F8EF] rounded-md px-4 py-2 mt-2 mb-2 transition-colors duration-200 hover:bg-[#219653] hover:text-white cursor-pointer">
+            <button className="text-[#219653] font-semibold text-[15px] bg-[#E8F8EF] rounded-md px-4 py-2 mt-2 mb-2 transition-colors duration-200 hover:bg-[#219653] hover:text-white cursor-pointer"
+            onClick={() => Navigate("/SellerSignup")}>
               I'm a Seller
             </button>
             <p className="text-gray-500 text-base mt-2">

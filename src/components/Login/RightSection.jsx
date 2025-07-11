@@ -1,5 +1,6 @@
 import React from 'react';
 import Logo from '../../assets/login/AgriLink.png';
+import { Link } from 'react-router-dom';
 
 export default function RightSection() {
   return (
@@ -58,7 +59,7 @@ export default function RightSection() {
               Login
             </button>
             <p className="text-center text-sm text-gray-500 mt-2">
-              Don't have an account? <a href="#" className="text-green-600 font-bold">Sign up</a>
+              Don't have an account? <Link to ="/Welcoming" className="text-green-600 font-bold">Sign up</Link>
             </p>
           </form>
         </div>

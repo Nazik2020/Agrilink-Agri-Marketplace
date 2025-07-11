@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { FaHeart, FaStar, FaArrowLeft, FaShoppingCart } from "react-icons/fa";
 import Footer from "../components/common/Footer";
+import CustomizationModal from "../components/marketplace/CustomizationModal";
 // Placeholder images (replace with dynamic data later)
 import brown from "../assets/marketplace/all/brown.jpg";
 import brown1 from "../assets/marketplace/all/brown1.jpg";
@@ -42,7 +43,6 @@ const fetchProductDetails = async (productId) => {
   });
 };
 
-// SECTION: ProductDetails Page
 function ProductDetails() {
   const navigate = useNavigate();
   // SECTION: State Management
@@ -71,16 +71,19 @@ function ProductDetails() {
     // TODO: Connect to backend
     alert("Added to cart! (Connect to backend later)");
   };
+
   const handleBuyNow = () => {
     // TODO: Connect to backend
     alert("Proceed to buy now! (Connect to backend later)");
   };
+
   const handleWishlist = () => {
     // Toggle wishlist state
     setIsWishlisted((prev) => !prev);
     // TODO: Connect to backend
     // alert("Added to wishlist! (Connect to backend later)");
   };
+
   const handleSubmitReview = () => {
     if (reviewText.trim()) {
       // TODO: Send review to backend
@@ -104,15 +107,11 @@ function ProductDetails() {
   }
 
   return (
-    <div className="bg-[#fafbfc] min-h-screen">
+    <div className="bg-[#fafbfc] min-h-screen relative">
       <div className="max-w-7xl mx-auto px-4 py-2 mt-20">
         <div className="flex flex-col md:flex-row gap-10">
           {/* SECTION: Product Image and Thumbnails */}
-          {/* SECTION: Product Image and Thumbnails */}
-          {/* SECTION: Product Image and Thumbnails */}
           <div className="md:w-1/2 flex flex-col items-center">
-            {/* Back button above the main image, aligned left */}
-            {/* Back button above the main image, aligned left */}
             {/* Back button above the main image, aligned left */}
             <button
               onClick={() => navigate(-1)}
@@ -127,8 +126,6 @@ function ProductDetails() {
                 className="object-cover w-full h-full rounded-xl"
               />
             </div>
-            {/* Thumbnails aligned left under main image */}
-            {/* Thumbnails aligned left under main image */}
             {/* Thumbnails aligned left under main image */}
             <div className="flex gap-4 mt-2 w-full max-w-[600px] justify-start">
               {product.images.map((img, idx) => (
@@ -151,8 +148,6 @@ function ProductDetails() {
             </div>
           </div>
 
-          {/* SECTION: Product Info */}
-          {/* SECTION: Product Info */}
           {/* SECTION: Product Info */}
           <div className="md:w-1/2 flex flex-col justify-start mt-15">
             <div className="mb-2 text-green-700 font-semibold text-lg">
@@ -188,8 +183,7 @@ function ProductDetails() {
               </span>
             </div>
             <p className="text-gray-700 mb-6 text-lg">{product.description}</p>
-            {/* SECTION: Quantity Selector */}
-            {/* SECTION: Quantity Selector */}
+
             {/* SECTION: Quantity Selector */}
             <div className="flex items-center gap-3 mb-6">
               <span className="font-semibold text-lg">Quantity:</span>
@@ -207,8 +201,7 @@ function ProductDetails() {
                 +
               </button>
             </div>
-            {/* SECTION: Action Buttons */}
-            {/* SECTION: Action Buttons */}
+
             {/* SECTION: Action Buttons */}
             <div className="flex gap-3 mb-3">
               <button
@@ -228,7 +221,7 @@ function ProductDetails() {
                   style={{
                     fill: isWishlisted ? "#ec4899" : "#fff", // pink-500 or white (so inside is white)
                     stroke: isWishlisted ? "#ec4899" : "#22c55e", // pink-500 or green-500
-                    strokeWidth: 2.5,
+                    strokeWidth: 10,
                   }}
                 />
               </button>
@@ -241,7 +234,7 @@ function ProductDetails() {
             </button>
             <button
               className="w-full border border-gray-300 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 cursor-pointer"
-              onClick={() => setShowCustomize((s) => !s)}
+              onClick={() => setShowCustomize(true)}
             >
               Request Customization
             </button>
@@ -249,8 +242,6 @@ function ProductDetails() {
         </div>
 
         {/* SECTION: Customer Reviews */}
-        {/* SECTION: Customer Reviews */}
-
         <div className="w-full flex justify-center mt-12">
           <div className="w-full max-w-[1500px] mx-auto">
             <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
@@ -289,8 +280,7 @@ function ProductDetails() {
                 Submit Review
               </button>
             </div>
-            {/* SECTION: List of Reviews */}
-            {/* SECTION: List of Reviews */}
+
             {/* SECTION: List of Reviews */}
             <div className="space-y-4">
               {reviews.length === 0 && (
@@ -325,10 +315,15 @@ function ProductDetails() {
           </div>
         </div>
       </div>
-      {/* SECTION: Footer (full width) */}
-      {/* SECTION: Footer (full width) */}
+
       {/* SECTION: Footer (full width) */}
       <Footer />
+
+      {/* Modal is rendered here, as a sibling to all content */}
+      <CustomizationModal
+        open={showCustomize}
+        onClose={() => setShowCustomize(false)}
+      />
     </div>
   );
 }

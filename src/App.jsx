@@ -13,7 +13,6 @@ import ProductDetails from "./pages/ProductDetails";
 import Aboutus from "./pages/Aboutus";
 import Welcoming from "./pages/Welcoming";
 import Login from "./pages/Login";
-
 function App() {
   return (
     <>

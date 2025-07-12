@@ -6,7 +6,7 @@ import Home from "./pages/Home";
 import Marketplace from "./pages/Marketplace";
 import Blog from "./pages/Blog";
 import ContactUs from "./pages/ContactUs";
-import Faq from "./pages/Faq";
+import FAQ from "./pages/Faq";
 import ProductDetails from "./pages/ProductDetails";
 import Aboutus from "./pages/Aboutus";
 import Welcoming from "./pages/Welcoming";
@@ -18,14 +18,15 @@ function App() {
         <Navbar />
         <main className="flex-grow pt-16">
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/faq/" element={<FAQ />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/contact" element={<ContactUs />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/about" element={<Aboutus />} />
-            <Route path="/faq" element={<Faq />} />
             <Route path="/Welcoming" element={<Welcoming />} />
+            <Route path="/" element={<Home />} />
           </Routes>
         </main>
       </div>

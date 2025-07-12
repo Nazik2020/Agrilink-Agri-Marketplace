@@ -13,8 +13,8 @@ import ProductDetails from "./pages/ProductDetails";
 import Aboutus from "./pages/Aboutus";
 import Welcoming from "./pages/Welcoming";
 import Login from "./pages/Login";
-import CustomerSignup from "./pages/CustomerSignup";
-import SellerSignup from "./pages/SellerSignup";  
+import CustomerSignupPage from "./components/signupCustomer/CustomerSignupPage";
+import SellerSignupPage from "./components/signupSeller/SellerSignupPage";
 
 function App() {
   return (
@@ -32,8 +32,8 @@ function App() {
             <Route path="/faq" element={<Faq />} />
             <Route path="/Welcoming" element={<Welcoming />} />
             <Route path="/Login" element={<Login />} />
-            <Route path="/CustomerSignup" element={<CustomerSignup />} />
-            <Route path="/SellerSignup" element={<SellerSignup />} />
+            <Route path="/CustomerSignup" element={<CustomerSignupPage />} />
+            <Route path="/SellerSignup" element={<SellerSignupPage />} />
           </Routes>
         </main>
       </div>

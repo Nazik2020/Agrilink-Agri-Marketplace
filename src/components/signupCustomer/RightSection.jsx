@@ -1,8 +1,8 @@
-import { Link } from "react-router-dom"
-import React from "react"
-import Logo from "../../assets/login/AgriLink.png"
+import { Link } from "react-router-dom";
+import React from "react";
+import Logo from "../../assets/login/AgriLink.png";
 
-const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) => {
+const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit, message }) => {
   return (
     <div className="w-full min-h-screen lg:w-1/2 flex items-center justify-center p-4 sm:p-6 md:p-8 bg-gray-50 overflow-auto ">
       <div className="w-full max-w-md space-y-4">
@@ -45,26 +45,24 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
             />
             {errors.fullName && <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>}
           </div>
-
-          {/* UserName */}
+          {/* Username */}
           <div>
-            <label htmlFor="username" className="block text-base font-medium text-gray-600 mb-2">
+            <label htmlFor="userName" className="block text-base font-medium text-gray-600 mb-2">
               Username
             </label>
             <input
               type="text"
-              id="username"
-              name="username"
-              value={formData.username}
+              id="userName"
+              name="userName"
+              value={formData.userName}
               onChange={onInputChange}
               placeholder="Enter your username"
               className={`w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                errors.username ? "border-red-500" : "border-gray-300"
+                errors.userName ? "border-red-500" : "border-gray-300"
               }`}
             />
-            {errors.username && <p className="mt-1 text-sm text-red-600">{errors.username}</p>}
+            {errors.userName && <p className="mt-1 text-sm text-red-600">{errors.userName}</p>}
           </div>
-          
           {/* Email */}
           <div>
             <label htmlFor="email" className="block text-base font-medium text-gray-600 mb-2">
@@ -83,7 +81,6 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
             />
             {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
           </div>
-
           {/* Password */}
           <div>
             <label htmlFor="password" className="block text-base font-medium text-gray-600 mb-2">
@@ -102,7 +99,6 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
             />
             {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
           </div>
-
           {/* Confirm Password */}
           <div>
             <label htmlFor="confirmPassword" className="block text-base font-medium text-gray-600 mb-2">
@@ -121,7 +117,6 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
             />
             {errors.confirmPassword && <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>}
           </div>
-
           {/* Submit Button */}
           <button
             type="submit"
@@ -149,7 +144,23 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
               "Sign Up"
             )}
           </button>
-
+          {/* Show backend message */}
+          {message && (
+            <div className={`text-center p-3 rounded-lg border ${
+              message.includes("successfully") 
+                ? "bg-green-50 text-green-800 border-green-200" 
+                : "bg-red-50 text-red-800 border-red-200"
+            }`}>
+              <div className="flex items-center justify-center">
+                {message.includes("successfully") && (
+                  <svg className="w-5 h-5 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                )}
+                {message}
+              </div>
+            </div>
+          )}
           {/* Login Link */}
           <div className="text-center">
             <p className="text-sm text-gray-600">
@@ -165,7 +176,7 @@ const RightSection = ({ formData, errors, isLoading, onInputChange, onSubmit }) 
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default RightSection
+export default RightSection; 

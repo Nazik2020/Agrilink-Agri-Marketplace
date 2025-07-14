@@ -1,9 +1,7 @@
-"use client"
-
-import { useState } from "react"
-import LeftSection from "./LeftSection"
-import RightSection from "./RightSection"
-import axios from "axios"
+import { useState } from "react";
+import LeftSection from "./LeftSection";
+import RightSection from "./RightSection";
+import axios from "axios";
 
 const CustomerSignupPage = () => {
   const [formData, setFormData] = useState({
@@ -12,61 +10,62 @@ const CustomerSignupPage = () => {
     email: "",
     password: "",
     confirmPassword: "",
-  })
+  });
 
-  const [errors, setErrors] = useState({})
-  const [isLoading, setIsLoading] = useState(false)
-  const [message, setMessage] = useState("")
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
+    }));
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
-      }))
+      }));
     }
-  }
+  };
 
   const validateForm = () => {
-    const newErrors = {}
+    const newErrors = {};
     if (!formData.fullName.trim()) {
-      newErrors.fullName = "Full name is required"
+      newErrors.fullName = "Full name is required";
     }
     if (!formData.userName.trim()) {
-      newErrors.userName = "Username is required"
+      newErrors.userName = "Username is required";
     }
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required"
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid"
+      newErrors.email = "Email is invalid";
     }
     if (!formData.password) {
-      newErrors.password = "Password is required"
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters"
+      newErrors.password = "Password must be at least 6 characters";
     }
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password"
+      newErrors.confirmPassword = "Please confirm your password";
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match"
+      newErrors.confirmPassword = "Passwords do not match";
     }
-    return newErrors
-  }
+    return newErrors;
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setMessage("")
-    const newErrors = validateForm()
+    e.preventDefault();
+    setMessage("");
+    const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      return
+      setErrors(newErrors);
+      return;
     }
-    setIsLoading(true)
+
+    setIsLoading(true);
     try {
       const res = await axios.post(
         "http://localhost/backend/SignupCustomer.php",
@@ -76,8 +75,8 @@ const CustomerSignupPage = () => {
           email: formData.email,
           password: formData.password,
         }
-      )
-      setMessage(res.data.message)
+      );
+      setMessage(res.data.message);
       if (res.data.success) {
         setFormData({
           fullName: "",
@@ -85,17 +84,22 @@ const CustomerSignupPage = () => {
           email: "",
           password: "",
           confirmPassword: "",
-        })
+        });
+
+        // Optional: You can redirect after success
+        // setTimeout(() => {
+        //   navigate("/Login");
+        // }, 3000);
       }
     } catch (error) {
-      setMessage("Network error. Please try again.")
+      setMessage("Network error. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="flex min-h-screen w-screen ">
+    <div className="flex min-h-screen w-screen">
       <LeftSection />
       <RightSection
         formData={formData}
@@ -106,7 +110,7 @@ const CustomerSignupPage = () => {
         message={message}
       />
     </div>
-  )
-}
+  );
+};
 
-export default CustomerSignupPage
+export default CustomerSignupPage;

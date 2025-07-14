@@ -64,7 +64,7 @@ export default function RightSection() {
         setTimeout(() => {
           // Redirect based on user role
           if (res.data.user.role === 'seller') {
-            navigate('/marketplace'); // or wherever sellers should go
+            navigate('/seller-dashboard'); // or wherever sellers should go
           } else {
             navigate('/marketplace'); // or wherever customers should go
           }

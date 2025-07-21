@@ -12,8 +12,9 @@ const ContactHero = () => {
        <div className=" min-w-screen bg-gradient-to-r via-gray-50 p-5">
       Get In Touch With Us
    </div> </h1>
-    <p className="text-lg md:text-xl text-gray-700 max-w-2xl">
-      Connect with Sri Lanka's finest agricultural marketplace. We're here to help you grow your business.
+    <p className="text-base md:text-xl text-gray-700 max-w-2xl">
+     Connect with Sri Lanka’s leading agricultural marketplace. We’re dedicated to supporting your growth and success 
+     by providing reliable help and seamless market access.
     </p>
   </div>
 </div>

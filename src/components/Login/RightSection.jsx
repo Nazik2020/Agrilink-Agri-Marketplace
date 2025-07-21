@@ -66,7 +66,7 @@ export default function RightSection() {
           if (res.data.user.role === 'seller') {
             navigate('/seller-dashboard'); // or wherever sellers should go
           } else {
-            navigate('/marketplace'); // or wherever customers should go
+            navigate('/customer-dashboard'); // or wherever customers should go
           }
         }, 2000); // 2 second delay
       } else {

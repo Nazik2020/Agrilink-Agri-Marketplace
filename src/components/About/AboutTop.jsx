@@ -6,7 +6,7 @@ const AboutTop = () => {
   return (
     <div>
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-green-200 to-green-300 py-50 w-full min-w-screen">
+      <div className="relative bg-gradient-to-r from-green-200 to-green-300 py-40 w-full min-w-screen">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-20 w-full h-full"
           style={{ backgroundImage: `url(${Image})` }}
@@ -15,8 +15,12 @@ const AboutTop = () => {
           <h1 className="text-4xl md:text-6xl font-bold text-green-700 mb-4">
             <div className="min-w-screen bg-gradient-to-r via-gray-50 p-5">
               About Us
-            </div>
-          </h1>
+            </div> </h1>
+            <p className="text-base md:text-xl text-gray-700 max-w-2xl">
+              Our mission is to build a sustainable future by empowering farmers and buyers through easy, transparent 
+              access to the marketplace, helping them grow and succeed together.
+              </p>
+         
         </div>
       </div>
 
@@ -24,7 +28,7 @@ const AboutTop = () => {
       <div className="max-w-7xl mx-auto py-12 px-8 flex flex-col md:flex-row items-center gap-x-0 ">
         {/* Text */}
         <div className="flex-1 flex flex-col justify-center md:items-start items-center text-center md:text-left">
-          <h2 className="text-2xl font-bold mb-4">Our Story</h2>
+          <h2 className="text-3xl font-bold py-10 ">Our Story</h2>
           <p className="text-gray-700 text-lg">
             <span className="font-semibold">
               Rooted in innovation. Grown for the World.

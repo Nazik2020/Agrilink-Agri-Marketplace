@@ -67,6 +67,7 @@ const SellerSignupPage = () => {
     if (!formData.agreeToTerms) {
       newErrors.agreeToTerms = "You must agree to the Terms of Service and Privacy Policy";
     }
+
     return newErrors;
   };
 
@@ -74,24 +75,26 @@ const SellerSignupPage = () => {
     e.preventDefault();
     setMessage("");
     const newErrors = validateForm();
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
+
     setIsLoading(true);
+
     try {
-      const res = await axios.post(
-        "http://localhost/backend/SignupSeller.php",
-        {
-          userName: formData.userName,
-          businessName: formData.businessName,
-          businessDescription: formData.businessDescription,
-          country: formData.country,
-          email: formData.email,
-          password: formData.password,
-        }
-      );
+      const res = await axios.post("http://localhost/backend/SignupSeller.php", {
+        userName: formData.userName,
+        businessName: formData.businessName,
+        businessDescription: formData.businessDescription,
+        country: formData.country,
+        email: formData.email,
+        password: formData.password,
+      });
+
       setMessage(res.data.message);
+
       if (res.data.success) {
         setFormData({
           userName: "",
@@ -103,10 +106,10 @@ const SellerSignupPage = () => {
           confirmPassword: "",
           agreeToTerms: false,
         });
-        // Show success message for 3 seconds before potentially redirecting
+
+        // Optional success feedback
         setTimeout(() => {
-          // You can add navigation here if needed
-          // navigate('/Login');
+          // Navigation logic can be added here
         }, 3000);
       }
     } catch (error) {
@@ -131,4 +134,4 @@ const SellerSignupPage = () => {
   );
 };
 
-export default SellerSignupPage; 
+export default SellerSignupPage;

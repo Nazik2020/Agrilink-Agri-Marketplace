@@ -1,5 +1,5 @@
-import { Outlet } from 'react-router-dom';
-import Sidebar from '../components/SellerDashboard/MainSidebar/Sidebar'; // ✅ adjust path as needed
+import { Outlet } from "react-router-dom";
+import Sidebar from "../components/SellerDashboard/MainSidebar/Sidebar"; // ✅ adjust path as needed
 
 export default function SellerDashboard() {
   return (

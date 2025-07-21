@@ -1,21 +1,18 @@
-import React from "react";
+"use client"; // if needed for hooks
+
+import BlogHero from "../components/blog/BlogHero";
+import BlogList from "../components/blog/BlogList";
+//import BlogSearch from "../components/blog/BlogSearch";
+//import BlogCategories from "../components/blog/BlogCategories";
 
 const Blog = () => {
   return (
-    <div className="flex flex-col items-start max-w-3xl gap-5">
-      <div className="flex flex-col items-start max-w-3xl gap-5">
-        <h1 className="text-6xl font-bold text-black text-center mt-20 ">
-          Blog Page
-        </h1>
-        <p>
-          We’ve trained a model called ChatGPT which interacts in a
-          conversational way. The dialogue format makes it possible for ChatGPT
-          to answer followup questions, admit its mistakes, challenge incorrect
-          premises, and reject inappropriate requests.
-        </p>
-      </div>
+    <div className="max-w-6xl mx-auto px-4">
+      <BlogHero />
+      
+      <BlogList />
     </div>
   );
 };
 
-export default Blog;
+export default Blog

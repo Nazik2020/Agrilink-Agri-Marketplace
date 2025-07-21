@@ -11,6 +11,7 @@ import Footer from "../components/common/Footer";
 const Home = () => {
   return (
     <div className="font-sans">
+      
       <Hero />
       <div className="space-y-0">
         {/* This ensures no unwanted spacing */}

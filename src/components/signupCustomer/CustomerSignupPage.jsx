@@ -64,6 +64,7 @@ const CustomerSignupPage = () => {
       setErrors(newErrors);
       return;
     }
+
     setIsLoading(true);
     try {
       const res = await axios.post(
@@ -84,11 +85,11 @@ const CustomerSignupPage = () => {
           password: "",
           confirmPassword: "",
         });
-        // Show success message for 3 seconds before potentially redirecting
-        setTimeout(() => {
-          // You can add navigation here if needed
-          // navigate('/Login');
-        }, 3000);
+
+        // Optional: You can redirect after success
+        // setTimeout(() => {
+        //   navigate("/Login");
+        // }, 3000);
       }
     } catch (error) {
       setMessage("Network error. Please try again.");
@@ -98,7 +99,7 @@ const CustomerSignupPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-screen ">
+    <div className="flex min-h-screen w-screen">
       <LeftSection />
       <RightSection
         formData={formData}
@@ -112,4 +113,4 @@ const CustomerSignupPage = () => {
   );
 };
 
-export default CustomerSignupPage; 
+export default CustomerSignupPage;

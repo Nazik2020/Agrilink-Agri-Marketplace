@@ -1,52 +1,83 @@
-import React, { useState } from 'react';
-import ProfileFormField from './ProfileFormField';
-import CountryDropdown from './CountryDropdown';
-import FileUploader from '../AddProduct/FileUploader';
+import React, { useState } from "react";
+import axios from "axios";
+import ProfileFormField from "./ProfileFormField";
+import CountryDropdown from "./CountryDropdown";
+import FileUploader from "../AddProduct/FileUploader";
 
 const ProfileForm = ({ profile, onChange, onUpload }) => {
   const [errors, setErrors] = useState({});
+  const [logoFile, setLogoFile] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     onChange({ ...profile, [name]: value });
-    setErrors((prev) => ({ ...prev, [name]: '' }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleCountryChange = (country) => {
     onChange({ ...profile, country });
-    setErrors((prev) => ({ ...prev, country: '' }));
+    setErrors((prev) => ({ ...prev, country: "" }));
+  };
+
+  const handleLogoUpload = (file) => {
+    setLogoFile(file);
+    if (onUpload) onUpload(file);
   };
 
   const validateForm = () => {
     const newErrors = {};
     const requiredFields = [
-      'contactName',
-      'businessName',
-      'businessDescription',
-      'country',
-      'contactNumber',
-      'email',
-      'address',
+      "contactName",
+      "businessName",
+      "businessDescription",
+      "country",
+      "contactNumber",
+      "email",
+      "address",
     ];
 
     requiredFields.forEach((field) => {
-      if (!profile[field] || profile[field].trim() === '') {
-        newErrors[field] = 'This field is required.';
+      if (!profile[field] || profile[field].trim() === "") {
+        newErrors[field] = "This field is required.";
       }
     });
 
-    // Email validation
     if (profile.email && !/\S+@\S+\.\S+/.test(profile.email)) {
-      newErrors.email = 'Please enter a valid email address.';
+      newErrors.email = "Please enter a valid email address.";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateForm()) {
-      alert('Profile Saved Successfully!');
+      const formData = new FormData();
+      formData.append("seller_id", profile.id || profile.seller_id);
+      formData.append("business_name", profile.businessName);
+      formData.append("business_description", profile.businessDescription);
+      formData.append("country", profile.country);
+      formData.append("email", profile.email);
+      if (logoFile) formData.append("business_logo", logoFile);
+
+      try {
+        const res = await axios.post(
+          "http://localhost/backend/update_seller_profile.php",
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+        if (res.data.success) {
+          alert("Profile Saved Successfully!");
+        } else {
+          alert("Profile update failed! " + (res.data.message || ""));
+          console.log(res.data);
+        }
+      } catch (err) {
+        alert("Error updating profile");
+        console.log(err.response?.data || err.message);
+      }
     }
   };
 
@@ -56,7 +87,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
         <h1 className="text-4xl font-bold text-green-600 mb-8 text-center">
           Seller Profile
         </h1>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column */}
           <div className="space-y-6">
@@ -68,7 +99,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
               error={errors.contactName}
               required
             />
-            
+
             <ProfileFormField
               label="Business Name"
               name="businessName"
@@ -77,7 +108,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
               error={errors.businessName}
               required
             />
-            
+
             <div className="space-y-2">
               <label className="block text-base font-semibold text-gray-500">
                 Business Description *
@@ -91,10 +122,12 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
                 placeholder="Brief description of your business..."
               />
               {errors.businessDescription && (
-                <p className="text-red-500 text-sm mt-1">{errors.businessDescription}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.businessDescription}
+                </p>
               )}
             </div>
-            
+
             <CountryDropdown
               value={profile.country}
               onChange={handleCountryChange}
@@ -112,7 +145,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
               error={errors.contactNumber}
               required
             />
-            
+
             <ProfileFormField
               label="Email"
               name="email"
@@ -122,7 +155,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
               error={errors.email}
               required
             />
-            
+
             <ProfileFormField
               label="Address"
               name="address"
@@ -136,7 +169,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
 
         {/* File Uploader */}
         <div className="mt-8">
-          <FileUploader onUpload={onUpload} />
+          <FileUploader onUpload={handleLogoUpload} />
         </div>
 
         {/* Save Button */}

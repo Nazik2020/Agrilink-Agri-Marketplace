@@ -1,48 +1,71 @@
-import React, { useState } from 'react';
-import ProfileFormField from '../SellerProfile/ProfileFormField';
-import SpecialOfferDropdown from './SpecialOfferDropdown';
-import ProductImageUploader from './ProductImageUploader';
+import React, { useState } from "react";
+import axios from "axios";
+import ProfileFormField from "../SellerProfile/ProfileFormField";
+import SpecialOfferDropdown from "./SpecialOfferDropdown";
+import ProductImageUploader from "./ProductImageUploader";
 
-const AddProductForm = ({ product, onChange, onUpload }) => {
+const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
   const [errors, setErrors] = useState({});
+  const [imageFile, setImageFile] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     onChange({ ...product, [name]: value });
-    setErrors((prev) => ({ ...prev, [name]: '' }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleSpecialOfferChange = (offer) => {
     onChange({ ...product, specialOffer: offer });
-    setErrors((prev) => ({ ...prev, specialOffer: '' }));
+    setErrors((prev) => ({ ...prev, specialOffer: "" }));
+  };
+
+  const handleImageUpload = (file) => {
+    setImageFile(file);
+    if (onUpload) onUpload(file);
   };
 
   const validateForm = () => {
     const newErrors = {};
-    const requiredFields = [
-      'productName',
-      'productDescription',
-      'price',
-    ];
+    const requiredFields = ["productName", "productDescription", "price"];
 
     requiredFields.forEach((field) => {
-      if (!product[field] || product[field].trim() === '') {
-        newErrors[field] = 'This field is required.';
+      if (!product[field] || product[field].trim() === "") {
+        newErrors[field] = "This field is required.";
       }
     });
 
-    // Price validation
     if (product.price && isNaN(product.price)) {
-      newErrors.price = 'Please enter a valid price.';
+      newErrors.price = "Please enter a valid price.";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateForm()) {
-      alert('Product Listed Successfully!');
+      const formData = new FormData();
+      formData.append("seller_id", sellerId || product.seller_id);
+      formData.append("product_name", product.productName);
+      formData.append("product_description", product.productDescription);
+      formData.append("price", product.price);
+      formData.append("special_offer", product.specialOffer);
+      formData.append("category", product.category);
+      if (imageFile) formData.append("product_image", imageFile);
+
+      try {
+        const res = await axios.post("/backend/add_product.php", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        if (res.data.success) {
+          alert("Product Listed Successfully!");
+        } else {
+          alert("Product listing failed!");
+        }
+      } catch (err) {
+        alert("Error adding product");
+      }
     }
   };
 
@@ -52,10 +75,9 @@ const AddProductForm = ({ product, onChange, onUpload }) => {
         <h1 className="text-4xl font-bold text-green-600 mb-8 text-center">
           List a New Product
         </h1>
-        
+
         <div className="max-w-2xl mx-auto">
-         
-          <div className="space-y-6 ">
+          <div className="space-y-6">
             <ProfileFormField
               label="Product Name"
               name="productName"
@@ -64,7 +86,7 @@ const AddProductForm = ({ product, onChange, onUpload }) => {
               error={errors.productName}
               required
             />
-            
+
             <div className="space-y-2">
               <label className="block text-base font-semibold text-gray-500">
                 Product Description *
@@ -78,10 +100,12 @@ const AddProductForm = ({ product, onChange, onUpload }) => {
                 placeholder="Describe your product in detail"
               />
               {errors.productDescription && (
-                <p className="text-red-500 text-sm mt-1">{errors.productDescription}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.productDescription}
+                </p>
               )}
             </div>
-            
+
             <ProfileFormField
               label="Price"
               name="price"
@@ -91,23 +115,20 @@ const AddProductForm = ({ product, onChange, onUpload }) => {
               error={errors.price}
               required
             />
-          
 
-          
-          <div className="space-y-6">
             <SpecialOfferDropdown
               value={product.specialOffer}
               onChange={handleSpecialOfferChange}
               error={errors.specialOffer}
             />
-            
+
             {/* Product Image Uploader */}
             <div className="mt-8">
-              <ProductImageUploader onUpload={onUpload} />
+              <ProductImageUploader onUpload={handleImageUpload} />
             </div>
           </div>
         </div>
-</div>
+
         {/* List Product Button */}
         <div className="flex justify-end mt-8">
           <button

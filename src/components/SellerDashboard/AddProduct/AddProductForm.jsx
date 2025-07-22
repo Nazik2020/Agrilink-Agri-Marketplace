@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import axios from "axios";
-import ProfileFormField from "../SellerProfile/ProfileFormField";
-import SpecialOfferDropdown from "./SpecialOfferDropdown";
-import ProductImageUploader from "./ProductImageUploader";
+import React, { useState } from 'react';
+import ProfileFormField from '../SellerProfile/ProfileFormField';
+import SpecialOfferDropdown from './SpecialOfferDropdown';
+import ProductImageUploader from './ProductImageUploader';
+import CategoryDropdown from './CategoryDropdown';
 
 const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
   const [errors, setErrors] = useState({});
@@ -24,9 +24,20 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
     if (onUpload) onUpload(file);
   };
 
+  const handleCategoryChange = (category) => {
+    onChange({ ...product, category: category });
+    setErrors((prev) => ({ ...prev, category: '' }));
+  };
+
+  // Validate form fields
   const validateForm = () => {
     const newErrors = {};
-    const requiredFields = ["productName", "productDescription", "price"];
+    const requiredFields = [
+      'productName',
+      'productDescription',
+      'price',
+      'category',
+    ];
 
     requiredFields.forEach((field) => {
       if (!product[field] || product[field].trim() === "") {
@@ -77,7 +88,7 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
         </h1>
 
         <div className="max-w-2xl mx-auto">
-          <div className="space-y-6">
+          <div className="space-y-6 ">
             <ProfileFormField
               label="Product Name"
               name="productName"
@@ -116,6 +127,12 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
               required
             />
 
+            <CategoryDropdown
+              value={product.category}
+              onChange={handleCategoryChange}
+              error={errors.category}
+            />
+
             <SpecialOfferDropdown
               value={product.specialOffer}
               onChange={handleSpecialOfferChange}
@@ -124,7 +141,10 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
 
             {/* Product Image Uploader */}
             <div className="mt-8">
-              <ProductImageUploader onUpload={handleImageUpload} />
+              <ProductImageUploader 
+                onUpload={onUpload} 
+                images={product.images || []} 
+              />
             </div>
           </div>
         </div>

@@ -5,7 +5,7 @@ import CustomerSidebar from '../components/CustomerDashboard/MainSidebar/Custome
 
 const CustomerDashboard = () => {
   return (
-    <div className="min-h-screen bg-gray-50 flex mt-20">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
       <div className="hidden lg:block">
         <CustomerSidebar />

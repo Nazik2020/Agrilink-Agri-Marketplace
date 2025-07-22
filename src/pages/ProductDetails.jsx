@@ -6,8 +6,6 @@ import { FaHeart, FaStar, FaArrowLeft, FaShoppingCart } from "react-icons/fa"
 import Footer from "../components/common/Footer"
 import CustomizationModal from "../components/marketplace/CustomizationModal"
 import { useCart } from "../components/cart/CartContext"
-import brown from "../assets/marketplace/all/brown.jpg"
-import brown1 from "../assets/marketplace/all/brown1.jpg"
 
 // Placeholder for fetching product details (simulate API call)
 const fetchProductDetails = async (productId) => {
@@ -24,8 +22,8 @@ const fetchProductDetails = async (productId) => {
         description:
           "Fresh, juicy organic tomatoes grown without pesticides. Perfect for salads and cooking. These premium tomatoes are harvested at peak ripeness to ensure maximum flavor and nutritional value.",
         images: [
-          { src: brown, alt: "Organic Tomatoes" },
-          { src: brown1, alt: "Tomatoes Close-up" },
+          { src: "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg", alt: "Organic Tomatoes" },
+          { src: "https://images.pexels.com/photos/1327838/pexels-photo-1327838.jpeg", alt: "Tomatoes Close-up" },
         ],
         rating: 4.8,
         seller: "Fresh Farm Co.",

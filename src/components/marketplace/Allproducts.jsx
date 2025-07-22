@@ -1,12 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { FaShoppingCart, FaStar } from "react-icons/fa";
-import brown from "../../assets/marketplace/all/brown.jpg";
-import brown1 from "../../assets/marketplace/all/brown1.jpg";
-import cinnamon from "../../assets/marketplace/all/cinnamon.jpg";
-import plantea from "../../assets/marketplace/all/plantea.jpg";
-import yello from "../../assets/marketplace/all/yello.jpg";
-import tea from "../../assets/marketplace/products/tea.jpg";
 import { useCart } from "../cart/CartContext";
 
 export const products = [
@@ -20,7 +14,7 @@ export const products = [
     discount: 20,
     category: "Products",
     rating: 4.8,
-    image: brown,
+    image: "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg",
   },
   {
     id: 2,
@@ -30,7 +24,7 @@ export const products = [
     price: 24.99,
     category: "Seeds",
     rating: 4.6,
-    image: brown1,
+    image: "https://images.pexels.com/photos/1327838/pexels-photo-1327838.jpeg",
   },
   {
     id: 3,
@@ -42,7 +36,7 @@ export const products = [
     discount: 15,
     category: "Fertilizer",
     rating: 4.7,
-    image: cinnamon,
+    image: "https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg",
   },
   {
     id: 4,
@@ -52,7 +46,7 @@ export const products = [
     price: 3.49,
     category: "Products",
     rating: 4.9,
-    image: plantea,
+    image: "https://images.pexels.com/photos/1352199/pexels-photo-1352199.jpeg",
   },
   {
     id: 5,
@@ -62,7 +56,7 @@ export const products = [
     price: 14.5,
     category: "Fertilizer",
     rating: 4.5,
-    image: yello,
+    image: "https://images.pexels.com/photos/416978/pexels-photo-416978.jpeg",
   },
 ];
 

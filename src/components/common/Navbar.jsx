@@ -7,8 +7,6 @@ import {
   FaTimes,
   FaChevronDown,
 } from "react-icons/fa";
-import Logo from "../../assets/navbar/agrilink_logo.png";
-import ac_Logo from "../../assets/navbar/account_logo.png";
 import { useCart } from "../cart/CartContext"
 
 const Navbar = () => {
@@ -52,7 +50,9 @@ const Navbar = () => {
       {/*Logo of site */}
       <div className="max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <img src={Logo} alt="Agrilink logo" className="w-15 h-15" />
+          <div className="w-15 h-15 bg-green-600 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-xl">AL</span>
+          </div>
           <div className="w-px h-15 bg-gray-300 "></div>
           <div className="flex flex-col relative top-[2px] leading-tight">
             <span className="text-gray-600 font-semibold text-xl">

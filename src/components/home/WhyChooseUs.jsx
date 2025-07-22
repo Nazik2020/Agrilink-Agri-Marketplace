@@ -1,4 +1,3 @@
-import whyChooseUsImage from "../../assets/landing_page/whychoosus.jpg";
 
 const WhyChooseUs = () => {
   return (
@@ -19,7 +18,7 @@ const WhyChooseUs = () => {
           {/* Left Image Section */}
           <div className="w-full lg:w-1/2">
             <img
-              src={whyChooseUsImage}
+              src="https://images.pexels.com/photos/1595104/pexels-photo-1595104.jpeg"
               alt="Our farming methods"
               className="w-full rounded-lg shadow-md object-cover"
             />

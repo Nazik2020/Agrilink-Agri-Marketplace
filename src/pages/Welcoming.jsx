@@ -2,9 +2,6 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
-// You can replace these with your own images
-import customerImg from "../assets/WelcomingPage/CustomerSignup.jpg";
-import sellerImg from "../assets/WelcomingPage/SellerSignup.jpg";
 
 const Welcoming = () => {
   const navigate = useNavigate();
@@ -30,7 +27,7 @@ const Welcoming = () => {
           {/* Customer Card */}
           <div className="text-center max-w-xs rounded-2xl shadow-xl transition-shadow duration-200 hover:shadow-2xl bg-white p-8">
             <img
-              src={customerImg}
+              src="https://images.pexels.com/photos/5650026/pexels-photo-5650026.jpeg"
               alt="Customer"
               className="w-40 h-40 rounded-full shadow-md mb-5 object-cover mx-auto"
             />
@@ -48,7 +45,7 @@ const Welcoming = () => {
           {/* Seller Card */}
           <div className="text-center max-w-xs rounded-2xl  shadow-md transition-shadow duration-200 hover:shadow-2xl bg-white p-8">
             <img
-              src={sellerImg}
+              src="https://images.pexels.com/photos/1595104/pexels-photo-1595104.jpeg"
               alt="Seller"
               className="w-40 h-40 rounded-full shadow-md mb-5 object-cover mx-auto"
             />

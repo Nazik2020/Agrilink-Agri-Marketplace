@@ -2,8 +2,6 @@
 import { Link } from "react-router-dom"
 import { FaShoppingCart, FaStar } from "react-icons/fa"
 import { useCart } from "../cart/CartContext"
-import yello from "../../assets/marketplace/seeds/yello.jpg"
-import brown1 from "../../assets/marketplace/seeds/brown1.jpg"
 
 const products = [
   {
@@ -15,7 +13,7 @@ const products = [
     discount: 20,
     category: "Seeds",
     rating: 4.6,
-    image: yello,
+    image: "https://images.pexels.com/photos/265216/pexels-photo-265216.jpeg",
     seller: "Seed Masters",
     maxQuantity: 100,
   },
@@ -26,7 +24,7 @@ const products = [
     price: 15.75,
     category: "Seeds",
     rating: 4.5,
-    image: brown1,
+    image: "https://images.pexels.com/photos/547263/pexels-photo-547263.jpeg",
     seller: "Seed Masters",
     maxQuantity: 80,
   },

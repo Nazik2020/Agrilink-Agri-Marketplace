@@ -1,10 +1,5 @@
 import React, { useState } from "react";
 
-// Import images
-import testimonialimg from "../../assets/landing_page/testimonialimg.jpg";
-import haneycooper from "../../assets/landing_page/haneycooper.jpg";
-import duerudilee from "../../assets/landing_page/duerudilee.jpg";
-import janesmith from "../../assets/landing_page/janesmith.jpg";
 
 const TestimonialSection = () => {
   const testimonials = [
@@ -15,7 +10,7 @@ const TestimonialSection = () => {
       author: "Haney Cooper",
       title: "CEO",
       rating: 4.5,
-      image: haneycooper,
+      image: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg",
     },
     {
       id: 2,
@@ -24,7 +19,7 @@ const TestimonialSection = () => {
       author: "Duer Udilee",
       title: "Farmer",
       rating: 4.0,
-      image: duerudilee,
+      image: "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg",
     },
     {
       id: 3,
@@ -33,7 +28,7 @@ const TestimonialSection = () => {
       author: "Jane Smith",
       title: "Customer",
       rating: 5.0,
-      image: janesmith,
+      image: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg",
     },
   ];
 
@@ -55,7 +50,7 @@ const TestimonialSection = () => {
         {/* Left Image */}
         <div className="w-full lg:w-1/2">
           <img
-            src={testimonialimg}
+            src="https://images.pexels.com/photos/1595104/pexels-photo-1595104.jpeg"
             alt="Testimonial Visual"
             className="w-full h-[300px] sm:h-[400px] lg:h-[450px] object-cover rounded-2xl shadow-xl"
           />

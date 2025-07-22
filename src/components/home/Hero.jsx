@@ -1,7 +1,5 @@
 import { useEffect, useRef } from "react";
 import { FaPhoneAlt } from "react-icons/fa";
-import heroVideo from "../../assets/landing_page/hero_video.mp4";
-import heroImage from "../../assets/landing_page/hero_image.jpg";
 
 const Hero = () => {
   const videoRef = useRef(null);
@@ -19,13 +17,13 @@ const Hero = () => {
       <video
         ref={videoRef}
         className="absolute top-0 left-0 w-full h-full object-cover"
-        src={heroVideo}
+        src="https://videos.pexels.com/video-files/2795750/2795750-uhd_2560_1440_25fps.mp4"
         autoPlay
         loop
         muted
         playsInline
         preload="auto"
-        poster={heroImage}
+        poster="https://images.pexels.com/photos/1595104/pexels-photo-1595104.jpeg"
       />
 
       {/* Gradient overlay from bottom (black) to top (green) */}

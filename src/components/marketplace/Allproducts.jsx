@@ -7,7 +7,7 @@ import cinnamon from "../../assets/marketplace/all/cinnamon.jpg";
 import plantea from "../../assets/marketplace/all/plantea.jpg";
 import yello from "../../assets/marketplace/all/yello.jpg";
 import tea from "../../assets/marketplace/products/tea.jpg";
-import { useCart } from "../cart/CartContext"
+import { useCart } from "../cart/CartContext";
 
 export const products = [
   {
@@ -67,8 +67,7 @@ export const products = [
 ];
 
 const Allproducts = () => {
-  
-  const { addToCart } = useCart()
+  const { addToCart } = useCart();
 
   const handleAddToCart = (product) => {
     addToCart({
@@ -78,8 +77,8 @@ const Allproducts = () => {
       category: product.category,
       price: product.price,
       maxQuantity: product.maxQuantity,
-    })
-  }
+    });
+  };
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {products.map((product) => (
@@ -134,11 +133,8 @@ const Allproducts = () => {
                 )}
               </div>
               <button
-
                 className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base"
-                onClick={() =>  handleAddToCart(product)}
-
-
+                onClick={() => handleAddToCart(product)}
               >
                 <FaShoppingCart className="text-lg" /> Add
               </button>

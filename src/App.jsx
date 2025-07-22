@@ -13,6 +13,9 @@ import ProductDetails from "./pages/ProductDetails";
 import Aboutus from "./pages/Aboutus";
 import Welcoming from "./pages/Welcoming";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+
 import CustomerSignup from "./pages/CustomerSignup";
 import SellerSignup from "./pages/SellerSignup";
 
@@ -53,6 +56,8 @@ function App() {
             <Route path="/faq" element={<Faq />} />
             <Route path="/Welcoming" element={<Welcoming />} />
             <Route path="/Login" element={<Login />} />
+             <Route path="/ForgotPassword" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/CustomerSignup" element={<CustomerSignup />} />
             <Route path="/SellerSignup" element={<SellerSignup />} />
 
@@ -72,7 +77,10 @@ function App() {
               <Route path="profile" element={<CustomerProfilePage />} />
               <Route path="wishlist" element={<WishlistPage />} />
               <Route path="orders" element={<OrderHistoryPage />} />
-              <Route path="notifications" element={<CustomerNotificationsPage />} />
+              <Route
+                path="notifications"
+                element={<CustomerNotificationsPage />}
+              />
             </Route>
           </Routes>
         </main>

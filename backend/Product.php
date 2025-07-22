@@ -22,5 +22,11 @@ class Product {
 
         return $products;
     }
+
+    public function addProduct($seller_id, $product_name, $product_description, $price, $special_offer, $product_image, $category) {
+        $sql = "INSERT INTO {$this->table} (seller_id, product_name, product_description, price, special_offer, product_image, category) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $this->conn->prepare($sql);
+        return $stmt->execute([$seller_id, $product_name, $product_description, $price, $special_offer, $product_image, $category]);
+    }
 }
 ?>

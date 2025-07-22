@@ -3,7 +3,7 @@ import Sidebar from '../components/SellerDashboard/MainSidebar/Sidebar'; // ✅ 
 
 export default function SellerDashboard() {
   return (
-    <div className="min-h-screen bg-gray-50 flex mt-20">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Use your custom sidebar */}
       <Sidebar />
 

@@ -1,6 +1,6 @@
-import { Route, Routes } from "react-router";
-import Navbar from "./components/common/Navbar"; //"./components/common/Navbar";
-//import Hero from "./components/Hero";
+import { Route, Routes, useLocation } from "react-router";
+import Navbar from "./components/common/Navbar";
+// import Hero from "./components/Hero";
 
 import { CartProvider } from "./components/cart/CartContext";
 import CartModal from "./components/cart/CartModal";
@@ -14,7 +14,7 @@ import Aboutus from "./pages/Aboutus";
 import Welcoming from "./pages/Welcoming";
 import Login from "./pages/Login";
 import CustomerSignup from "./pages/CustomerSignup";
-import SellerSignup from "./pages/SellerSignup";  
+import SellerSignup from "./pages/SellerSignup";
 
 // Seller Dashboard
 import SellerDashboard from "./pages/SellerDashboard";
@@ -32,12 +32,17 @@ import OrderHistoryPage from './components/CustomerDashboard/CustomerOrderHistor
 import CustomerNotificationsPage from './components/CustomerDashboard/CustomerNotifications/NotificationsPage';
 
 function App() {
+  const location = useLocation();
+
+  // Check if we are in seller or customer dashboard
+  const hideNavbar = location.pathname.startsWith('/seller-dashboard') || location.pathname.startsWith('/customer-dashboard');
+
   return (
     <CartProvider>
       <div className="min-h-screen flex flex-col bg-gray-50">
-        <Navbar />
-        <CartModal />
-        <main className="">
+        {!hideNavbar && <Navbar />}
+        {!hideNavbar && <CartModal />}
+        <main>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/blog" element={<Blog />} />
@@ -52,14 +57,14 @@ function App() {
             <Route path="/SellerSignup" element={<SellerSignup />} />
 
             {/* Seller Dashboard with nested routes */}
-              <Route path="/seller-dashboard" element={<SellerDashboard />}>
-                <Route index element={<ProfilePage />} />
-                <Route path="profile" element={<ProfilePage />} />
-                <Route path="add-product" element={<AddProductPage />} />
-                <Route path="analytics" element={<AnalyticsPage />} />
-                <Route path="wallet" element={<WalletPage />} />
-                <Route path="notifications" element={<NotificationsPage />} />
-              </Route>
+            <Route path="/seller-dashboard" element={<SellerDashboard />}>
+              <Route index element={<ProfilePage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="add-product" element={<AddProductPage />} />
+              <Route path="analytics" element={<AnalyticsPage />} />
+              <Route path="wallet" element={<WalletPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+            </Route>
 
             {/* Customer Dashboard Routes */}
             <Route path="/customer-dashboard" element={<CustomerDashboard />}>

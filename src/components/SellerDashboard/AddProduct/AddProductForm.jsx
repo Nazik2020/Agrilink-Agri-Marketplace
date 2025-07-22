@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ProfileFormField from '../SellerProfile/ProfileFormField';
 import SpecialOfferDropdown from './SpecialOfferDropdown';
 import ProductImageUploader from './ProductImageUploader';
+import CategoryDropdown from './CategoryDropdown';
 
 const AddProductForm = ({ product, onChange, onUpload }) => {
   const [errors, setErrors] = useState({});
@@ -17,12 +18,19 @@ const AddProductForm = ({ product, onChange, onUpload }) => {
     setErrors((prev) => ({ ...prev, specialOffer: '' }));
   };
 
+  const handleCategoryChange = (category) => {
+    onChange({ ...product, category: category });
+    setErrors((prev) => ({ ...prev, category: '' }));
+  };
+
+  // Validate form fields
   const validateForm = () => {
     const newErrors = {};
     const requiredFields = [
       'productName',
       'productDescription',
       'price',
+      'category',
     ];
 
     requiredFields.forEach((field) => {
@@ -54,7 +62,6 @@ const AddProductForm = ({ product, onChange, onUpload }) => {
         </h1>
         
         <div className="max-w-2xl mx-auto">
-         
           <div className="space-y-6 ">
             <ProfileFormField
               label="Product Name"
@@ -81,7 +88,7 @@ const AddProductForm = ({ product, onChange, onUpload }) => {
                 <p className="text-red-500 text-sm mt-1">{errors.productDescription}</p>
               )}
             </div>
-            
+
             <ProfileFormField
               label="Price"
               name="price"
@@ -91,23 +98,29 @@ const AddProductForm = ({ product, onChange, onUpload }) => {
               error={errors.price}
               required
             />
-          
 
-          
-          <div className="space-y-6">
+            <CategoryDropdown
+              value={product.category}
+              onChange={handleCategoryChange}
+              error={errors.category}
+            />
+
             <SpecialOfferDropdown
               value={product.specialOffer}
               onChange={handleSpecialOfferChange}
               error={errors.specialOffer}
             />
-            
+
             {/* Product Image Uploader */}
             <div className="mt-8">
-              <ProductImageUploader onUpload={onUpload} />
+              <ProductImageUploader 
+                onUpload={onUpload} 
+                images={product.images || []} 
+              />
             </div>
           </div>
         </div>
-</div>
+
         {/* List Product Button */}
         <div className="flex justify-end mt-8">
           <button

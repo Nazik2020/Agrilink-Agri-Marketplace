@@ -1,20 +1,17 @@
-import { useState } from 'react'
+import { useState } from "react";
 
-import LoginPage  from '../components/Login/LoginPage'
+import LoginPage from "../components/Login/LoginPage";
 
 function Login() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
 
   return (
     <>
       <div>
-          <LoginPage />
-          
-        
+        <LoginPage />
       </div>
-      
     </>
-  )
+  );
 }
 
 export default Login;

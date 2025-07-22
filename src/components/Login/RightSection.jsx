@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import Logo from '../../assets/Login/AgriLink.png';
 
 export default function RightSection() {
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -17,7 +17,7 @@ export default function RightSection() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     if (errors[name]) {
       setErrors(prev => ({
@@ -49,26 +49,25 @@ export default function RightSection() {
       return;
     }
     setIsLoading(true);
+
     try {
       const res = await axios.post('http://localhost/backend/Login.php', {
         email: formData.email,
-        password: formData.password
+        password: formData.password,
       });
-      
+
       if (res.data.success) {
         setMessage(res.data.message);
-        // Store user data in localStorage
         localStorage.setItem('user', JSON.stringify(res.data.user));
-        
-        // Show success message for 2 seconds before redirecting
+
         setTimeout(() => {
-          // Redirect based on user role
           if (res.data.user.role === 'seller') {
-            navigate('/marketplace'); // or wherever sellers should go
+            navigate('/seller-dashboard');
           } else {
-            navigate('/marketplace'); // or wherever customers should go
+
+            navigate('/customer-dashboard'); // or wherever customers should go
           }
-        }, 2000); // 2 second delay
+        }, 2000);
       } else {
         setMessage(res.data.message);
       }
@@ -82,46 +81,52 @@ export default function RightSection() {
   return (
     <div className="w-full md:w-1/2 bg-white p-4 md:p-8 flex flex-col justify-center items-center">
       <div className="w-full max-w-sm sm:max-w-md md:max-w-lg">
-        
         <div className="flex items-center justify-center mb-6">
-          <img
-            src={Logo}
-            alt="Agricultural Marketplace Logo"
-            className="h-12 sm:h-16 w-auto"
-          />
+          <img src={Logo} alt="Agricultural Marketplace Logo" className="h-12 sm:h-16 w-auto" />
           <div className="h-12 sm:h-16 border-l border-gray-300 mx-4"></div>
           <div className="text-left">
             <h2 className="text-xl sm:text-2xl font-light text-gray-600">
-              Agricultural<br/>Marketplace
+              Agricultural<br />Marketplace
             </h2>
           </div>
         </div>
-        <div className="bg-gray-100 bg-opacity-30 rounded-lg p-6" style={{
-          background: 'rgba(239, 243, 240, 0.06)', 
-          backdropFilter: 'blur(10px)',            
-          WebkitBackdropFilter: 'blur(10px)',     
-          border: '1px solid rgba(255, 255, 255, 0.18)',
-          boxShadow: '4px 10px 10px 0 rgba(31, 135, 71, 0.1)'
-        }}>
-          <div className="text-center mb-6" style={{ paddingTop: '10px ' }}>
+        <div
+          className="bg-gray-100 bg-opacity-30 rounded-lg p-6"
+          style={{
+            background: 'rgba(239, 243, 240, 0.06)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
+            boxShadow: '4px 10px 10px 0 rgba(31, 135, 71, 0.1)',
+          }}
+        >
+          <div className="text-center mb-6" style={{ paddingTop: '10px' }}>
             <h1 className="text-2xl sm:text-3xl font-bold text-green-600 mb-2">
               Welcome Back!
             </h1>
-            <h2 className="text-lg sm:text-xl font-bold text-green-500">
-              Log In
-            </h2>
+            <h2 className="text-lg sm:text-xl font-bold text-green-500">Log In</h2>
           </div>
 
           {message && (
-            <div className={`text-center mb-4 p-3 rounded-lg border ${
-              message.includes('successful') 
-                ? 'bg-green-50 text-green-800 border-green-200' 
-                : 'bg-red-50 text-red-800 border-red-200'
-            }`}>
+            <div
+              className={`text-center mb-4 p-3 rounded-lg border ${
+                message.includes('successful')
+                  ? 'bg-green-50 text-green-800 border-green-200'
+                  : 'bg-red-50 text-red-800 border-red-200'
+              }`}
+            >
               <div className="flex items-center justify-center">
                 {message.includes('successful') && (
-                  <svg className="w-5 h-5 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  <svg
+                    className="w-5 h-5 mr-2 text-green-600"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 )}
                 {message}
@@ -129,7 +134,6 @@ export default function RightSection() {
             </div>
           )}
 
-          {/* Form */}
           <form className="space-y-4" style={{ padding: '10px 30px 20px 30px' }} onSubmit={handleSubmit}>
             <div>
               <input
@@ -157,18 +161,21 @@ export default function RightSection() {
               />
               {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
             </div>
-            <a href="#" className="text-green-600 text-sm block text-right">
+            <Link to="/ForgotPassword" className="text-green-600 text-sm block text-right">
               Forgot Password?
-            </a>
-            <button 
-              type="submit" 
+            </Link>
+            <button
+              type="submit"
               disabled={isLoading}
               className="w-full bg-gray-200 text-gray-500 p-2 sm:p-3 rounded-lg hover:bg-green-600 hover:text-white shadow-lg hover:shadow-xl disabled:opacity-50"
             >
               {isLoading ? 'Logging in...' : 'Login'}
             </button>
             <p className="text-center text-sm text-gray-500 mt-2">
-              Don't have an account? <a href="/Welcoming" className="text-green-600 font-bold">Sign up</a>
+              Don't have an account?{' '}
+              <Link to="/Welcoming" className="text-green-600 font-bold">
+                Sign up
+              </Link>
             </p>
           </form>
         </div>

@@ -9,12 +9,15 @@ import {
 } from "react-icons/fa";
 import Logo from "../../assets/navbar/agrilink_logo.png";
 import ac_Logo from "../../assets/navbar/account_logo.png";
+import { useCart } from "../cart/CartContext"
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+
+  const { totalItems, toggleCart } = useCart()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,6 +37,12 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
+  const handleCartClick = () => {
+    toggleCart()
+    setIsMenuOpen(false) // Close mobile menu if open
+  }
+
+
   return (
     <nav
       className={`bg-white shadow-md w-full fixed top-0 left-0 z-50 transition-transform duration-300 ${
@@ -43,8 +52,8 @@ const Navbar = () => {
       {/*Logo of site */}
       <div className="max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <img src={Logo} alt="Agrilink logo" className="w-17 h-17" />
-          <div className="w-px h-20 bg-gray-300 "></div>
+          <img src={Logo} alt="Agrilink logo" className="w-15 h-15" />
+          <div className="w-px h-15 bg-gray-300 "></div>
           <div className="flex flex-col relative top-[2px] leading-tight">
             <span className="text-gray-600 font-semibold text-xl">
               Agricultural
@@ -77,9 +86,20 @@ const Navbar = () => {
         </div>
         {/* Icons: Cart and Account */}
         <div className="hidden lg:flex items-center gap-10 text-green-600 text-4xl">
-          <Link to="/cart" title="Cart">
-            <FaShoppingCart className="hover:text-green-800 cursor-pointer hover:scale-105 transition" />
-          </Link>
+         
+          <button
+            onClick={handleCartClick}
+            className="relative hover:text-green-800 cursor-pointer hover:scale-105 transition"
+            title="Shopping Cart"
+          >
+            <FaShoppingCart />
+            {totalItems > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                {totalItems > 99 ? "99+" : totalItems}
+              </span>
+            )}
+          </button>
+
           {/* Account Dropdown Button */}
           <div className="relative">
             <button
@@ -166,9 +186,21 @@ const Navbar = () => {
             Faq
           </Link>
           <div className="flex gap-5 mt-2">
-            <Link to="/cart" title="Cart" onClick={() => setIsMenuOpen(false)}>
-              <FaShoppingCart className="text-3xl text-green-600 hover:scale-105 transition" />
-            </Link>
+             <button
+            onClick={handleCartClick}
+            className="flex items-center gap-2 text-green-600 hover:text-green-800 mt-2"
+            title="Shopping Cart"
+          >
+            <div className="relative">
+              <FaShoppingCart className="text-3xl" />
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                  {totalItems > 99 ? "99+" : totalItems}
+                </span>
+              )}
+            </div>
+            <span className="text-xl font-semibold">Cart ({totalItems})</span>
+          </button>
           </div>
           {/* Mobile Account Dropdown */}
           <div className="relative mt-4">

@@ -1,29 +1,75 @@
+import { useEffect, useRef } from "react";
 import { FaPhoneAlt } from "react-icons/fa";
+import heroVideo from "../../assets/landing_page/hero_video.mp4";
 import heroImage from "../../assets/landing_page/hero_image.jpg";
 
 const Hero = () => {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = 0.25; // slower playback speed
+    }
+  }, []);
+
   return (
-    <section className="bg-[#f2faf1] py-35 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-25">
-        {/* Left Text Section */}
-        <div className="w-full lg:w-[80%] text-center lg:text-left">
-          <p className="text-green-600 text-lg sm:text-xl font-sans mb-2">
+    <section className="relative min-h-screen overflow-hidden bg-[#1a1a1a]"
+     style={{ fontFamily: "Arial, sans-serif" }}>
+      {/* Background Video */}
+      <video
+        ref={videoRef}
+        className="absolute top-0 left-0 w-full h-full object-cover"
+        src={heroVideo}
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="auto"
+        poster={heroImage}
+      />
+
+      {/* Gradient overlay from bottom (black) to top (green) */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(20,69,47,0.7) 50%, rgba(20,69,47,0.5) 80%, rgba(20,69,47,0.8) 100%)",
+          zIndex: 1,
+        }}
+      ></div>
+
+      {/* Foreground Content */}
+      <div className="relative z-10 max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 pt-30 pb-12">
+        <div className="text-center sm:text-left max-w-3xl mx-auto sm:mx-0">
+          <p className="text-green-100 text-lg sm:text-xl mb-4">
             Empowering Farmers, Connecting the World
           </p>
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#14452F] leading-tight mb-4">
+
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6 text-white">
             AgriLink is our
-            <span className="text-gray-800 font-light"> future,</span> <br />
-            <span className="font-light text-gray-800">our strength</span>
+            <span className="text-gray-300 font-light"> future,</span> <br />
+            <span className="font-light text-gray-300">our strength</span>
           </h1>
-          <p className="text-gray-600 font-sans sm:text-[15px] mb-8">
-            AgriLink bridges the gap between passionate farmers and global
-            buyers, enabling sustainable agriculture, better income, and smarter
-            solutions for everyone.
+
+          <p className="text-gray-300  sm:text-lg mb-8 tracking-wider max-w-2xl leading-relaxed">
+            AgriLink is a premier agricultural marketplace, where
+            tradition meets technology. We empower worldwide farmers by giving them
+            a platform to reach national and international buyers directly.
           </p>
 
-          {/* Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6">
-            <button className="px-6 py-3 border-2 border-green-600 rounded-full text-green-600 font-medium hover:bg-green-600 hover:text-white transition">
+          <p className="text-gray-300  sm:text-lg mb-8 tracking-wider max-w-2xl leading-relaxed">
+            Whether you're buying organic produce, fresh seeds, or eco-friendly
+            fertilizers, AgriLink ensures transparency, fair pricing, and
+            real-time support.
+          </p>
+
+          <p className="text-gray-200  sm:text-lg mb-8 tracking-wider max-w-2xl leading-relaxed">
+            Together, we’re building a smarter, greener future — one crop at a
+            time.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <button className="px-6 py-3 border-2 border-green-200 rounded-full text-green-200 font-medium hover:bg-green-200 hover:text-black transition">
               Read More →
             </button>
             <div className="flex items-center gap-3">
@@ -31,24 +77,22 @@ const Hero = () => {
                 <FaPhoneAlt />
               </div>
               <div className="text-left">
-                <p className="text-sm text-gray-600">Need help?</p>
-                <p className="text-base font-semibold text-[#14452F]">
+                <p className="text-sm text-gray-200">Need help?</p>
+                <p className="text-base font-semibold text-white">
                   +94-77 5835521
                 </p>
               </div>
             </div>
           </div>
         </div>
+        <div className="text-center mt-12">
+  <p className="text-base font-extralight text-white mb-0">
+    "AgriLink — Cultivating connections, empowering farmers, and growing a sustainable future together."
+  </p>
+</div>
 
-        {/* Right Image Section */}
-        <div className="w-full lg:w-[150%]">
-          <img
-            src={heroImage}
-            alt="Farmer"
-            className="w-full h-auto rounded-lg shadow-md object-cover"
-          />
-        </div>
       </div>
+      
     </section>
   );
 };

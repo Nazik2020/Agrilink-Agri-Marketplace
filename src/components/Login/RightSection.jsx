@@ -161,9 +161,9 @@ export default function RightSection() {
               />
               {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
             </div>
-            <a href="#" className="text-green-600 text-sm block text-right">
+            <Link to="/ForgotPassword" className="text-green-600 text-sm block text-right">
               Forgot Password?
-            </a>
+            </Link>
             <button
               type="submit"
               disabled={isLoading}

@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import ProfileFormField from './ProfileFormField';
 import CountryDropdown from './CountryDropdown';
 import FileUploader from '../AddProduct/FileUploader';
+import axios from 'axios';
 
 const ProfileForm = ({ profile, onChange, onUpload }) => {
   const [errors, setErrors] = useState({});
+  const [logoFile, setLogoFile] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -15,6 +17,11 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
   const handleCountryChange = (country) => {
     onChange({ ...profile, country });
     setErrors((prev) => ({ ...prev, country: '' }));
+  };
+
+  const handleLogoUpload = (file) => {
+    setLogoFile(file);
+    if (onUpload) onUpload(file);
   };
 
   const validateForm = () => {
@@ -44,9 +51,30 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateForm()) {
-      alert('Profile Saved Successfully!');
+      // Prepare FormData
+      const formData = new FormData();
+      formData.append('seller_id', profile.id || profile.seller_id);
+      formData.append('business_name', profile.businessName);
+      formData.append('business_description', profile.businessDescription);
+      formData.append('country', profile.country);
+      formData.append('email', profile.email);
+      if (logoFile) formData.append('business_logo', logoFile);
+      try {
+        const res = await axios.post('http://localhost/backend/update_seller_profile.php', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        if (res.data.success) {
+          alert('Profile Saved Successfully!');
+        } else {
+          alert('Profile update failed! ' + (res.data.message || ''));
+          console.log(res.data); // Log backend response for debugging
+        }
+      } catch (err) {
+        alert('Error updating profile');
+        console.log(err.response?.data || err.message); // Log error for debugging
+      }
     }
   };
 
@@ -136,7 +164,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
 
         {/* File Uploader */}
         <div className="mt-8">
-          <FileUploader onUpload={onUpload} />
+          <FileUploader onUpload={handleLogoUpload} />
         </div>
 
         {/* Save Button */}

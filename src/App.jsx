@@ -13,8 +13,10 @@ import ProductDetails from "./pages/ProductDetails";
 import Aboutus from "./pages/Aboutus";
 import Welcoming from "./pages/Welcoming";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+
 import CustomerSignup from "./pages/CustomerSignup";
-import SellerSignup from "./pages/SellerSignup";  
+import SellerSignup from "./pages/SellerSignup";
 
 // Seller Dashboard
 import SellerDashboard from "./pages/SellerDashboard";
@@ -25,11 +27,11 @@ import WalletPage from "./components/SellerDashboard/Wallet/WalletPage";
 import NotificationsPage from "./components/SellerDashboard/Notifications/NotificationsPage";
 
 // Customer Dashboard
-import CustomerDashboard from './pages/CustomerDashboard';
-import CustomerProfilePage from './components/CustomerDashboard/CustomerProfile/CustomerProfilePage';
-import WishlistPage from './components/CustomerDashboard/CustomerWishlist/WishlistPage';
-import OrderHistoryPage from './components/CustomerDashboard/CustomerOrderHistory/OrderHistoryPage';
-import CustomerNotificationsPage from './components/CustomerDashboard/CustomerNotifications/NotificationsPage';
+import CustomerDashboard from "./pages/CustomerDashboard";
+import CustomerProfilePage from "./components/CustomerDashboard/CustomerProfile/CustomerProfilePage";
+import WishlistPage from "./components/CustomerDashboard/CustomerWishlist/WishlistPage";
+import OrderHistoryPage from "./components/CustomerDashboard/CustomerOrderHistory/OrderHistoryPage";
+import CustomerNotificationsPage from "./components/CustomerDashboard/CustomerNotifications/NotificationsPage";
 
 function App() {
   return (
@@ -48,18 +50,20 @@ function App() {
             <Route path="/faq" element={<Faq />} />
             <Route path="/Welcoming" element={<Welcoming />} />
             <Route path="/Login" element={<Login />} />
+            <Route path="/ForgotPassword" element={<ForgotPassword />} />
+
             <Route path="/CustomerSignup" element={<CustomerSignup />} />
             <Route path="/SellerSignup" element={<SellerSignup />} />
 
             {/* Seller Dashboard with nested routes */}
-              <Route path="/seller-dashboard" element={<SellerDashboard />}>
-                <Route index element={<ProfilePage />} />
-                <Route path="profile" element={<ProfilePage />} />
-                <Route path="add-product" element={<AddProductPage />} />
-                <Route path="analytics" element={<AnalyticsPage />} />
-                <Route path="wallet" element={<WalletPage />} />
-                <Route path="notifications" element={<NotificationsPage />} />
-              </Route>
+            <Route path="/seller-dashboard" element={<SellerDashboard />}>
+              <Route index element={<ProfilePage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="add-product" element={<AddProductPage />} />
+              <Route path="analytics" element={<AnalyticsPage />} />
+              <Route path="wallet" element={<WalletPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+            </Route>
 
             {/* Customer Dashboard Routes */}
             <Route path="/customer-dashboard" element={<CustomerDashboard />}>
@@ -67,7 +71,10 @@ function App() {
               <Route path="profile" element={<CustomerProfilePage />} />
               <Route path="wishlist" element={<WishlistPage />} />
               <Route path="orders" element={<OrderHistoryPage />} />
-              <Route path="notifications" element={<CustomerNotificationsPage />} />
+              <Route
+                path="notifications"
+                element={<CustomerNotificationsPage />}
+              />
             </Route>
           </Routes>
         </main>

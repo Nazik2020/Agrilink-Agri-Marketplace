@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import ProfileFormField from '../SellerProfile/ProfileFormField';
 import SpecialOfferDropdown from './SpecialOfferDropdown';
 import ProductImageUploader from './ProductImageUploader';
+import axios from 'axios';
 
-const AddProductForm = ({ product, onChange, onUpload }) => {
+const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
   const [errors, setErrors] = useState({});
+  const [imageFile, setImageFile] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -15,6 +17,11 @@ const AddProductForm = ({ product, onChange, onUpload }) => {
   const handleSpecialOfferChange = (offer) => {
     onChange({ ...product, specialOffer: offer });
     setErrors((prev) => ({ ...prev, specialOffer: '' }));
+  };
+
+  const handleImageUpload = (file) => {
+    setImageFile(file);
+    if (onUpload) onUpload(file);
   };
 
   const validateForm = () => {
@@ -40,9 +47,29 @@ const AddProductForm = ({ product, onChange, onUpload }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateForm()) {
-      alert('Product Listed Successfully!');
+      // Prepare FormData
+      const formData = new FormData();
+      formData.append('seller_id', sellerId || product.seller_id);
+      formData.append('product_name', product.productName);
+      formData.append('product_description', product.productDescription);
+      formData.append('price', product.price);
+      formData.append('special_offer', product.specialOffer);
+      formData.append('category', product.category);
+      if (imageFile) formData.append('product_image', imageFile);
+      try {
+        const res = await axios.post('/backend/add_product.php', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        if (res.data.success) {
+          alert('Product Listed Successfully!');
+        } else {
+          alert('Product listing failed!');
+        }
+      } catch (err) {
+        alert('Error adding product');
+      }
     }
   };
 
@@ -103,7 +130,7 @@ const AddProductForm = ({ product, onChange, onUpload }) => {
             
             {/* Product Image Uploader */}
             <div className="mt-8">
-              <ProductImageUploader onUpload={onUpload} />
+              <ProductImageUploader onUpload={handleImageUpload} />
             </div>
           </div>
         </div>

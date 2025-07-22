@@ -1,6 +1,13 @@
 // src/components/OurFutureProducts.jsx
 import React from "react";
 
+// Import your product images
+import tea from "../../assets/landing_page/tea.jpg";
+import plantea from "../../assets/landing_page/plantea.jpg";
+import yellow from "../../assets/landing_page/yello.jpg";
+import cinnamon from "../../assets/landing_page/cinnamon.jpg";
+import brown from "../../assets/landing_page/brown.jpg";
+import brown1 from "../../assets/landing_page/brown1.jpg";
 
 const OurFutureProducts = () => {
   const products = [
@@ -8,37 +15,37 @@ const OurFutureProducts = () => {
       name: "Green tea",
       price: "$10.50",
       description: "Naturally grown, rich in flavor and freshness.",
-      image: "https://images.pexels.com/photos/1638280/pexels-photo-1638280.jpeg",
+      image: tea,
     },
     {
       name: "Organic Carrots",
       price: "$5.75",
       description: "Crunchy, sweet and full of nutrients.",
-      image: "https://images.pexels.com/photos/143133/pexels-photo-143133.jpeg",
+      image: plantea,
     },
     {
       name: "Green Beans",
       price: "$7.25",
       description: "Picked fresh for maximum nutrition.",
-      image: "https://images.pexels.com/photos/1414651/pexels-photo-1414651.jpeg",
+      image: yellow,
     },
     {
       name: "Healthy Broccoli",
       price: "$6.90",
       description: "High in fiber and antioxidants.",
-      image: "https://images.pexels.com/photos/47347/broccoli-vegetable-food-healthy-47347.jpeg",
+      image: cinnamon,
     },
     {
       name: "Farm Cucumbers",
       price: "$4.50",
       description: "Hydrating and crisp farm cucumbers.",
-      image: "https://images.pexels.com/photos/37528/cucumber-salad-food-healthy-37528.jpeg",
+      image: brown,
     },
     {
       name: "Sweet Bell Peppers",
       price: "$8.00",
       description: "Colorful and full of vitamins.",
-      image: "https://images.pexels.com/photos/594137/pexels-photo-594137.jpeg",
+      image: brown1,
     },
   ];
 

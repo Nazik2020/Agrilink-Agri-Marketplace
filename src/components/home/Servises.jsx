@@ -1,5 +1,9 @@
 import React from "react";
 
+// Import your images
+import analytics from "../../assets/landing_page/seller_analytics.jpg";
+import deliver from "../../assets/landing_page/delivering.jpg";
+import feedback from "../../assets/landing_page/feedback.jpg";
 
 const Services = () => {
   return (
@@ -20,7 +24,7 @@ const Services = () => {
           {/* Service 1 - Seller Analytics */}
           <div className="bg-green-50 rounded-xl shadow-md overflow-hidden transition hover:shadow-lg hover:scale-105 duration-300">
             <img
-              src="https://images.pexels.com/photos/590022/pexels-photo-590022.jpeg"
+              src={analytics}
               alt="Seller Analytics"
               className="w-full h-48 object-cover"
             />
@@ -41,7 +45,7 @@ const Services = () => {
           {/* Service 2 - Fast Delivery */}
           <div className="bg-green-50 rounded-xl shadow-md overflow-hidden transition hover:shadow-lg hover:scale-105 duration-300">
             <img
-              src="https://images.pexels.com/photos/4391470/pexels-photo-4391470.jpeg"
+              src={deliver}
               alt="Fast Delivery"
               className="w-full h-48 object-cover"
             />
@@ -62,7 +66,7 @@ const Services = () => {
           {/* Service 3 - Customer Feedback */}
           <div className="bg-green-50 rounded-xl shadow-md overflow-hidden transition hover:shadow-lg hover:scale-105 duration-300">
             <img
-              src="https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg"
+              src={feedback}
               alt="Customer Feedback"
               className="w-full h-48 object-cover"
             />

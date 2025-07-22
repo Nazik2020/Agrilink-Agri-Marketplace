@@ -1,10 +1,11 @@
 import React from 'react';
+import Image from '../../assets/contactus/contact.jpg';
 const ContactHero = () => {
   return (
     <div className="relative bg-gradient-to-r from-green-200 to-green-300 py-40 w-full min-w-screen">
   <div 
     className="absolute inset-0 bg-cover bg-center opacity-20 w-full"
-    style={{ backgroundImage: `url(https://images.pexels.com/photos/1595104/pexels-photo-1595104.jpeg)` }}
+    style={{ backgroundImage: `url(${Image})` }}
   ></div>
   <div className="relative max-w-7xl mx-auto flex flex-col items-center justify-center text-center px-4">
     <h1 className="text-4xl md:text-6xl font-bold text-green-700 mb-4">

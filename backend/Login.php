@@ -11,15 +11,31 @@ $email = $data['email'];
 $password = $data['password'];
 
 try {
-  $stmt = $conn->prepare("SELECT * FROM sellers WHERE email = ?");
-  $stmt->execute([$email]);
-  $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-  if ($user && password_verify($password, $user['password'])) {
-    echo json_encode(["success" => true, "message" => "Login successful", "user" => $user]);
-  } else {
-    echo json_encode(["success" => false, "message" => "Invalid credentials"]);
-  }
+
+// Try seller first
+$stmt = $conn->prepare("SELECT * FROM sellers WHERE email = ?");
+$stmt->execute([$email]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if ($user && password_verify($password, $user['password'])) {
+  $user['role'] = 'seller';
+  echo json_encode(["success" => true, "message" => "Login successful", "user" => $user]);
+  exit;
+}
+
+// Try customer if not found in sellers
+$stmt = $conn->prepare("SELECT * FROM customers WHERE email = ?");
+$stmt->execute([$email]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if ($user && password_verify($password, $user['password'])) {
+  $user['role'] = 'customer';
+  echo json_encode(["success" => true, "message" => "Login successful", "user" => $user]);
+  exit;
+}
+
+echo json_encode(["success" => false, "message" => "Invalid credentials"]);
 } catch (PDOException $e) {
   echo json_encode(["success" => false, "message" => $e->getMessage()]);
 }

@@ -18,8 +18,8 @@ if (empty($full_name) || empty($username) || empty($email) || empty($password)) 
     exit;
 }
 
-$db = new Database();
-$customer = new User($db->conn, "customers");
+
+$customer = new User($conn, "customers");
 
 try {
     $customer->create($data);

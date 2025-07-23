@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
@@ -198,3 +199,23 @@ const ResetPassword = () => {
 };
 
 export default ResetPassword;
+=======
+"use client";
+
+import { useState } from "react";
+import ResetPasswordform from "../components/ResetPassword/ResetPasswordform";
+
+function ResetPassword() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <>
+      <div>
+        <ResetPasswordform />
+      </div>
+    </>
+  );
+}
+
+export default ResetPassword;
+>>>>>>> Stashed changes

@@ -7,16 +7,16 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
-// Load environment variables from reset_password.env
-$dotenv = Dotenv::createImmutable(__DIR__, 'reset_password.env');
-$dotenv->load();
-
 class PasswordReset {
 
     private $conn;
+    private $frontend_url = "http://localhost:3000";
     
     public function __construct($db) {
         $this->conn = $db;
+        // Load environment variables from reset_password.env
+        $dotenv = Dotenv::createImmutable(__DIR__, 'reset_password.env');
+        $dotenv->load();
     }
     
     public function requestReset($email, $userType) {
@@ -31,7 +31,7 @@ class PasswordReset {
             
             if (!$user) {
                 return [
-                    "success" => false, 
+                    "success" => false,
                     "message" => "No account found with this email address"
                 ];
             }
@@ -45,20 +45,20 @@ class PasswordReset {
             $success = $stmt->execute([$reset_token, $expires_at, $email]);
 
             if ($success) {
-                $reset_link = "http://localhost:5178/reset-password?token={$reset_token}&userType={$userType}";
+                $reset_link = "{$this->frontend_url}/reset-password?token={$reset_token}&userType={$userType}";
 
                 $mail = new PHPMailer(true);
                 $sent = false;
                 try {
                     $mail->isSMTP();
-                    $mail->Host       = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
+                    $mail->Host       = $_ENV['SMTP_HOST'] ?? 'smtp.gmail.com';
                     $mail->SMTPAuth   = true;
-                    $mail->Username   = getenv('SMTP_USER');
-                    $mail->Password   = getenv('SMTP_PASS');
-                    $mail->SMTPSecure = getenv('SMTP_SECURE') ?: 'tls';
-                    $mail->Port       = getenv('SMTP_PORT') ?: 587;
+                    $mail->Username   = $_ENV['SMTP_USER'];
+                    $mail->Password   = $_ENV['SMTP_PASS'];
+                    $mail->SMTPSecure = $_ENV['SMTP_SECURE'] ?? 'tls';
+                    $mail->Port       = $_ENV['SMTP_PORT'] ?? 587;
 
-                    $mail->setFrom(getenv('SMTP_USER'), 'AgriLink');
+                    $mail->setFrom($_ENV['SMTP_FROM'], 'AgriLink');
                     $mail->addAddress($email);
                     $mail->isHTML(true);
                     $mail->Subject = 'Password Reset Request';

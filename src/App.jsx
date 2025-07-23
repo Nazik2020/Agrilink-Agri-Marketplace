@@ -1,6 +1,5 @@
 import { Route, Routes, useLocation } from "react-router";
 import Navbar from "./components/common/Navbar";
-s// import Hero from "./components/Hero";
 
 import { CartProvider } from "./components/cart/CartContext";
 import CartModal from "./components/cart/CartModal";

@@ -26,7 +26,7 @@ export default function RightSection() {
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const token = urlParams.get("token");
-    const type = urlParams.get("type");
+    const type = urlParams.get("userType");
 
     if (token && type) {
       setTokenData({ token, userType: type });

@@ -1,9 +1,9 @@
-import { Route, Routes } from "react-router";
-import Navbar from "./components/common/Navbar"; //"./components/common/Navbar";
-//import Hero from "./components/Hero";
+import { Routes, Route } from "react-router-dom";
+import Navbar from "./components/common/Navbar";
 
 import { CartProvider } from "./components/cart/CartContext";
 import CartModal from "./components/cart/CartModal";
+
 import Home from "./pages/Home";
 import Marketplace from "./pages/Marketplace";
 import Blog from "./pages/Blog";

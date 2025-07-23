@@ -127,14 +127,22 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
               onChange={handleSpecialOfferChange}
               error={errors.specialOffer}
             />
+<<<<<<< Updated upstream
             
+=======
+
+>>>>>>> Stashed changes
             {/* Product Image Uploader */}
             <div className="mt-8">
               <ProductImageUploader onUpload={handleImageUpload} />
             </div>
           </div>
         </div>
+<<<<<<< Updated upstream
 </div>
+=======
+
+>>>>>>> Stashed changes
         {/* List Product Button */}
         <div className="flex justify-end mt-8">
           <button

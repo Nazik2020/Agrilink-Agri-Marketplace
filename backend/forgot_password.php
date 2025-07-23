@@ -1,28 +1,46 @@
 <?php
 header("Access-Control-Allow-Origin: *");
+<<<<<<< Updated upstream
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
 // Handle preflight OPTIONS request
+=======
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+header("Access-Control-Allow-Credentials: true");
+header("Content-Type: application/json");
+
+>>>>>>> Stashed changes
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
+<<<<<<< Updated upstream
 require 'db.php';
+=======
+require_once __DIR__ . '/vendor/autoload.php';
+require 'db.php';
+require 'PasswordReset.php';
+>>>>>>> Stashed changes
 
 $data = json_decode(file_get_contents("php://input"), true);
 
 $email = $data['email'] ?? '';
 $userType = $data['userType'] ?? '';
 
+<<<<<<< Updated upstream
 // Validate input
+=======
+>>>>>>> Stashed changes
 if (empty($email) || empty($userType)) {
     echo json_encode(["success" => false, "message" => "Email and user type are required"]);
     exit;
 }
 
+<<<<<<< Updated upstream
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     echo json_encode(["success" => false, "message" => "Invalid email format"]);
     exit;
@@ -64,3 +82,10 @@ try {
     echo json_encode(["success" => false, "message" => "Database error: " . $e->getMessage()]);
 }
 ?>
+=======
+$passwordReset = new PasswordReset($conn);
+$result = $passwordReset->requestReset($email, $userType);
+
+echo json_encode($result);
+?>
+>>>>>>> Stashed changes

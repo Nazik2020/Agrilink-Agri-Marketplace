@@ -122,14 +122,12 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
               error={errors.specialOffer}
             />
 
-            {/* Product Image Uploader */}
             <div className="mt-8">
               <ProductImageUploader onUpload={handleImageUpload} />
             </div>
           </div>
         </div>
 
-        {/* List Product Button */}
         <div className="flex justify-end mt-8">
           <button
             onClick={handleSubmit}

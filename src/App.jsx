@@ -28,11 +28,11 @@ import WalletPage from "./components/SellerDashboard/Wallet/WalletPage";
 import NotificationsPage from "./components/SellerDashboard/Notifications/NotificationsPage";
 
 // Customer Dashboard
-import CustomerDashboard from './pages/CustomerDashboard';
-import CustomerProfilePage from './components/CustomerDashboard/CustomerProfile/CustomerProfilePage';
-import WishlistPage from './components/CustomerDashboard/CustomerWishlist/WishlistPage';
-import OrderHistoryPage from './components/CustomerDashboard/CustomerOrderHistory/OrderHistoryPage';
-import CustomerNotificationsPage from './components/CustomerDashboard/CustomerNotifications/NotificationsPage';
+import CustomerDashboard from "./pages/CustomerDashboard";
+import CustomerProfilePage from "./components/CustomerDashboard/CustomerProfile/CustomerProfilePage";
+import WishlistPage from "./components/CustomerDashboard/CustomerWishlist/WishlistPage";
+import OrderHistoryPage from "./components/CustomerDashboard/CustomerOrderHistory/OrderHistoryPage";
+import CustomerNotificationsPage from "./components/CustomerDashboard/CustomerNotifications/NotificationsPage";
 
 function App() {
   const location = useLocation();

@@ -22,16 +22,31 @@ export default function RightSection() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Extract token and type from URL parameters
+  // Extract token and type from URL parameters and validate
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const token = urlParams.get("token");
-    const type = urlParams.get("userType");
+    const userType = urlParams.get("userType");
 
-    if (token && type) {
-      setTokenData({ token, userType: type });
-      // You can add token validation here by calling backend
-      setIsValidToken(true);
+    if (token && userType) {
+      const validateToken = async () => {
+        try {
+          const res = await axios.get(
+            `http://localhost/backend/validate_token.php?token=${token}&userType=${userType}`
+          );
+          if (res.data.valid) {
+            setTokenData({ token, userType });
+            setIsValidToken(true);
+          } else {
+            setMessage(res.data.message || "Invalid or expired token.");
+            setIsValidToken(false);
+          }
+        } catch (error) {
+          setMessage("Error validating token. Please try again.");
+          setIsValidToken(false);
+        }
+      };
+      validateToken();
     } else {
       setMessage("Invalid or missing reset link. Please request a new one.");
       setIsValidToken(false);
@@ -220,7 +235,9 @@ export default function RightSection() {
                 }`}
               />
               {errors.confirmPassword && (
-                <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
+                <p className="text-red-500 text-sm">
+                  {errors.confirmPassword}
+                </p>
               )}
             </div>
 

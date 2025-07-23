@@ -1,6 +1,6 @@
-
-
 <?php
+
+require_once __DIR__ . '/vendor/autoload.php';
 
 use Dotenv\Dotenv;
 use PHPMailer\PHPMailer\PHPMailer;
@@ -51,14 +51,14 @@ class PasswordReset {
                 $sent = false;
                 try {
                     $mail->isSMTP();
-                    $mail->Host       = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
+                    $mail->Host       = $_ENV['SMTP_HOST'] ?? 'smtp.gmail.com';
                     $mail->SMTPAuth   = true;
-                    $mail->Username   = getenv('SMTP_USER');
-                    $mail->Password   = getenv('SMTP_PASS');
-                    $mail->SMTPSecure = getenv('SMTP_SECURE') ?: 'tls';
-                    $mail->Port       = getenv('SMTP_PORT') ?: 587;
+                    $mail->Username   = $_ENV['SMTP_USER'] ?? null;
+                    $mail->Password   = $_ENV['SMTP_PASS'] ?? null;
+                    $mail->SMTPSecure = $_ENV['SMTP_SECURE'] ?? 'tls';
+                    $mail->Port       = $_ENV['SMTP_PORT'] ?? 587;
 
-                    $mail->setFrom(getenv('SMTP_USER'), 'AgriLink');
+                    $mail->setFrom($_ENV['SMTP_USER'] ?? '', 'AgriLink');
                     $mail->addAddress($email);
                     $mail->isHTML(true);
                     $mail->Subject = 'Password Reset Request';

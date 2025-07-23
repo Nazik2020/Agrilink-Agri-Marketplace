@@ -10,22 +10,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-require_once __DIR__ . '/vendor/autoload.php';
 require 'db.php';
 require 'PasswordReset.php';
 
-$data = json_decode(file_get_contents("php://input"), true);
+$token = $_GET['token'] ?? '';
+$userType = $_GET['userType'] ?? '';
 
-$email = $data['email'] ?? '';
-$userType = $data['userType'] ?? '';
-
-if (empty($email) || empty($userType)) {
-    echo json_encode(["success" => false, "message" => "Email and user type are required"]);
+if (empty($token) || empty($userType)) {
+    echo json_encode(["valid" => false, "message" => "Token and user type are required"]);
     exit;
 }
 
 $passwordReset = new PasswordReset($conn);
-$result = $passwordReset->requestReset($email, $userType);
+$result = $passwordReset->validateToken($token, $userType);
 
 echo json_encode($result);
 ?>

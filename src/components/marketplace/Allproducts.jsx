@@ -6,7 +6,6 @@ import brown1 from "../../assets/marketplace/all/brown1.jpg";
 import cinnamon from "../../assets/marketplace/all/cinnamon.jpg";
 import plantea from "../../assets/marketplace/all/plantea.jpg";
 import yello from "../../assets/marketplace/all/yello.jpg";
-import tea from "../../assets/marketplace/products/tea.jpg";
 import { useCart } from "../cart/CartContext";
 
 export const products = [
@@ -79,6 +78,7 @@ const Allproducts = () => {
       maxQuantity: product.maxQuantity,
     });
   };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {products.map((product) => (
@@ -86,7 +86,6 @@ const Allproducts = () => {
           key={product.id}
           className="bg-white rounded-2xl shadow-xl border border-gray-200 hover:shadow-2xl transition flex flex-col h-[370px] w-full max-w-xs mx-auto relative"
         >
-          {/* Discount Badge */}
           {product.discount ? (
             <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
               -{product.discount}%

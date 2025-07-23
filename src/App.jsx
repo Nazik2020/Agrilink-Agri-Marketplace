@@ -1,9 +1,10 @@
 import { Route, Routes, useLocation } from "react-router";
 import Navbar from "./components/common/Navbar";
-// import Hero from "./components/Hero";
+s// import Hero from "./components/Hero";
 
 import { CartProvider } from "./components/cart/CartContext";
 import CartModal from "./components/cart/CartModal";
+
 import Home from "./pages/Home";
 import Marketplace from "./pages/Marketplace";
 import Blog from "./pages/Blog";

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import ProfileFormField from '../SellerProfile/ProfileFormField';
 import SpecialOfferDropdown from './SpecialOfferDropdown';
 import ProductImageUploader from './ProductImageUploader';
@@ -29,7 +30,6 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
     setErrors((prev) => ({ ...prev, category: '' }));
   };
 
-  // Validate form fields
   const validateForm = () => {
     const newErrors = {};
     const requiredFields = [
@@ -88,7 +88,7 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
         </h1>
 
         <div className="max-w-2xl mx-auto">
-          <div className="space-y-6 ">
+          <div className="space-y-6">
             <ProfileFormField
               label="Product Name"
               name="productName"
@@ -140,9 +140,9 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
             />
 
             <div className="mt-8">
-              <ProductImageUploader 
-                onUpload={onUpload} 
-                images={product.images || []} 
+              <ProductImageUploader
+                onUpload={onUpload}
+                images={product.images || []}
               />
             </div>
           </div>

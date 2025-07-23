@@ -14,6 +14,7 @@ import Aboutus from "./pages/Aboutus";
 import Welcoming from "./pages/Welcoming";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 import CustomerSignup from "./pages/CustomerSignup";
 import SellerSignup from "./pages/SellerSignup";
@@ -39,23 +40,24 @@ function App() {
       <div className="min-h-screen flex flex-col bg-gray-50">
         <Navbar />
         <CartModal />
-        <main className="">
+        <main>
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Home />} />
+            <Route path="/faq" element={<Faq />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/contact" element={<ContactUs />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product/:id" element={<ProductDetails />} />
             <Route path="/about" element={<Aboutus />} />
-            <Route path="/faq" element={<Faq />} />
             <Route path="/Welcoming" element={<Welcoming />} />
             <Route path="/Login" element={<Login />} />
             <Route path="/ForgotPassword" element={<ForgotPassword />} />
-
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/CustomerSignup" element={<CustomerSignup />} />
             <Route path="/SellerSignup" element={<SellerSignup />} />
 
-            {/* Seller Dashboard with nested routes */}
+            {/* Seller Dashboard */}
             <Route path="/seller-dashboard" element={<SellerDashboard />}>
               <Route index element={<ProfilePage />} />
               <Route path="profile" element={<ProfilePage />} />
@@ -65,7 +67,7 @@ function App() {
               <Route path="notifications" element={<NotificationsPage />} />
             </Route>
 
-            {/* Customer Dashboard Routes */}
+            {/* Customer Dashboard */}
             <Route path="/customer-dashboard" element={<CustomerDashboard />}>
               <Route index element={<CustomerProfilePage />} />
               <Route path="profile" element={<CustomerProfilePage />} />

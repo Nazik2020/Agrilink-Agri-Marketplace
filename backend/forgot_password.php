@@ -10,6 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
+require_once __DIR__ . '/vendor/autoload.php';
 require 'db.php';
 require 'PasswordReset.php';
 

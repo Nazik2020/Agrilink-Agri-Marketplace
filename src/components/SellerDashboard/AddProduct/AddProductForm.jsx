@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import ProfileFormField from '../SellerProfile/ProfileFormField';
-import SpecialOfferDropdown from './SpecialOfferDropdown';
-import ProductImageUploader from './ProductImageUploader';
-import axios from 'axios';
+import React, { useState } from "react";
+import axios from "axios";
+import ProfileFormField from "../SellerProfile/ProfileFormField";
+import SpecialOfferDropdown from "./SpecialOfferDropdown";
+import ProductImageUploader from "./ProductImageUploader";
 
 const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
   const [errors, setErrors] = useState({});
@@ -11,12 +11,12 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     onChange({ ...product, [name]: value });
-    setErrors((prev) => ({ ...prev, [name]: '' }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleSpecialOfferChange = (offer) => {
     onChange({ ...product, specialOffer: offer });
-    setErrors((prev) => ({ ...prev, specialOffer: '' }));
+    setErrors((prev) => ({ ...prev, specialOffer: "" }));
   };
 
   const handleImageUpload = (file) => {
@@ -26,21 +26,16 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    const requiredFields = [
-      'productName',
-      'productDescription',
-      'price',
-    ];
+    const requiredFields = ["productName", "productDescription", "price"];
 
     requiredFields.forEach((field) => {
-      if (!product[field] || product[field].trim() === '') {
-        newErrors[field] = 'This field is required.';
+      if (!product[field] || product[field].trim() === "") {
+        newErrors[field] = "This field is required.";
       }
     });
 
-    // Price validation
     if (product.price && isNaN(product.price)) {
-      newErrors.price = 'Please enter a valid price.';
+      newErrors.price = "Please enter a valid price.";
     }
 
     setErrors(newErrors);
@@ -49,26 +44,27 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
 
   const handleSubmit = async () => {
     if (validateForm()) {
-      // Prepare FormData
       const formData = new FormData();
-      formData.append('seller_id', sellerId || product.seller_id);
-      formData.append('product_name', product.productName);
-      formData.append('product_description', product.productDescription);
-      formData.append('price', product.price);
-      formData.append('special_offer', product.specialOffer);
-      formData.append('category', product.category);
-      if (imageFile) formData.append('product_image', imageFile);
+      formData.append("seller_id", sellerId || product.seller_id);
+      formData.append("product_name", product.productName);
+      formData.append("product_description", product.productDescription);
+      formData.append("price", product.price);
+      formData.append("special_offer", product.specialOffer);
+      formData.append("category", product.category);
+      if (imageFile) formData.append("product_image", imageFile);
+
       try {
-        const res = await axios.post('/backend/add_product.php', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+        const res = await axios.post("/backend/add_product.php", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
         });
+
         if (res.data.success) {
-          alert('Product Listed Successfully!');
+          alert("Product Listed Successfully!");
         } else {
-          alert('Product listing failed!');
+          alert("Product listing failed!");
         }
       } catch (err) {
-        alert('Error adding product');
+        alert("Error adding product");
       }
     }
   };
@@ -79,10 +75,9 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
         <h1 className="text-4xl font-bold text-green-600 mb-8 text-center">
           List a New Product
         </h1>
-        
+
         <div className="max-w-2xl mx-auto">
-         
-          <div className="space-y-6 ">
+          <div className="space-y-6">
             <ProfileFormField
               label="Product Name"
               name="productName"
@@ -91,7 +86,7 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
               error={errors.productName}
               required
             />
-            
+
             <div className="space-y-2">
               <label className="block text-base font-semibold text-gray-500">
                 Product Description *
@@ -105,10 +100,12 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
                 placeholder="Describe your product in detail"
               />
               {errors.productDescription && (
-                <p className="text-red-500 text-sm mt-1">{errors.productDescription}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.productDescription}
+                </p>
               )}
             </div>
-            
+
             <ProfileFormField
               label="Price"
               name="price"
@@ -118,31 +115,20 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
               error={errors.price}
               required
             />
-          
 
-          
-          <div className="space-y-6">
             <SpecialOfferDropdown
               value={product.specialOffer}
               onChange={handleSpecialOfferChange}
               error={errors.specialOffer}
             />
-<<<<<<< Updated upstream
-            
-=======
 
->>>>>>> Stashed changes
             {/* Product Image Uploader */}
             <div className="mt-8">
               <ProductImageUploader onUpload={handleImageUpload} />
             </div>
           </div>
         </div>
-<<<<<<< Updated upstream
-</div>
-=======
 
->>>>>>> Stashed changes
         {/* List Product Button */}
         <div className="flex justify-end mt-8">
           <button

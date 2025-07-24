@@ -105,7 +105,6 @@ export default function RightSection() {
 
       setMessage(res.data.message);
 
-      // If successful, redirect to login after 3 seconds
       if (res.data.success) {
         setTimeout(() => {
           navigate("/Login");
@@ -118,7 +117,6 @@ export default function RightSection() {
     }
   };
 
-  // If token is invalid, show error message
   if (!isValidToken && tokenData.token === "" && tokenData.userType === "") {
     return (
       <div className="w-full md:w-1/2 bg-white p-4 md:p-8 flex flex-col justify-center items-center min-h-screen">

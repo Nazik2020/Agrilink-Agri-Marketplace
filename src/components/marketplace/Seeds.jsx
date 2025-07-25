@@ -1,49 +1,89 @@
-"use client"
-import { Link } from "react-router-dom"
-import { FaShoppingCart, FaStar } from "react-icons/fa"
-import { useCart } from "../cart/CartContext"
-import yello from "../../assets/marketplace/seeds/yello.jpg"
-import brown1 from "../../assets/marketplace/seeds/brown1.jpg"
-
-const products = [
-  {
-    id: 1,
-    name: "Organic Wheat Seeds",
-    details: "High-quality organic wheat seeds for sustainable farming.",
-    price: 12.99,
-    oldPrice: 15.99,
-    discount: 20,
-    category: "Seeds",
-    rating: 4.6,
-    image: yello,
-    seller: "Seed Masters",
-    maxQuantity: 100,
-  },
-  {
-    id: 3,
-    name: "Corn Seed Pack",
-    details: "Non-GMO corn seeds for optimal yield.",
-    price: 15.75,
-    category: "Seeds",
-    rating: 4.5,
-    image: brown1,
-    seller: "Seed Masters",
-    maxQuantity: 80,
-  },
-]
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { FaShoppingCart, FaStar } from "react-icons/fa";
+import axios from "axios";
+import { useCart } from "../cart/CartContext";
 
 const Seeds = () => {
-  const { addToCart } = useCart()
+  const { addToCart } = useCart();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch products from database filtered by "Seeds" category
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        console.log("Seeds component: Fetching products...");
+        const response = await axios.get("http://localhost/backend/get_products.php?category=Seeds");
+        console.log("Seeds component: Response received:", response.data);
+        
+        if (response.data.success) {
+          console.log("Seeds component: Products found:", response.data.products.length);
+          setProducts(response.data.products);
+        } else {
+          console.log("Seeds component: API returned error:", response.data.message);
+          setError("Failed to fetch products");
+        }
+      } catch (err) {
+        console.error("Seeds component: Error fetching products:", err);
+        setError("Error loading products");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const handleAddToCart = (product) => {
     addToCart({
       id: product.id,
-      name: product.name,
-      seller: product.seller,
+      name: product.product_name,
+      seller: product.seller_name,
       category: product.category,
-      price: product.price,
-      maxQuantity: product.maxQuantity,
-    })
+      price: parseFloat(product.price),
+      maxQuantity: 10,
+    });
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+        <p className="ml-4 text-gray-600">Loading seeds...</p>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600 text-lg">{error}</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  // No products state
+  if (products.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <div className="max-w-md mx-auto">
+          <div className="text-6xl mb-6">🌱</div>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">No Seeds Available Yet</h3>
+          <p className="text-gray-600 text-lg mb-2">We currently don't have any seeds in stock.</p>
+          <p className="text-gray-500">Check back later for new seed listings!</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -61,8 +101,10 @@ const Seeds = () => {
           )}
           <Link to={`/product/${product.id}`} className="block">
             <img
-              src={product.image || "/placeholder.svg"}
-              alt={product.name}
+              src={product.product_images && product.product_images.length > 0 ? 
+                `http://localhost/backend/${product.product_images[0]}` : 
+                "/placeholder.svg"}
+              alt={product.product_name}
               className="w-full h-40 object-cover rounded-t-2xl"
               onError={(e) => {
                 e.target.src = "https://via.placeholder.com/300x200?text=Image+Not+Found"
@@ -74,20 +116,20 @@ const Seeds = () => {
               <span className="text-green-600 font-semibold text-sm">{product.category}</span>
               <span className="flex items-center text-yellow-500 text-sm font-semibold">
                 <FaStar className="mr-1 text-base" />
-                {product.rating}
+                {product.rating || '5.0'}
               </span>
             </div>
             <Link to={`/product/${product.id}`}>
               <h3 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700">
-                {product.name}
+                {product.product_name}
               </h3>
             </Link>
-            <p className="text-gray-600 text-sm line-clamp-2 mb-3">{product.details}</p>
+            <p className="text-gray-600 text-sm line-clamp-2 mb-3">{product.product_description}</p>
             <div className="flex items-end justify-between mt-auto">
               <div>
-                <span className="text-green-700 font-bold text-lg">${product.price.toFixed(2)}</span>
+                <span className="text-green-700 font-bold text-lg">${parseFloat(product.price).toFixed(2)}</span>
                 {product.oldPrice && (
-                  <span className="text-gray-400 text-base line-through ml-2">${product.oldPrice.toFixed(2)}</span>
+                  <span className="text-gray-400 text-base line-through ml-2">${parseFloat(product.oldPrice).toFixed(2)}</span>
                 )}
               </div>
               <button

@@ -59,7 +59,16 @@ export default function RightSection() {
       if (res.data.success) {
         setMessage(res.data.message);
         localStorage.setItem("user", JSON.stringify(res.data.user));
-        localStorage.setItem("userEmail", res.data.user.email);
+
+        // Set seller_id in localStorage if user is a seller
+        if (
+          res.data.user &&
+          res.data.user.role === "seller" &&
+          res.data.user.id
+        ) {
+          localStorage.setItem("seller_id", res.data.user.id);
+        }
+
         setTimeout(() => {
           if (res.data.user.role === "admin") {
             navigate("/admin-dashboard");

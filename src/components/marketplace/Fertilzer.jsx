@@ -1,37 +1,84 @@
-"use client"
-import { Link } from "react-router-dom"
-import { FaShoppingCart, FaStar } from "react-icons/fa"
-import { useCart } from "../cart/CartContext"
-import cinnamon from "../../assets/marketplace/fertilzers/cinnamon.jpg"
-
-const products = [
-  {
-    id: 5,
-    name: "Nitrogen-Rich Fertilizer",
-    details: "Enhance crop growth with this premium fertilizer. Suitable for all types of crops.",
-    price: 14.5,
-    oldPrice: 16.0,
-    discount: 10,
-    category: "Fertilizer",
-    rating: 4.5,
-    image: cinnamon,
-    seller: "Nutrient Solutions",
-    maxQuantity: 60,
-  },
-]
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { FaShoppingCart, FaStar } from "react-icons/fa";
+import axios from "axios";
+import { useCart } from "../cart/CartContext";
 
 const Fertilizer = () => {
-  const { addToCart } = useCart()
+  const { addToCart } = useCart();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch products from database filtered by "Fertilizer" category
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get("http://localhost/backend/get_products.php?category=Fertilizer");
+        if (response.data.success) {
+          setProducts(response.data.products);
+        } else {
+          setError("Failed to fetch products");
+        }
+      } catch (err) {
+        setError("Error loading products");
+        console.error("Error fetching products:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const handleAddToCart = (product) => {
     addToCart({
       id: product.id,
-      name: product.name,
-      seller: product.seller,
+      name: product.product_name,
+      seller: product.seller_name,
       category: product.category,
-      price: product.price,
-      maxQuantity: product.maxQuantity,
-    })
+      price: parseFloat(product.price),
+      maxQuantity: 10,
+    });
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+        <p className="ml-4 text-gray-600">Loading fertilizers...</p>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600 text-lg">{error}</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  // No products state
+  if (products.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <div className="max-w-md mx-auto">
+          <div className="text-6xl mb-6">🧪</div>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">No Fertilizers Available Yet</h3>
+          <p className="text-gray-600 text-lg mb-2">We currently don't have any fertilizers in stock.</p>
+          <p className="text-gray-500">Check back later for new fertilizer listings!</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -49,8 +96,10 @@ const Fertilizer = () => {
           )}
           <Link to={`/product/${product.id}`} className="block">
             <img
-              src={product.image || "/placeholder.svg"}
-              alt={product.name}
+              src={product.product_images && product.product_images.length > 0 ? 
+                `http://localhost/backend/${product.product_images[0]}` : 
+                "/placeholder.svg"}
+              alt={product.product_name}
               className="w-full h-40 object-cover rounded-t-2xl"
               onError={(e) => {
                 e.target.src = "https://via.placeholder.com/300x200?text=Image+Not+Found"
@@ -62,20 +111,20 @@ const Fertilizer = () => {
               <span className="text-green-600 font-semibold text-sm">{product.category}</span>
               <span className="flex items-center text-yellow-500 text-sm font-semibold">
                 <FaStar className="mr-1 text-base" />
-                {product.rating}
+                {product.rating || '5.0'}
               </span>
             </div>
             <Link to={`/product/${product.id}`}>
               <h3 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700">
-                {product.name}
+                {product.product_name}
               </h3>
             </Link>
-            <p className="text-gray-600 text-sm line-clamp-2 mb-3">{product.details}</p>
+            <p className="text-gray-600 text-sm line-clamp-2 mb-3">{product.product_description}</p>
             <div className="flex items-end justify-between mt-auto">
               <div>
-                <span className="text-green-700 font-bold text-lg">${product.price.toFixed(2)}</span>
+                <span className="text-green-700 font-bold text-lg">${parseFloat(product.price).toFixed(2)}</span>
                 {product.oldPrice && (
-                  <span className="text-gray-400 text-base line-through ml-2">${product.oldPrice.toFixed(2)}</span>
+                  <span className="text-gray-400 text-base line-through ml-2">${parseFloat(product.oldPrice).toFixed(2)}</span>
                 )}
               </div>
               <button

@@ -1,10 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { User, Plus, BarChart3, Wallet, Bell, LogOut } from 'lucide-react';
+import axios from 'axios';
 import Image from '../../../assets/SellerDashboard/seller.jpg'; // Adjust the path as necessary
+
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [sellerData, setSellerData] = useState({
+    username: 'Seller',
+    business_logo: null
+  });
+
+  // Load seller data
+  useEffect(() => {
+    const loadSellerData = async () => {
+      try {
+        const sellerId = localStorage.getItem("seller_id");
+        if (sellerId) {
+          const response = await axios.get(
+            `http://localhost/backend/get_seller_profile.php?seller_id=${sellerId}`
+          );
+          if (response.data.success) {
+            setSellerData(response.data.seller);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading seller data:", error);
+      }
+    };
+
+    loadSellerData();
+  }, []);
 
   const handleLogout = () => {
     console.log('User logged out');
@@ -25,13 +52,16 @@ const Sidebar = () => {
       <div className="flex flex-col items-center mb-8 mt-5">
         <div className="relative mb-4">
           <img 
-            src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop"
-            alt="Sarah Miller" 
+            src={sellerData.business_logo 
+              ? `http://localhost/backend/${sellerData.business_logo}` 
+              : "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop"
+            }
+            alt={sellerData.username || "Seller Profile"} 
             className="w-30 h-30 rounded-full object-cover border-4 border-green-100 shadow-lg"
           />
           <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
         </div>
-        <h3 className="text-xl font-bold text-green-600 mb-1">Sarah Miller</h3>
+        <h3 className="text-xl font-bold text-green-600 mb-1">{sellerData.username || 'Seller'}</h3>
         <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Seller</span>
       </div>
 

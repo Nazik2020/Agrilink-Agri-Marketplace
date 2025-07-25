@@ -49,12 +49,6 @@ export default function RightSection() {
       );
       if (res.data.success) {
         setMessage(res.data.message);
-        // For development, show the reset link
-        if (res.data.resetLink) {
-          setTimeout(() => {
-            setMessage(`${res.data.message}\n\nFor testing: ${res.data.resetLink}`);
-          }, 1000);
-        }
       } else {
         setMessage(res.data.message);
       }

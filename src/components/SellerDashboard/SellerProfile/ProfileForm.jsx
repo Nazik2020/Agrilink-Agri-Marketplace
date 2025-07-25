@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import ProfileFormField from "./ProfileFormField";
 import CountryDropdown from "./CountryDropdown";
@@ -7,6 +7,14 @@ import FileUploader from "../AddProduct/FileUploader";
 const ProfileForm = ({ profile, onChange, onUpload }) => {
   const [errors, setErrors] = useState({});
   const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+
+  // Set logo preview when profile loads with existing logo
+  useEffect(() => {
+    if (profile.business_logo) {
+      setLogoPreview(`http://localhost/backend/${profile.business_logo}`);
+    }
+  }, [profile.business_logo]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -21,6 +29,11 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
 
   const handleLogoUpload = (file) => {
     setLogoFile(file);
+    // Create preview URL for the selected file
+    if (file) {
+      const previewUrl = URL.createObjectURL(file);
+      setLogoPreview(previewUrl);
+    }
     if (onUpload) onUpload(file);
   };
 
@@ -52,12 +65,23 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
 
   const handleSubmit = async () => {
     if (validateForm()) {
+      // Get seller_id from localStorage
+      const sellerId = localStorage.getItem("seller_id") || profile.id;
+      
+      if (!sellerId) {
+        alert("Seller ID not found. Please login again.");
+        return;
+      }
+
       const formData = new FormData();
-      formData.append("seller_id", profile.id || profile.seller_id);
+      formData.append("seller_id", sellerId);
+      formData.append("username", profile.contactName);
       formData.append("business_name", profile.businessName);
       formData.append("business_description", profile.businessDescription);
       formData.append("country", profile.country);
+      formData.append("contact_number", profile.contactNumber);
       formData.append("email", profile.email);
+      formData.append("address", profile.address);
       if (logoFile) formData.append("business_logo", logoFile);
 
       try {
@@ -70,6 +94,11 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
         );
         if (res.data.success) {
           alert("Profile Saved Successfully!");
+          // Update profile with new logo path if uploaded
+          if (res.data.logo_path) {
+            onChange({ ...profile, business_logo: res.data.logo_path });
+            setLogoPreview(`http://localhost/backend/${res.data.logo_path}`);
+          }
         } else {
           alert("Profile update failed! " + (res.data.message || ""));
           console.log(res.data);
@@ -169,6 +198,26 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
 
         {/* File Uploader */}
         <div className="mt-8">
+          <label className="block text-base font-semibold text-gray-500 mb-4">
+            Business Logo
+          </label>
+          
+          {/* Logo Preview */}
+          {logoPreview && (
+            <div className="mb-4 flex justify-center">
+              <div className="relative">
+                <img 
+                  src={logoPreview} 
+                  alt="Business Logo" 
+                  className="w-32 h-32 object-cover rounded-lg border-2 border-green-200 shadow-md"
+                />
+                <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
+                  ✓
+                </div>
+              </div>
+            </div>
+          )}
+          
           <FileUploader onUpload={handleLogoUpload} />
         </div>
 

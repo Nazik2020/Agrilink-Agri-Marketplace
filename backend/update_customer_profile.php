@@ -7,7 +7,12 @@ require 'db.php';
 require 'Customer.php';
 
 $data = json_decode(file_get_contents("php://input"), true);
+
 $email = $data['email'] ?? '';
+$full_name = $data['fullName'] ?? '';
+$address = $data['address'] ?? '';
+$contactno = $data['contactNumber'] ?? '';
+$country = $data['country'] ?? '';
 
 if (empty($email)) {
     echo json_encode(["success" => false, "message" => "Email is required"]);
@@ -16,11 +21,11 @@ if (empty($email)) {
 
 try {
     $customer = new Customer($conn);
-    $user = $customer->getByEmail($email);
-    if ($user) {
-        echo json_encode(["success" => true, "profile" => $user]);
+    $success = $customer->updateProfile($email, $full_name, $address, $contactno, $country);
+    if ($success) {
+        echo json_encode(["success" => true, "message" => "Profile updated successfully"]);
     } else {
-        echo json_encode(["success" => false, "message" => "Customer not found"]);
+        echo json_encode(["success" => false, "message" => "Failed to update profile"]);
     }
 } catch (PDOException $e) {
     echo json_encode(["success" => false, "message" => $e->getMessage()]);

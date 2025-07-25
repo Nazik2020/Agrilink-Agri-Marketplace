@@ -6,6 +6,15 @@ const CustomerSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Get username from localStorage user object
+  let username = '';
+  try {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.username) {
+      username = user.username;
+    }
+  } catch (e) {}
+
   const handleLogout = () => {
     console.log('Customer logged out');
     navigate('/login');
@@ -30,7 +39,7 @@ const CustomerSidebar = () => {
           />
           <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
         </div>
-        <h3 className="text-xl font-bold text-green-600 mb-1">Sarah Miller</h3>
+        <h3 className="text-xl font-bold text-green-600 mb-1">{username || 'Customer'}</h3>
         <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Customer</span>
       </div>
 

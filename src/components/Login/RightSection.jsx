@@ -59,7 +59,7 @@ export default function RightSection() {
       if (res.data.success) {
         setMessage(res.data.message);
         localStorage.setItem("user", JSON.stringify(res.data.user));
-
+        localStorage.setItem("userEmail", res.data.user.email);
         setTimeout(() => {
           if (res.data.user.role === "admin") {
             navigate("/admin-dashboard");

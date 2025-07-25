@@ -1,22 +1,24 @@
-import { Routes, Route, useLocation } from "react-router-dom"
-import Navbar from "./components/common/Navbar"
-// import Hero from "./components/Hero";
-import { CartProvider } from "./components/cart/CartContext"
-import CartModal from "./components/cart/CartModal"
-import Home from "./pages/Home"
-import Marketplace from "./pages/Marketplace"
-import Blog from "./pages/Blog"
-import BlogDetail from "./components/blog/BlogDetail"
-import ContactUs from "./pages/ContactUs"
-import Faq from "./pages/Faq"
-import ProductDetails from "./pages/ProductDetails"
-import Aboutus from "./pages/Aboutus"
-import Welcoming from "./pages/Welcoming"
-import Login from "./pages/Login"
-import ForgotPassword from "./pages/ForgotPassword"
-import ResetPassword from "./pages/ResetPassword"
-import CustomerSignup from "./pages/CustomerSignup"
-import SellerSignup from "./pages/SellerSignup"
+import { Route, Routes } from "react-router";
+import Navbar from "./components/common/Navbar"; //"./components/common/Navbar";
+//import Hero from "./components/Hero";
+
+import { CartProvider } from "./components/cart/CartContext";
+import CartModal from "./components/cart/CartModal";
+import Home from "./pages/Home";
+import Marketplace from "./pages/Marketplace";
+import Blog from "./pages/Blog";
+import ContactUs from "./pages/ContactUs";
+import Faq from "./pages/Faq";
+import ProductDetails from "./pages/ProductDetails";
+import Aboutus from "./pages/Aboutus";
+import Welcoming from "./pages/Welcoming";
+import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import Dashboard from "./pages/AdminDashboard";
+
+import CustomerSignup from "./pages/CustomerSignup";
+import SellerSignup from "./pages/SellerSignup";
 
 // Seller Dashboard
 import SellerDashboard from "./pages/SellerDashboard"
@@ -27,11 +29,12 @@ import WalletPage from "./components/SellerDashboard/Wallet/WalletPage"
 import NotificationsPage from "./components/SellerDashboard/Notifications/NotificationsPage"
 
 // Customer Dashboard
-import CustomerDashboard from "./pages/CustomerDashboard"
-import CustomerProfilePage from "./components/CustomerDashboard/CustomerProfile/CustomerProfilePage"
-import WishlistPage from "./components/CustomerDashboard/CustomerWishlist/WishlistPage"
-import OrderHistoryPage from "./components/CustomerDashboard/CustomerOrderHistory/OrderHistoryPage"
-import CustomerNotificationsPage from "./components/CustomerDashboard/CustomerNotifications/NotificationsPage"
+import CustomerDashboard from "./pages/CustomerDashboard";
+import CustomerProfilePage from "./components/CustomerDashboard/CustomerProfile/CustomerProfilePage";
+import WishlistPage from "./components/CustomerDashboard/CustomerWishlist/WishlistPage";
+import OrderHistoryPage from "./components/CustomerDashboard/CustomerOrderHistory/OrderHistoryPage";
+import CustomerNotificationsPage from "./components/CustomerDashboard/CustomerNotifications/NotificationsPage";
+import AdminDashboard from "./components/AdminDashboard/Dashboard";
 
 function App() {
   const location = useLocation()
@@ -61,6 +64,8 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/CustomerSignup" element={<CustomerSignup />} />
             <Route path="/SellerSignup" element={<SellerSignup />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
 
             {/* Seller Dashboard with nested routes */}
             <Route path="/seller-dashboard" element={<SellerDashboard />}>

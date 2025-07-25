@@ -18,6 +18,16 @@ if (empty($email)) {
     echo json_encode(["success" => false, "message" => "Email is required"]);
     exit;
 }
+// Email validation
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    echo json_encode(["success" => false, "message" => "Invalid email format"]);
+    exit;
+}
+// Contact number validation (7-15 digits)
+if (!preg_match('/^\d{7,15}$/', $contactno)) {
+    echo json_encode(["success" => false, "message" => "Invalid contact number"]);
+    exit;
+}
 
 try {
     $customer = new Customer($conn);

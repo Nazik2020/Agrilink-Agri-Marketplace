@@ -15,6 +15,22 @@ const CustomerProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  // Store the original email from localStorage
+  const originalEmail = localStorage.getItem('userEmail');
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.fullName.trim()) newErrors.fullName = 'Full Name is required';
+    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    else if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(formData.email)) newErrors.email = 'Email is invalid';
+    if (!formData.address.trim()) newErrors.address = 'Address is required';
+    if (!formData.contactNumber.trim()) newErrors.contactNumber = 'Contact Number is required';
+    else if (!/^\d{7,15}$/.test(formData.contactNumber)) newErrors.contactNumber = 'Contact Number must be 7-15 digits';
+    if (!formData.country.trim()) newErrors.country = 'Country is required';
+    return newErrors;
+  };
 
   useEffect(() => {
     const email = localStorage.getItem('userEmail');
@@ -60,11 +76,18 @@ const CustomerProfilePage = () => {
   };
 
   const handleSaveProfile = () => {
+    const validationErrors = validateForm();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      setToast({ show: true, message: 'Please fix the errors in the form.', type: 'error' });
+      setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
+      return;
+    }
     setSaving(true);
     fetch('http://localhost/backend/update_customer_profile.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
+      body: JSON.stringify({ ...formData, email: originalEmail })
     })
       .then(res => res.json())
       .then(data => {
@@ -105,8 +128,9 @@ const CustomerProfilePage = () => {
                 value={formData.fullName}
                 onChange={handleInputChange}
                 placeholder="Enter your full name"
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
+                className={`w-full px-4 py-2 bg-gray-50 border ${errors.fullName ? 'border-red-500' : 'border-gray-200'} rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300`}
               />
+              {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
             </div>
 
             {/* Email */}
@@ -118,8 +142,10 @@ const CustomerProfilePage = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="Enter your email"
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
+                className={`w-full px-4 py-2 bg-gray-50 border ${errors.email ? 'border-red-500' : 'border-gray-200'} rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300`}
+                readOnly
               />
+              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
             </div>
 
             {/* Address */}
@@ -131,8 +157,9 @@ const CustomerProfilePage = () => {
                 onChange={handleInputChange}
                 placeholder="Enter your Address"
                 rows="3"
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 resize-none"
+                className={`w-full px-4 py-2 bg-gray-50 border ${errors.address ? 'border-red-500' : 'border-gray-200'} rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 resize-none`}
               />
+              {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
             </div>
 
             {/* Contact Number */}
@@ -144,15 +171,16 @@ const CustomerProfilePage = () => {
                 value={formData.contactNumber}
                 onChange={handleInputChange}
                 placeholder="Enter your contact number"
-                className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300"
+                className={`w-full px-4 py-2 bg-gray-50 border ${errors.contactNumber ? 'border-red-500' : 'border-gray-200'} rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300`}
               />
+              {errors.contactNumber && <p className="text-red-500 text-sm mt-1">{errors.contactNumber}</p>}
             </div>
 
             {/* Country */}
             <CountryDropdown
               value={formData.country}
               onChange={(country) => setFormData(prev => ({ ...prev, country }))}
-              error={null}
+              error={errors.country}
             />
           </div>
 
@@ -198,7 +226,7 @@ const CustomerProfilePage = () => {
       <div className="mt-8 text-right mr-15">
         <button
           onClick={handleSaveProfile}
-          className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-700 transform hover:scale-105 hover:shadow-lg disabled:opacity-50"
+          className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-200 transform hover:scale-105 hover:shadow-lg disabled:opacity-50"
           disabled={saving}
         >
           {saving ? 'Saving...' : 'Save Profile'}

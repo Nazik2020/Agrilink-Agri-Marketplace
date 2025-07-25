@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router";
+import { Route, Routes, useLocation } from "react-router";
 import Navbar from "./components/common/Navbar"; //"./components/common/Navbar";
 //import Hero from "./components/Hero";
 
@@ -16,10 +16,10 @@ import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/AdminDashboard";
-
+import BlogDetail from "./components/blog/BlogDetail";
 import CustomerSignup from "./pages/CustomerSignup";
 import SellerSignup from "./pages/SellerSignup";
-
+import AdminDashboard from "./components/AdminDashboard/Dashboard";
 // Seller Dashboard
 import SellerDashboard from "./pages/SellerDashboard"
 import ProfilePage from "./components/SellerDashboard/SellerProfile/ProfilePage"
@@ -34,14 +34,15 @@ import CustomerProfilePage from "./components/CustomerDashboard/CustomerProfile/
 import WishlistPage from "./components/CustomerDashboard/CustomerWishlist/WishlistPage";
 import OrderHistoryPage from "./components/CustomerDashboard/CustomerOrderHistory/OrderHistoryPage";
 import CustomerNotificationsPage from "./components/CustomerDashboard/CustomerNotifications/NotificationsPage";
-import AdminDashboard from "./components/AdminDashboard/Dashboard";
+
+
 
 function App() {
   const location = useLocation()
 
   // Check if we are in seller or customer dashboard
   const hideNavbar =
-    location.pathname.startsWith("/seller-dashboard") || location.pathname.startsWith("/customer-dashboard")
+    location.pathname.startsWith("/seller-dashboard") || location.pathname.startsWith("/customer-dashboard") || location.pathname.startsWith("/admin-dashboard")
 
   return (
     <CartProvider>

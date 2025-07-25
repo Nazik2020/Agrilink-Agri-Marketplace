@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, Upload } from 'lucide-react';
+import CountryDropdown from '../../SellerDashboard/SellerProfile/CountryDropdown';
 
 const CustomerProfilePage = () => {
   const [formData, setFormData] = useState({
@@ -31,11 +32,6 @@ const CustomerProfilePage = () => {
     console.log('Profile saved:', formData);
     // Handle profile save logic here
   };
-
-  const countries = [
-    'United States', 'Canada', 'United Kingdom', 'Australia', 'Germany', 
-    'France', 'Italy', 'Spain', 'Netherlands', 'India', 'Other'
-  ];
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-8 max-w-4xl mx-auto">
@@ -97,23 +93,11 @@ const CustomerProfilePage = () => {
           </div>
 
           {/* Country */}
-          <div>
-            <label className="block text-gray-600 font-medium mb-2">Country</label>
-            <div className="relative">
-              <select
-                name="country"
-                value={formData.country}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 bg-gray-50 mb-10 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 appearance-none cursor-pointer"
-              >
-                <option value="">Select Your Country</option>
-                {countries.map((country, index) => (
-                  <option key={index} value={country}>{country}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/4 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
-            </div>
-          </div>
+          <CountryDropdown
+            value={formData.country}
+            onChange={(country) => setFormData(prev => ({ ...prev, country }))}
+            error={null}
+          />
         </div>
 
         {/* Image Upload Section */}

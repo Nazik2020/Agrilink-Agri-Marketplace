@@ -22,7 +22,7 @@ export default function RightSection() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Extract token and type from URL parameters
+  // Extract token and type from URL parameters and validate
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const token = urlParams.get("token");
@@ -233,7 +233,9 @@ export default function RightSection() {
                 }`}
               />
               {errors.confirmPassword && (
-                <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
+                <p className="text-red-500 text-sm">
+                  {errors.confirmPassword}
+                </p>
               )}
             </div>
 

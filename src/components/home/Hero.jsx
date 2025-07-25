@@ -57,11 +57,6 @@ const Hero = () => {
             a platform to reach national and international buyers directly.
           </p>
 
-          <p className="text-gray-300  sm:text-lg mb-8 tracking-wider max-w-2xl leading-relaxed">
-            Whether you're buying organic produce, fresh seeds, or eco-friendly
-            fertilizers, AgriLink ensures transparency, fair pricing, and
-            real-time support.
-          </p>
 
           <p className="text-gray-200  sm:text-lg mb-8 tracking-wider max-w-2xl leading-relaxed">
             Together, we’re building a smarter, greener future — one crop at a

@@ -9,7 +9,7 @@ const categories = ["Products", "Seeds", "Offers", "Fertilizer"];
 
 const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
   const [errors, setErrors] = useState({});
-  const [imageFiles, setImageFiles] = useState([]); // Array of image files
+  const [imageFiles, setImageFiles] = useState([]);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
   const handleInputChange = (e) => {
@@ -28,7 +28,6 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
     setErrors((prev) => ({ ...prev, specialOffer: "" }));
   };
 
-  // Accepts an array of files
   const handleImageUpload = (files) => {
     setImageFiles(files);
     if (onUpload) onUpload(files);
@@ -36,7 +35,12 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    const requiredFields = ["productName", "productDescription", "price"];
+    const requiredFields = [
+      "productName",
+      "productDescription",
+      "price",
+      "category",
+    ];
 
     requiredFields.forEach((field) => {
       if (!product[field] || product[field].trim() === "") {
@@ -61,15 +65,19 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
       formData.append("price", product.price);
       formData.append("special_offer", product.specialOffer);
       formData.append("category", product.category);
-      // Append all images
-      imageFiles.forEach((file, idx) => {
+
+      imageFiles.forEach((file) => {
         formData.append("product_images[]", file);
       });
 
       try {
-        const res = await axios.post("http://localhost/backend/add_product.php", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        const res = await axios.post(
+          "http://localhost/backend/add_product.php",
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
 
         if (res.data.success) {
           alert("Product Listed Successfully!");
@@ -99,6 +107,7 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
               error={errors.productName}
               required
             />
+
             <div className="space-y-2">
               <label className="block text-base font-semibold text-gray-500">
                 Product Description *
@@ -117,6 +126,7 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
                 </p>
               )}
             </div>
+
             <ProfileFormField
               label="Price"
               name="price"
@@ -126,7 +136,8 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
               error={errors.price}
               required
             />
-            {/* //added category selection and special offer dropdown */}
+
+            {/* Category Dropdown (Nazik's version) */}
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-gray-700">
                 Category *
@@ -177,13 +188,13 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
                 <p className="text-red-500 text-sm mt-1">{errors.category}</p>
               )}
             </div>
-            {/* // ...existing code... */}
+
             <SpecialOfferDropdown
               value={product.specialOffer}
               onChange={handleSpecialOfferChange}
               error={errors.specialOffer}
             />
-            {/* Product Image Uploader */}
+
             <div className="mt-8">
               <ProductImageUploader
                 onUpload={handleImageUpload}
@@ -194,7 +205,6 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
           </div>
         </div>
 
-        {/* List Product Button */}
         <div className="flex justify-end mt-8">
           <button
             onClick={handleSubmit}

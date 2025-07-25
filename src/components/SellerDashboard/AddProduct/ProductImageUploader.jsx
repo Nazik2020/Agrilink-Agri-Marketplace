@@ -7,6 +7,7 @@ const ProductImageUploader = ({ onUpload, imageFiles = [], maxImages = 5 }) => {
   const [error, setError] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
 
+  // Validate image type and size
   const validateFiles = (files) => {
     let validFiles = [];
     let errors = [];
@@ -71,7 +72,6 @@ const ProductImageUploader = ({ onUpload, imageFiles = [], maxImages = 5 }) => {
   };
 
   useEffect(() => {
-    // Generate preview URLs for all files
     const urls = uploadedFiles.map((file) => URL.createObjectURL(file));
     setPreviewUrls(urls);
     return () => {
@@ -144,12 +144,12 @@ const ProductImageUploader = ({ onUpload, imageFiles = [], maxImages = 5 }) => {
             <div className="flex justify-center">
               <Upload size={48} className="text-gray-400" />
             </div>
-            <div className="space-y-2">
-              <p className="text-lg font-medium text-gray-700">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-700">
                 Click to upload or drag and drop
               </p>
-              <p className="text-sm text-gray-500">
-                Maximum file size: 5MB (PNG or JPEG)
+              <p className="text-xs text-gray-500">
+                Maximum file size: 5MB per image (PNG or JPEG)
               </p>
             </div>
             <button
@@ -159,13 +159,24 @@ const ProductImageUploader = ({ onUpload, imageFiles = [], maxImages = 5 }) => {
               }
               className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 hover:shadow-lg transform hover:scale-105 transition-all duration-300"
             >
-              Upload
+              Upload Images
             </button>
           </div>
         )}
         {error && (
           <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
+        {uploadedFiles.length > 0 && (
+          <div className="text-sm text-gray-600 bg-green-50 p-3 rounded-lg mt-2">
+            <div className="flex items-center space-x-2">
+              <Check size={16} className="text-green-600" />
+              <span>
+                {uploadedFiles.length} image
+                {uploadedFiles.length > 1 ? "s" : ""} uploaded successfully
+              </span>
+            </div>
           </div>
         )}
       </div>

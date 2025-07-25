@@ -61,7 +61,9 @@ export default function RightSection() {
         localStorage.setItem("user", JSON.stringify(res.data.user));
 
         setTimeout(() => {
-          if (res.data.user.role === "seller") {
+          if (res.data.user.role === "admin") {
+            navigate("/admin-dashboard");
+          } else if (res.data.user.role === "seller") {
             navigate("/seller-dashboard");
           } else {
             navigate("/customer-dashboard");

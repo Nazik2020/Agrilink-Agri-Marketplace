@@ -15,6 +15,7 @@ import Welcoming from "./pages/Welcoming";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Dashboard from "./pages/AdminDashboard";
 
 import CustomerSignup from "./pages/CustomerSignup";
 import SellerSignup from "./pages/SellerSignup";
@@ -33,6 +34,7 @@ import CustomerProfilePage from "./components/CustomerDashboard/CustomerProfile/
 import WishlistPage from "./components/CustomerDashboard/CustomerWishlist/WishlistPage";
 import OrderHistoryPage from "./components/CustomerDashboard/CustomerOrderHistory/OrderHistoryPage";
 import CustomerNotificationsPage from "./components/CustomerDashboard/CustomerNotifications/NotificationsPage";
+import AdminDashboard from "./components/AdminDashboard/Dashboard";
 
 function App() {
   return (
@@ -56,6 +58,8 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/CustomerSignup" element={<CustomerSignup />} />
             <Route path="/SellerSignup" element={<SellerSignup />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
 
             {/* Seller Dashboard */}
             <Route path="/seller-dashboard" element={<SellerDashboard />}>

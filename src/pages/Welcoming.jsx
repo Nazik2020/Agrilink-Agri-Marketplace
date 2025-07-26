@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/common/Navbar";
 import Footer from "../components/common/Footer";
 // You can replace these with your own images
@@ -6,12 +7,22 @@ import customerImg from "../assets/WelcomingPage/CustomerSignup.jpg";
 import sellerImg from "../assets/WelcomingPage/SellerSignup.jpg";
 
 const Welcoming = () => {
+  const navigate = useNavigate();
+
+  const handleCustomerClick = () => {
+    navigate("/CustomerSignup");
+  };
+
+  const handleSellerClick = () => {
+    navigate("/SellerSignup");
+  };
+
   return (
     <>
       <Navbar />
       <div className="bg-white min-h-[70vh]">
         <div className="text-center mt-10">
-          <h1 className="text-[#219653] font-semibold text-4xl md:text-5xl italic py-16">
+          <h1 className="text-[#219653] font-semibold text-4xl md:text-5xl italic py-30">
             Welcome to AgriLink
           </h1>
         </div>
@@ -23,7 +34,10 @@ const Welcoming = () => {
               alt="Customer"
               className="w-40 h-40 rounded-full shadow-md mb-5 object-cover mx-auto"
             />
-            <button className="text-[#219653] font-semibold text-[15px] bg-[#E8F8EF] rounded-md px-4 py-2 mt-2 mb-2 transition-colors duration-200 hover:bg-[#219653] hover:text-white cursor-pointer">
+            <button
+              onClick={handleCustomerClick}
+              className="text-[#219653] font-semibold text-[15px] bg-[#E8F8EF] rounded-md px-4 py-2 mt-2 mb-2 transition-colors duration-200 hover:bg-[#219653] hover:text-white cursor-pointer"
+            >
               I'm a Customer
             </button>
             <p className="text-gray-500 text-base mt-2">
@@ -38,7 +52,10 @@ const Welcoming = () => {
               alt="Seller"
               className="w-40 h-40 rounded-full shadow-md mb-5 object-cover mx-auto"
             />
-            <button className="text-[#219653] font-semibold text-[15px] bg-[#E8F8EF] rounded-md px-4 py-2 mt-2 mb-2 transition-colors duration-200 hover:bg-[#219653] hover:text-white cursor-pointer">
+            <button
+              onClick={handleSellerClick}
+              className="text-[#219653] font-semibold text-[15px] bg-[#E8F8EF] rounded-md px-4 py-2 mt-2 mb-2 transition-colors duration-200 hover:bg-[#219653] hover:text-white cursor-pointer"
+            >
               I'm a Seller
             </button>
             <p className="text-gray-500 text-base mt-2">
@@ -46,14 +63,6 @@ const Welcoming = () => {
               customers.
             </p>
           </div>
-        </div>
-        <div className="text-center mb-20 mt-16">
-          <button
-            className="bg-[#B7EFC5] text-black font-semibold text-lg rounded-lg px-8 py-3 cursor-pointer opacity-80 transition-colors duration-200 hover:bg-[#219653] hover:text-white"
-            // onClick={() => navigate("/signup")}
-          >
-            Create an Account
-          </button>
         </div>
       </div>
       <Footer />

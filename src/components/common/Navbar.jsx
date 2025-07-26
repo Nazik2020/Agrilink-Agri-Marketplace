@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   FaUserCircle,
@@ -9,68 +9,97 @@ import {
 } from "react-icons/fa";
 import Logo from "../../assets/navbar/agrilink_logo.png";
 import ac_Logo from "../../assets/navbar/account_logo.png";
+import { useCart } from "../cart/CartContext"
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
-  return (
-    <nav className="bg-white shadow-md w-full fixed top-0 left-0 z-50">
-      {/*Logo of site */}
-      {/*Logo of site */}
-      {/*Logo of site */}
-      <div className="max-w-screen-xl mx-auto px-4 py-5 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3">
-          <img src={Logo} alt="Agrilink logo" className="w-20 h-20" />
+  const [showNavbar, setShowNavbar] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
+  const { totalItems, toggleCart } = useCart()
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY < 50) {
+        setShowNavbar(true);
+        setLastScrollY(window.scrollY);
+        return;
+      }
+      if (window.scrollY > lastScrollY) {
+        setShowNavbar(false); // Scrolling down
+      } else {
+        setShowNavbar(true); // Scrolling up
+      }
+      setLastScrollY(window.scrollY);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
+
+  const handleCartClick = () => {
+    toggleCart()
+    setIsMenuOpen(false) // Close mobile menu if open
+  }
+
+
+  return (
+    <nav
+      className={`bg-white shadow-md w-full fixed top-0 left-0 z-50 transition-transform duration-300 ${
+        showNavbar ? "translate-y-0" : "-translate-y-full"
+      }`}
+    >
+      {/*Logo of site */}
+      <div className="max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-3">
+          <img src={Logo} alt="Agrilink logo" className="w-15 h-15" />
+          <div className="w-px h-15 bg-gray-300 "></div>
           <div className="flex flex-col relative top-[2px] leading-tight">
-            <span className="text-gray-600 font-semibold text-2xl">
+            <span className="text-gray-600 font-semibold text-xl">
               Agricultural
             </span>
-
-            <span className="text-gray-600 font-semibold text-2xl">
+            <span className="text-gray-600 font-semibold text-xl">
               Marketplace
             </span>
           </div>
         </Link>
-
         {/* Navigation links */}
-        {/* Navigation links */}
-        {/* Navigation links */}
-
         <div className="hidden lg:flex  gap-8 text-[20px] font-semibold text-black">
           <Link to="/" className="hover:text-green-700">
             Home
           </Link>
-
           <Link to="/marketplace" className="hover:text-green-700">
             Marketplace
           </Link>
-
           <Link to="/blog" className="hover:text-green-700">
             Blog
           </Link>
-
           <Link to="/contact" className="hover:text-green-700">
-            Contact Us
+            Contact us
           </Link>
-
           <Link to="/about" className="hover:text-green-700">
             About Us
           </Link>
-
           <Link to="/faq" className="hover:text-green-700">
             FAQ
           </Link>
         </div>
+        {/* Icons: Cart and Account */}
+        <div className="hidden lg:flex items-center gap-10 text-green-600 text-4xl">
+         
+          <button
+            onClick={handleCartClick}
+            className="relative hover:text-green-800 cursor-pointer hover:scale-105 transition"
+            title="Shopping Cart"
+          >
+            <FaShoppingCart />
+            {totalItems > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                {totalItems > 99 ? "99+" : totalItems}
+              </span>
+            )}
+          </button>
 
-        {/* Icons: Cart and Account */}
-        {/* Icons: Cart and Account */}
-        {/* Icons: Cart and Account */}
-        <div className="hidden lg:flex items-center gap-8 text-green-600 text-3xl">
-          <Link to="/cart" title="Cart">
-            <FaShoppingCart className="hover:text-green-800 cursor-pointer hover:scale-105 transition" />
-          </Link>
-          {/* Account Dropdown Button */}
-          {/* Account Dropdown Button */}
           {/* Account Dropdown Button */}
           <div className="relative">
             <button
@@ -78,7 +107,6 @@ const Navbar = () => {
               onClick={() => setIsAccountDropdownOpen((open) => !open)}
             >
               <FaUserCircle className="text-2xl text-green-600" />
-              <span>Account</span>
               <FaChevronDown className="text-base" />
             </button>
             {isAccountDropdownOpen && (
@@ -101,9 +129,6 @@ const Navbar = () => {
             )}
           </div>
         </div>
-
-        {/* Hamburger button (mobile) */}
-        {/* Hamburger button (mobile) */}
         {/* Hamburger button (mobile) */}
         <div className="lg:hidden">
           <button
@@ -114,12 +139,9 @@ const Navbar = () => {
           </button>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {/* Mobile Menu */}
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="lg:hidden bg-white px-6 py-4 flex flex-col gap-4 text-[18px] font-semibold text-black shadow-md">
+        <div className="lg:hidden bg-white px-6 py-4 flex flex-col gap-4 text-xl font-semibold text-black shadow-md">
           <Link
             to="/"
             className=" hover:text-green-700"
@@ -146,9 +168,8 @@ const Navbar = () => {
             className=" hover:text-green-700"
             onClick={() => setIsMenuOpen(false)}
           >
-            Contact Us
+            Contact us
           </Link>
-
           <Link
             to="/about"
             className=" hover:text-green-700"
@@ -156,6 +177,7 @@ const Navbar = () => {
           >
             About Us
           </Link>
+
           <Link
             to="/faq"
             className=" hover:text-green-700"
@@ -164,9 +186,21 @@ const Navbar = () => {
             Faq
           </Link>
           <div className="flex gap-5 mt-2">
-            <Link to="/cart" title="Cart" onClick={() => setIsMenuOpen(false)}>
-              <FaShoppingCart className="text-3xl text-green-600 hover:scale-105 transition" />
-            </Link>
+             <button
+            onClick={handleCartClick}
+            className="flex items-center gap-2 text-green-600 hover:text-green-800 mt-2"
+            title="Shopping Cart"
+          >
+            <div className="relative">
+              <FaShoppingCart className="text-3xl" />
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                  {totalItems > 99 ? "99+" : totalItems}
+                </span>
+              )}
+            </div>
+            <span className="text-xl font-semibold">Cart ({totalItems})</span>
+          </button>
           </div>
           {/* Mobile Account Dropdown */}
           <div className="relative mt-4">
@@ -175,7 +209,6 @@ const Navbar = () => {
               onClick={() => setIsAccountDropdownOpen((open) => !open)}
             >
               <FaUserCircle className="text-2xl text-green-600" />
-              {/* <span>Account</span> */}
               <FaChevronDown className="text-base" />
             </button>
             {isAccountDropdownOpen && (

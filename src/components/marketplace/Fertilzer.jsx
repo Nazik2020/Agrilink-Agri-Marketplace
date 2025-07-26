@@ -14,15 +14,21 @@ const Fertilizer = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
+        console.log("Fertilizer component: Fetching products...");
         const response = await axios.get("http://localhost/backend/get_products.php?category=Fertilizer");
+        console.log("Fertilizer component: Response received:", response.data);
+        
         if (response.data.success) {
+          console.log("Fertilizer component: Products found:", response.data.products.length);
+          console.log("Fertilizer component: Products data:", response.data.products);
           setProducts(response.data.products);
         } else {
-          setError("Failed to fetch products");
+          console.log("Fertilizer component: API returned error:", response.data.message);
+          setError("Failed to fetch products: " + (response.data.message || "Unknown error"));
         }
       } catch (err) {
-        setError("Error loading products");
-        console.error("Error fetching products:", err);
+        console.error("Fertilizer component: Error fetching products:", err);
+        setError("Error loading products: " + err.message);
       } finally {
         setLoading(false);
       }
@@ -32,12 +38,17 @@ const Fertilizer = () => {
   }, []);
 
   const handleAddToCart = (product) => {
+    if (!product || !product.id || !product.product_name) {
+      console.error("Invalid product data for cart:", product);
+      return;
+    }
+
     addToCart({
       id: product.id,
       name: product.product_name,
-      seller: product.seller_name,
-      category: product.category,
-      price: parseFloat(product.price),
+      seller: product.seller_name || "Unknown Seller",
+      category: product.category || "Fertilizer",
+      price: parseFloat(product.price || 0),
       maxQuantity: 10,
     });
   };
@@ -83,61 +94,75 @@ const Fertilizer = () => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {products.map((product) => (
-        <div
-          key={product.id}
-          className="bg-white rounded-2xl shadow-xl border-gray-200 hover:shadow-2xl transition flex flex-col h-[370px] w-full max-w-xs mx-auto relative"
-        >
-          {/* Discount Badge */}
-          {product.discount && (
-            <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
-              -{product.discount}%
-            </span>
-          )}
-          <Link to={`/product/${product.id}`} className="block">
-            <img
-              src={product.product_images && product.product_images.length > 0 ? 
-                `http://localhost/backend/${product.product_images[0]}` : 
-                "/placeholder.svg"}
-              alt={product.product_name}
-              className="w-full h-40 object-cover rounded-t-2xl"
-              onError={(e) => {
-                e.target.src = "https://via.placeholder.com/300x200?text=Image+Not+Found"
-              }}
-            />
-          </Link>
-          <div className="flex flex-col flex-1 px-4 pt-3 pb-4">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-green-600 font-semibold text-sm">{product.category}</span>
-              <span className="flex items-center text-yellow-500 text-sm font-semibold">
-                <FaStar className="mr-1 text-base" />
-                {product.rating || '5.0'}
+      {products.map((product) => {
+        // Validate product data
+        if (!product || !product.id || !product.product_name) {
+          console.warn("Invalid product data:", product);
+          return null;
+        }
+
+        return (
+          <div
+            key={product.id}
+            className="bg-white rounded-2xl shadow-xl border-gray-200 hover:shadow-2xl transition flex flex-col h-[370px] w-full max-w-xs mx-auto relative"
+          >
+            {/* Discount Badge */}
+            {product.special_offer && (
+              <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
+                {product.special_offer}
               </span>
-            </div>
-            <Link to={`/product/${product.id}`}>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700">
-                {product.product_name}
-              </h3>
+            )}
+            <Link to={`/product/${product.id}`} className="block">
+              <img
+                src={product.product_images && product.product_images.length > 0 ? 
+                  `http://localhost/backend/${product.product_images[0]}` : 
+                  "/placeholder.svg"}
+                alt={product.product_name || "Product"}
+                className="w-full h-40 object-cover rounded-t-2xl"
+                onError={(e) => {
+                  e.target.src = "https://via.placeholder.com/300x200?text=Image+Not+Found"
+                }}
+              />
             </Link>
-            <p className="text-gray-600 text-sm line-clamp-2 mb-3">{product.product_description}</p>
-            <div className="flex items-end justify-between mt-auto">
-              <div>
-                <span className="text-green-700 font-bold text-lg">${parseFloat(product.price).toFixed(2)}</span>
-                {product.oldPrice && (
-                  <span className="text-gray-400 text-base line-through ml-2">${parseFloat(product.oldPrice).toFixed(2)}</span>
-                )}
+            <div className="flex flex-col flex-1 px-4 pt-3 pb-4">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-green-600 font-semibold text-sm">{product.category || "Fertilizer"}</span>
+                <span className="flex items-center text-yellow-500 text-sm font-semibold">
+                  <FaStar className="mr-1 text-base" />
+                  {product.rating || '5.0'}
+                </span>
               </div>
-              <button
-                className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base"
-                onClick={() => handleAddToCart(product)}
-              >
-                <FaShoppingCart className="text-lg" />
-                Add
-              </button>
+              <Link to={`/product/${product.id}`}>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700">
+                  {product.product_name}
+                </h3>
+              </Link>
+              <p className="text-gray-600 text-sm line-clamp-2 mb-3">
+                {product.product_description || "High quality fertilizer for your plants"}
+              </p>
+              <div className="flex items-end justify-between mt-auto">
+                <div>
+                  <span className="text-green-700 font-bold text-lg">
+                    ${parseFloat(product.price || 0).toFixed(2)}
+                  </span>
+                  {product.oldPrice && (
+                    <span className="text-gray-400 text-base line-through ml-2">
+                      ${parseFloat(product.oldPrice).toFixed(2)}
+                    </span>
+                  )}
+                </div>
+                <button
+                  className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base"
+                  onClick={() => handleAddToCart(product)}
+                >
+                  <FaShoppingCart className="text-lg" />
+                  Add
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   )
 }

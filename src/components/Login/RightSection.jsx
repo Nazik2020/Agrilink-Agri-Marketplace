@@ -80,7 +80,8 @@ export default function RightSection() {
           } else if (res.data.user.role === "seller") {
             navigate("/seller-dashboard");
           } else {
-            navigate("/customer-dashboard");
+            // Redirect customers to home page instead of dashboard
+            navigate("/");
           }
         }, 2000);
       } else {

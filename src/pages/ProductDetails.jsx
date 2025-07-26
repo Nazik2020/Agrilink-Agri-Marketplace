@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom"
 import { FaStar, FaArrowLeft, FaShoppingCart } from "react-icons/fa"
 import Footer from "../components/common/Footer"
 import CustomizationModal from "../components/marketplace/CustomizationModal"
+import BuyNowModal from "../components/marketplace/BuyNowModal"
 import { useCart } from "../components/cart/CartContext"
 import SimpleWishlistButton from "../components/wishlist/SimpleWishlistButton"
 import axios from "axios"
@@ -51,6 +52,7 @@ function ProductDetails() {
   const [mainImg, setMainImg] = useState("")
   const [quantity, setQuantity] = useState(1)
   const [showCustomize, setShowCustomize] = useState(false)
+  const [showBuyNow, setShowBuyNow] = useState(false)
   const [reviewText, setReviewText] = useState("")
   const [reviewRating, setReviewRating] = useState(5)
   const [reviews, setReviews] = useState([])
@@ -101,8 +103,7 @@ function ProductDetails() {
   }
 
   const handleBuyNow = () => {
-    // TODO: Connect to backend
-    alert("Proceed to buy now! (Connect to backend later)")
+    setShowBuyNow(true)
   }
 
   const handleSubmitReview = () => {
@@ -369,6 +370,12 @@ function ProductDetails() {
 
       {/* Modal is rendered here, as a sibling to all content */}
       <CustomizationModal open={showCustomize} onClose={() => setShowCustomize(false)} />
+      <BuyNowModal 
+        isOpen={showBuyNow} 
+        onClose={() => setShowBuyNow(false)} 
+        product={product} 
+        quantity={quantity} 
+      />
     </div>
   )
 }

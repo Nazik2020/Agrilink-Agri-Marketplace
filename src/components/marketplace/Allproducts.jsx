@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FaShoppingCart } from "react-icons/fa";
+import { FaShoppingCart, FaHeart } from "react-icons/fa";
 import axios from "axios";
 import { useCart } from "../cart/CartContext";
+import SimpleWishlistButton from "../wishlist/SimpleWishlistButton";
 
 const Allproducts = () => {
   const { addToCart } = useCart();
@@ -118,6 +119,11 @@ const Allproducts = () => {
                 {product.special_offer}
               </span>
             )}
+
+          {/* Wishlist Button */}
+          <div className="absolute top-3 right-3 z-10">
+            <SimpleWishlistButton productId={product.id} />
+          </div>
 
           <Link to={`/product/${product.id}`} className="block">
             <img

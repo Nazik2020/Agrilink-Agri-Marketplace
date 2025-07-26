@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
-import { FaHeart, FaStar, FaArrowLeft, FaShoppingCart } from "react-icons/fa"
+import { FaStar, FaArrowLeft, FaShoppingCart } from "react-icons/fa"
 import Footer from "../components/common/Footer"
 import CustomizationModal from "../components/marketplace/CustomizationModal"
 import { useCart } from "../components/cart/CartContext"
+import SimpleWishlistButton from "../components/wishlist/SimpleWishlistButton"
 import axios from "axios"
 
 // Function to fetch product details from backend
@@ -53,7 +54,6 @@ function ProductDetails() {
   const [reviewText, setReviewText] = useState("")
   const [reviewRating, setReviewRating] = useState(5)
   const [reviews, setReviews] = useState([])
-  const [isWishlisted, setIsWishlisted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -103,12 +103,6 @@ function ProductDetails() {
   const handleBuyNow = () => {
     // TODO: Connect to backend
     alert("Proceed to buy now! (Connect to backend later)")
-  }
-
-  const handleWishlist = () => {
-    // Toggle wishlist state
-    setIsWishlisted((prev) => !prev)
-    // TODO: Connect to backend
   }
 
   const handleSubmitReview = () => {
@@ -294,21 +288,7 @@ function ProductDetails() {
               >
                 <FaShoppingCart /> Add to Cart
               </button>
-              <button
-                onClick={handleWishlist}
-                title="Add to Wishlist"
-                className={`w-12 h-12 flex items-center justify-center rounded-lg border-1 border-green-500 transition-colors duration-200 bg-gray-100 cursor-pointer`}
-                style={{ lineHeight: 0 }}
-              >
-                <FaHeart
-                  size={24}
-                  style={{
-                    fill: isWishlisted ? "#ec4899" : "#fff", // pink-500 or white (so inside is white)
-                    stroke: isWishlisted ? "#ec4899" : "#22c55e", // pink-500 or green-500
-                    strokeWidth: 10,
-                  }}
-                />
-              </button>
+              <SimpleWishlistButton productId={product.id} />
             </div>
             <button
               className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg text-lg font-semibold mb-3 cursor-pointer"

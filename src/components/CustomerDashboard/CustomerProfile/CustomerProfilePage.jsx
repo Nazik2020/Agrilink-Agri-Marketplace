@@ -23,8 +23,7 @@ const CustomerProfilePage = () => {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.fullName.trim()) newErrors.fullName = 'Full Name is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    else if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(formData.email)) newErrors.email = 'Email is invalid';
+    // Email validation removed since it's read-only
     if (!formData.address.trim()) newErrors.address = 'Address is required';
     if (!formData.contactNumber.trim()) newErrors.contactNumber = 'Contact Number is required';
     else if (!/^\d{7,15}$/.test(formData.contactNumber)) newErrors.contactNumber = 'Contact Number must be 7-15 digits';
@@ -33,18 +32,48 @@ const CustomerProfilePage = () => {
   };
 
   useEffect(() => {
-    const email = localStorage.getItem('userEmail');
+    // Get email from user object in localStorage
+    const userString = localStorage.getItem('user');
+    let email = null;
+    
+    if (userString) {
+      try {
+        const user = JSON.parse(userString);
+        email = user.email;
+        console.log('User object from localStorage:', user); // Debug log
+      } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
+      }
+    }
+    
+    // Fallback to old method for backward compatibility
+    if (!email) {
+      email = localStorage.getItem('userEmail');
+    }
+    
+    console.log('Email to use:', email); // Debug log
+    console.log('All localStorage items:', Object.keys(localStorage).map(key => ({ key, value: localStorage.getItem(key) }))); // Debug log
+    
     if (!email) {
       setLoading(false);
+      setToast({ show: true, message: 'No user email found. Please login again.', type: 'error' });
       return;
     }
+
+    console.log('Fetching profile for email:', email); // Debug log
+
     fetch('http://localhost/backend/get_customer_profile.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
     })
-      .then(res => res.json())
+      .then(res => {
+        console.log('Response status:', res.status); // Debug log
+        return res.json();
+      })
       .then(data => {
+        console.log('Profile data received:', data); // Debug log
+        
         if (data.success && data.profile) {
           setFormData(prev => ({
             ...prev,
@@ -54,10 +83,25 @@ const CustomerProfilePage = () => {
             contactNumber: data.profile.contactno || '',
             country: data.profile.country || ''
           }));
+          
+          if (data.profile.profile_image) {
+            setProfileImage(data.profile.profile_image);
+          }
+        } else {
+          console.log('Profile fetch failed:', data.message); // Debug log
+          console.log('Debug info:', data.debug); // Debug log
+          if (data.all_emails) {
+            console.log('Available emails in database:', data.all_emails); // Debug log
+          }
+          setToast({ show: true, message: 'Failed to load profile: ' + (data.message || 'Unknown error'), type: 'error' });
         }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(error => {
+        console.error('Profile fetch error:', error); // Debug log
+        setToast({ show: true, message: 'Network error while loading profile.', type: 'error' });
+        setLoading(false);
+      });
   }, []);
 
   const handleInputChange = (e) => {
@@ -83,23 +127,55 @@ const CustomerProfilePage = () => {
       setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
       return;
     }
+    
     setSaving(true);
+    
+    // Get original email from user object in localStorage
+    const userString = localStorage.getItem('user');
+    let originalEmail = null;
+    
+    if (userString) {
+      try {
+        const user = JSON.parse(userString);
+        originalEmail = user.email;
+      } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
+      }
+    }
+    
+    // Fallback to old method for backward compatibility
+    if (!originalEmail) {
+      originalEmail = localStorage.getItem('userEmail');
+    }
+    
+    const requestData = {
+      ...formData,
+      originalEmail: originalEmail // Send original email for comparison
+    };
+    
+    console.log('Sending update request:', requestData); // Debug log
+
     fetch('http://localhost/backend/update_customer_profile.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...formData, email: originalEmail })
+      body: JSON.stringify(requestData)
     })
       .then(res => res.json())
       .then(data => {
+        console.log('Update response:', data); // Debug log
+        
         if (data.success) {
           setToast({ show: true, message: 'Profile updated successfully!', type: 'success' });
+          
+          // Email cannot be changed, so no need to update localStorage
         } else {
-          setToast({ show: true, message: 'Failed to update profile: ' + data.message, type: 'error' });
+          setToast({ show: true, message: 'Failed to update profile: ' + (data.message || 'Unknown error'), type: 'error' });
         }
         setSaving(false);
         setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
       })
-      .catch(() => {
+      .catch(error => {
+        console.error('Update error:', error); // Debug log
         setToast({ show: true, message: 'Network error. Please try again.', type: 'error' });
         setSaving(false);
         setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
@@ -135,16 +211,26 @@ const CustomerProfilePage = () => {
 
             {/* Email */}
             <div>
-              <label className="block text-gray-600 font-medium mb-2">Email</label>
+              <label className="block text-gray-600 font-medium mb-2 flex items-center">
+                Email
+                <span className="ml-2 px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded-full">Read Only</span>
+              </label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="Enter your email"
-                className={`w-full px-4 py-2 bg-gray-50 border ${errors.email ? 'border-red-500' : 'border-gray-200'} rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300`}
+                className={`w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-full focus:outline-none transition-all duration-300 cursor-not-allowed`}
                 readOnly
+                disabled
               />
+              <p className="text-sm text-gray-500 mt-1 flex items-center">
+                <svg className="w-4 h-4 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                Email address cannot be changed for security reasons
+              </p>
               {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
             </div>
 

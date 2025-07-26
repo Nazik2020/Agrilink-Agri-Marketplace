@@ -1,17 +1,24 @@
+import paddyImg from "../../assets/blog/paddy.png";
+
 const BlogHero = () => {
   return (
-    <div className="bg-gradient-to-r from-green-800 to-green-900 text-white py-20 relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10"></div>
-       
+    <div
+      className="text-white py-20 relative overflow-hidden"
+      style={{
+        backgroundImage: `url(${paddyImg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        position: "relative"
+      }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-        <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+        <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight drop-shadow-lg">
           Insights and Updates
         </h1>
-        <p className="text-xl md:text-2xl text-green-100 max-w-3xl mx-auto leading-relaxed">
+        <p className="text-xl md:text-2xl text-green-100 max-w-3xl mx-auto leading-relaxed drop-shadow">
           Stay informed with the latest in agriculture and farming techniques
         </p>
-        
         {/* Decorative Elements */}
         <div className="mt-8 flex justify-center space-x-4">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -20,8 +27,7 @@ const BlogHero = () => {
         </div>
       </div>
     </div>
-
-)
+  );
 }
 
 export default BlogHero

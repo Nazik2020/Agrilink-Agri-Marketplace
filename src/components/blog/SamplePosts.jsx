@@ -3,6 +3,9 @@ import teaImg from "../../assets/blog/teaImg.png";
 import cinnamonteaImg from "../../assets/blog/cinnamonteaImg.png";
 import cinnaImg from "../../assets/blog/cinnaImg.png";
 import fertilizer1 from "../../assets/blog/fertilizer1.png";
+import fertilizer3 from "../../assets/blog/fertilizer3.png";
+import fertilizer2 from "../../assets/blog/fertilizer2.png";
+import tom1 from "../../assets/blog/tom1.png";
 import cofee1 from "../../assets/blog/cofee1.png";
 import cofee2 from "../../assets/blog/cofee2.png";
 import cofee3 from "../../assets/blog/cofee3.png";
@@ -10,7 +13,7 @@ import cofee4 from "../../assets/blog/cofee4.png";
 import cofee5 from "../../assets/blog/cofee5.png";
 import spice1 from "../../assets/blog/spice1.png";
 import sus1 from "../../assets/blog/sus1.png";
-import tom1 from "../../assets/blog/tom1.png";
+
 
 // Debug logging for image imports
 console.log("=== SAMPLE POSTS IMAGE IMPORTS ===");
@@ -19,6 +22,8 @@ console.log("teaImg:", teaImg);
 console.log("cinnamonteaImg:", cinnamonteaImg);
 console.log("cinnaImg:", cinnaImg);
 console.log("fertilizer1:", fertilizer1);
+console.log("fertilizer2:", fertilizer2);
+console.log("fertilizer3:", fertilizer3);
 console.log("cofee1:", cofee1);
 console.log("cofee2:", cofee2);
 console.log("cofee3:", cofee3);
@@ -26,10 +31,10 @@ console.log("cofee4:", cofee4);
 console.log("cofee5:", cofee5);
 console.log("spice1:", spice1);
 console.log("sus1:", sus1);
-console.log("tom1:", tom1);
 console.log("=== END IMAGE IMPORTS ===");
-import CinnamonTea from "./BlogContents/CinnamonTea";
+
 import OrganicTeaFarming from "./BlogContents/OrganicTeaFarming";
+import CinnamonTea from "./BlogContents/CinnamonTea";
 import Farming from "./BlogContents/Farming";
 import FertilizerArticle from "./BlogContents/Fertilizer";
 import Spice from "./BlogContents/Spice";
@@ -102,8 +107,7 @@ const SamplePosts = [
     date: "March 4, 2024",
     readTime: "12 min read",
     image: sus1,
-  },
-  {
+  
     id: "7",
     title: "The Power of Organic Tomatoes: A Healthier Harvest for You and the Planet",
     excerpt:

@@ -17,31 +17,23 @@ const BlogCard = ({ post, isReversed = false }) => {
         } group`}
       >
         {/* Image Section */}
-        <div className="relative md:w-96 flex-shrink-0 transition-transform duration-300 overflow-hidden">
+        <div className="relative w-full md:w-96 flex-shrink-0 transition-transform duration-300 overflow-hidden bg-gray-200" style={{ minHeight: 180 }}>
           {post.image ? (
             <img
               src={post.image}
               alt={post.title}
-              className="w-full h-56 md:h-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
+              // Apply CSS properly
+              className="w-full h-44 object-cover object-center border-2 border-green-600"
               onError={(e) => {
-                console.error("BlogCard image error for post:", post.title, "Image:", post.image, e);
-                console.error("BlogCard image error details:", {
-                  title: post.title,
-                  image: post.image,
-                  imageType: typeof post.image,
-                  imageSrc: e.target.src
-                });
                 e.target.style.display = 'none';
-                // Show fallback content
                 const fallback = document.createElement('div');
-                fallback.className = 'w-full h-56 md:h-full bg-gray-200 flex items-center justify-center text-gray-500';
+                fallback.className = 'w-full h-44 bg-gray-200 flex items-center justify-center text-gray-500';
                 fallback.innerHTML = 'Image Failed to Load';
                 e.target.parentNode.appendChild(fallback);
               }}
-              onLoad={() => console.log("BlogCard image loaded successfully for:", post.title, "Image:", post.image)}
             />
           ) : (
-            <div className="w-full h-56 md:h-full bg-gray-200 flex items-center justify-center text-gray-500">
+            <div className="w-full h-44 bg-gray-200 flex items-center justify-center text-gray-500">
               No Image Available
             </div>
           )}
@@ -54,7 +46,7 @@ const BlogCard = ({ post, isReversed = false }) => {
           </div>
 
           {/* Overlay */}
-          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300"></div>
+          {/* <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300"></div> */}
         </div>
 
         {/* Content Section */}

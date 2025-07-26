@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { FaShoppingCart, FaStar } from "react-icons/fa";
 import axios from "axios";
 import { useCart } from "../cart/CartContext";
+import SimpleWishlistButton from "../wishlist/SimpleWishlistButton";
 
 const Seeds = () => {
   const { addToCart } = useCart();
@@ -15,16 +16,30 @@ const Seeds = () => {
     const fetchProducts = async () => {
       try {
         console.log("Seeds component: Fetching products...");
-        const response = await axios.get("http://localhost/backend/get_products.php?category=Seeds");
+        const response = await axios.get(
+          "http://localhost/backend/get_products.php?category=Seeds"
+        );
         console.log("Seeds component: Response received:", response.data);
-        
+
         if (response.data.success) {
-          console.log("Seeds component: Products found:", response.data.products.length);
-          console.log("Seeds component: Products data:", response.data.products);
+          console.log(
+            "Seeds component: Products found:",
+            response.data.products.length
+          );
+          console.log(
+            "Seeds component: Products data:",
+            response.data.products
+          );
           setProducts(response.data.products);
         } else {
-          console.log("Seeds component: API returned error:", response.data.message);
-          setError("Failed to fetch products: " + (response.data.message || "Unknown error"));
+          console.log(
+            "Seeds component: API returned error:",
+            response.data.message
+          );
+          setError(
+            "Failed to fetch products: " +
+              (response.data.message || "Unknown error")
+          );
         }
       } catch (err) {
         console.error("Seeds component: Error fetching products:", err);
@@ -68,7 +83,7 @@ const Seeds = () => {
     return (
       <div className="text-center py-12">
         <p className="text-red-600 text-lg">{error}</p>
-        <button 
+        <button
           onClick={() => window.location.reload()}
           className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600"
         >
@@ -84,9 +99,15 @@ const Seeds = () => {
       <div className="text-center py-16">
         <div className="max-w-md mx-auto">
           <div className="text-6xl mb-6">🌱</div>
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">No Seeds Available Yet</h3>
-          <p className="text-gray-600 text-lg mb-2">We currently don't have any seeds in stock.</p>
-          <p className="text-gray-500">Check back later for new seed listings!</p>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">
+            No Seeds Available Yet
+          </h3>
+          <p className="text-gray-600 text-lg mb-2">
+            We currently don't have any seeds in stock.
+          </p>
+          <p className="text-gray-500">
+            Check back later for new seed listings!
+          </p>
         </div>
       </div>
     );
@@ -112,24 +133,36 @@ const Seeds = () => {
                 {product.special_offer}
               </span>
             )}
+
+            {/* Wishlist Button */}
+            <div className="absolute top-3 right-3 z-10">
+              <SimpleWishlistButton productId={product.id} />
+            </div>
+
             <Link to={`/product/${product.id}`} className="block">
               <img
-                src={product.product_images && product.product_images.length > 0 ? 
-                  `http://localhost/backend/${product.product_images[0]}` : 
-                  "/placeholder.svg"}
+                src={
+                  product.product_images && product.product_images.length > 0
+                    ? `http://localhost/backend/${product.product_images[0]}`
+                    : "/placeholder.svg"
+                }
                 alt={product.product_name || "Product"}
                 className="w-full h-40 object-cover rounded-t-2xl"
                 onError={(e) => {
-                  e.target.src = "https://via.placeholder.com/300x200?text=Image+Not+Found"
+                  e.target.src =
+                    "https://via.placeholder.com/300x200?text=Image+Not+Found";
                 }}
               />
             </Link>
+
             <div className="flex flex-col flex-1 px-4 pt-3 pb-4">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-green-600 font-semibold text-sm">{product.category || "Seeds"}</span>
+                <span className="text-green-600 font-semibold text-sm">
+                  {product.category || "Seeds"}
+                </span>
                 <span className="flex items-center text-yellow-500 text-sm font-semibold">
                   <FaStar className="mr-1 text-base" />
-                  {product.rating || '5.0'}
+                  {product.rating || "5.0"}
                 </span>
               </div>
               <Link to={`/product/${product.id}`}>
@@ -138,7 +171,8 @@ const Seeds = () => {
                 </h3>
               </Link>
               <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-                {product.product_description || "High quality seeds for your garden"}
+                {product.product_description ||
+                  "High quality seeds for your garden"}
               </p>
               <div className="flex items-end justify-between mt-auto">
                 <div>
@@ -164,7 +198,7 @@ const Seeds = () => {
         );
       })}
     </div>
-  )
-}
+  );
+};
 
-export default Seeds
+export default Seeds;

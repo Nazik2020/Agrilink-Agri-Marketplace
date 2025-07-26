@@ -59,6 +59,7 @@ export default function RightSection() {
       if (res.data.success) {
         setMessage(res.data.message);
         localStorage.setItem("user", JSON.stringify(res.data.user));
+
         // Set seller_id in localStorage if user is a seller
         if (
           res.data.user &&
@@ -67,6 +68,12 @@ export default function RightSection() {
         ) {
           localStorage.setItem("seller_id", res.data.user.id);
         }
+
+        // Sync guest wishlist if user is a customer
+        if (res.data.user && res.data.user.role === "customer") {
+          await syncGuestWishlist(res.data.user.id);
+        }
+
         setTimeout(() => {
           if (res.data.user.role === "admin") {
             navigate("/admin-dashboard");
@@ -83,6 +90,43 @@ export default function RightSection() {
       setMessage("Network error. Please try again.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Function to sync guest wishlist
+  const syncGuestWishlist = async (customerId) => {
+    try {
+      console.log('Login: Starting guest wishlist sync for customer ID:', customerId);
+      
+      // Get guest wishlist from localStorage
+      const guestWishlist = JSON.parse(localStorage.getItem('guestWishlist') || '[]');
+      console.log('Login: Guest wishlist from localStorage:', guestWishlist);
+      
+      if (guestWishlist.length > 0) {
+        console.log('Login: Found', guestWishlist.length, 'items to sync');
+        
+        // Sync to backend
+        const syncRes = await axios.post("http://localhost/backend/sync_guest_wishlist.php", {
+          customerId: customerId,
+          productIds: guestWishlist
+        });
+
+        console.log('Login: Sync API response:', syncRes.data);
+
+        if (syncRes.data.success) {
+          console.log('Login: Guest wishlist synced successfully:', syncRes.data.summary);
+          // Clear guest wishlist from localStorage
+          localStorage.removeItem('guestWishlist');
+          console.log('Login: Guest wishlist cleared from localStorage');
+        } else {
+          console.error('Login: Sync failed:', syncRes.data.message);
+        }
+      } else {
+        console.log('Login: No guest wishlist items to sync');
+      }
+    } catch (error) {
+      console.error('Login: Error syncing guest wishlist:', error);
+      console.error('Login: Error details:', error.response?.data || error.message);
     }
   };
 

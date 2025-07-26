@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { FaShoppingCart, FaStar } from "react-icons/fa";
 import axios from "axios";
 import { useCart } from "../cart/CartContext";
+import SimpleWishlistButton from "../wishlist/SimpleWishlistButton";
 
 const Fertilizer = () => {
   const { addToCart } = useCart();
@@ -10,21 +11,34 @@ const Fertilizer = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch products from database filtered by "Fertilizer" category
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         console.log("Fertilizer component: Fetching products...");
-        const response = await axios.get("http://localhost/backend/get_products.php?category=Fertilizer");
+        const response = await axios.get(
+          "http://localhost/backend/get_products.php?category=Fertilizer"
+        );
         console.log("Fertilizer component: Response received:", response.data);
-        
+
         if (response.data.success) {
-          console.log("Fertilizer component: Products found:", response.data.products.length);
-          console.log("Fertilizer component: Products data:", response.data.products);
+          console.log(
+            "Fertilizer component: Products found:",
+            response.data.products.length
+          );
+          console.log(
+            "Fertilizer component: Products data:",
+            response.data.products
+          );
           setProducts(response.data.products);
         } else {
-          console.log("Fertilizer component: API returned error:", response.data.message);
-          setError("Failed to fetch products: " + (response.data.message || "Unknown error"));
+          console.log(
+            "Fertilizer component: API returned error:",
+            response.data.message
+          );
+          setError(
+            "Failed to fetch products: " +
+              (response.data.message || "Unknown error")
+          );
         }
       } catch (err) {
         console.error("Fertilizer component: Error fetching products:", err);
@@ -53,7 +67,6 @@ const Fertilizer = () => {
     });
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -63,12 +76,11 @@ const Fertilizer = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="text-center py-12">
         <p className="text-red-600 text-lg">{error}</p>
-        <button 
+        <button
           onClick={() => window.location.reload()}
           className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600"
         >
@@ -78,15 +90,20 @@ const Fertilizer = () => {
     );
   }
 
-  // No products state
   if (products.length === 0) {
     return (
       <div className="text-center py-16">
         <div className="max-w-md mx-auto">
           <div className="text-6xl mb-6">🧪</div>
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">No Fertilizers Available Yet</h3>
-          <p className="text-gray-600 text-lg mb-2">We currently don't have any fertilizers in stock.</p>
-          <p className="text-gray-500">Check back later for new fertilizer listings!</p>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">
+            No Fertilizers Available Yet
+          </h3>
+          <p className="text-gray-600 text-lg mb-2">
+            We currently don't have any fertilizers in stock.
+          </p>
+          <p className="text-gray-500">
+            Check back later for new fertilizer listings!
+          </p>
         </div>
       </div>
     );
@@ -95,7 +112,6 @@ const Fertilizer = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {products.map((product) => {
-        // Validate product data
         if (!product || !product.id || !product.product_name) {
           console.warn("Invalid product data:", product);
           return null;
@@ -112,34 +128,50 @@ const Fertilizer = () => {
                 {product.special_offer}
               </span>
             )}
+
+            {/* Wishlist Button */}
+            <div className="absolute top-3 right-3 z-10">
+              <SimpleWishlistButton productId={product.id} />
+            </div>
+
             <Link to={`/product/${product.id}`} className="block">
               <img
-                src={product.product_images && product.product_images.length > 0 ? 
-                  `http://localhost/backend/${product.product_images[0]}` : 
-                  "/placeholder.svg"}
-                alt={product.product_name || "Product"}
+                src={
+                  product.product_images && product.product_images.length > 0
+                    ? `http://localhost/backend/${product.product_images[0]}`
+                    : "/placeholder.svg"
+                }
+                alt={product.product_name}
                 className="w-full h-40 object-cover rounded-t-2xl"
                 onError={(e) => {
-                  e.target.src = "https://via.placeholder.com/300x200?text=Image+Not+Found"
+                  e.target.src =
+                    "https://via.placeholder.com/300x200?text=Image+Not+Found";
                 }}
               />
             </Link>
+
             <div className="flex flex-col flex-1 px-4 pt-3 pb-4">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-green-600 font-semibold text-sm">{product.category || "Fertilizer"}</span>
+                <span className="text-green-600 font-semibold text-sm">
+                  {product.category || "Fertilizer"}
+                </span>
                 <span className="flex items-center text-yellow-500 text-sm font-semibold">
                   <FaStar className="mr-1 text-base" />
-                  {product.rating || '5.0'}
+                  {product.rating || "5.0"}
                 </span>
               </div>
+
               <Link to={`/product/${product.id}`}>
                 <h3 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700">
                   {product.product_name}
                 </h3>
               </Link>
+
               <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-                {product.product_description || "High quality fertilizer for your plants"}
+                {product.product_description ||
+                  "High quality fertilizer for your plants"}
               </p>
+
               <div className="flex items-end justify-between mt-auto">
                 <div>
                   <span className="text-green-700 font-bold text-lg">
@@ -151,6 +183,7 @@ const Fertilizer = () => {
                     </span>
                   )}
                 </div>
+
                 <button
                   className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base"
                   onClick={() => handleAddToCart(product)}
@@ -164,7 +197,7 @@ const Fertilizer = () => {
         );
       })}
     </div>
-  )
-}
+  );
+};
 
-export default Fertilizer
+export default Fertilizer;

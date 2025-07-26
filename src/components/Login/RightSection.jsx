@@ -59,6 +59,7 @@ export default function RightSection() {
       if (res.data.success) {
         setMessage(res.data.message);
         localStorage.setItem("user", JSON.stringify(res.data.user));
+        window.dispatchEvent(new CustomEvent('userStateChanged', { detail: { action: 'login', user: res.data.user } }));
 
         // Set seller_id in localStorage if user is a seller
         if (

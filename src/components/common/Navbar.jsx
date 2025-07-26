@@ -12,6 +12,7 @@ import {
   FaRegHeart,
   FaRegUser,
   FaRegUserCircle,
+  FaUser,
 } from "react-icons/fa";
 import Logo from "../../assets/navbar/agrilink_logo.png";
 import { useCart } from "../cart/CartContext";
@@ -173,6 +174,12 @@ const Navbar = () => {
     return userManager.isCustomerLoggedIn();
   };
 
+  // Get user initial for dropdown
+  const getUserInitial = () => {
+    if (!user) return '';
+    return user.full_name ? user.full_name.charAt(0) : user.username ? user.username.charAt(0) : 'U';
+  };
+
   return (
     <nav
       className={`bg-white shadow-lg w-full fixed top-0 left-0 z-50 transition-transform duration-300 ${
@@ -217,101 +224,97 @@ const Navbar = () => {
         </div>
 
         {/* Right Side Icons and Buttons */}
-        <div className="hidden lg:flex items-center gap-6"> {/* Increased gap-4 to gap-6 */}
-          {/* Wishlist Icon - Only for logged-in customers */}
-          {shouldShowWishlist() && (
-            <Link 
-              to="/customer-dashboard/wishlist" 
-              className="relative text-gray-600 hover:text-green-600 transition-colors duration-200"
-              title="Wishlist"
-            >
-              <FaRegHeart className="text-xl" /> {/* Increased from text-lg */}
-              {wishlistCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"> {/* Increased from w-4 h-4 */}
-                  {wishlistCount > 99 ? "99+" : wishlistCount}
-                </span>
-              )}
-            </Link>
-          )}
-
-          {/* Cart Icon - Only for logged-in customers */}
-          {shouldShowWishlist() && (
-            <button
-              onClick={handleCartClick}
-              className="relative text-gray-600 hover:text-green-600 transition-colors duration-200"
-              title="Shopping Cart"
-            >
-              <FaShoppingCart className="text-xl" /> {/* Increased from text-lg */}
-              {totalItems > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"> {/* Increased from w-4 h-4 */}
-                  {totalItems > 99 ? "99+" : totalItems}
-                </span>
-              )}
-            </button>
-          )}
-
-          {/* User Section */}
+        <div className="hidden lg:flex items-center gap-6">
           {user ? (
-            // Logged in user - Account dropdown
-            <div className="relative">
-              <button
-                className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
-                onClick={() => setIsAccountDropdownOpen(!isAccountDropdownOpen)}
-              >
-                <FaRegUserCircle className="text-lg text-gray-600" />
-                <FaChevronDown className={`text-gray-600 text-xs transition-transform duration-200 ${isAccountDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {/* Account Dropdown */}
-              {isAccountDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl z-50 py-3">
-                  {/* User Profile Section */}
-                  <div className="px-4 py-3 border-b border-gray-100">
-                    <div className="flex items-center gap-3">
-                      {getUserProfileImage() ? (
-                        <img 
-                          src={getUserProfileImage()} 
-                          alt="Profile" 
-                          className="w-10 h-10 rounded-full object-cover border-2 border-green-200"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-semibold">
-                            {getUserDisplayName().charAt(0).toUpperCase()}
-                          </span>
+            <>
+              {/* Wishlist Icon - Only for customers */}
+              {user.role === "customer" && (
+                <Link
+                  to="/customer-dashboard/wishlist"
+                  className="relative text-gray-600 hover:text-green-600 transition-colors duration-200"
+                  title="Wishlist"
+                >
+                  <FaRegHeart className="text-xl" />
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {wishlistCount > 99 ? "99+" : wishlistCount}
+                    </span>
+                  )}
+                </Link>
+              )}
+              {/* Cart Icon - Only for customers */}
+              {user.role === "customer" && (
+                <button
+                  onClick={handleCartClick}
+                  className="relative text-gray-600 hover:text-green-600 transition-colors duration-200"
+                  title="Shopping Cart"
+                >
+                  <FaShoppingCart className="text-xl" />
+                  {totalItems > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {totalItems > 99 ? "99+" : totalItems}
+                    </span>
+                  )}
+                </button>
+              )}
+              {/* Account Dropdown (existing code) */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsAccountDropdownOpen(!isAccountDropdownOpen)}
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+                >
+                  <FaRegUserCircle className="text-lg text-gray-600" />
+                  <FaChevronDown className={`text-gray-600 text-xs transition-transform duration-200 ${isAccountDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isAccountDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl z-50 py-3">
+                    {/* User Profile Section */}
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <div className="flex items-center gap-3">
+                        {getUserProfileImage() ? (
+                          <img 
+                            src={getUserProfileImage()} 
+                            alt="Profile" 
+                            className="w-10 h-10 rounded-full object-cover border-2 border-green-200"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                            <span className="text-white text-sm font-semibold">
+                              {getUserDisplayName().charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">{getUserDisplayName()}</p>
+                          <p className="text-xs text-gray-500 capitalize">{user.role}</p>
                         </div>
-                      )}
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">{getUserDisplayName()}</p>
-                        <p className="text-xs text-gray-500 capitalize">{user.role}</p>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Menu Items */}
-                  <div className="py-1">
-                    <Link
-                      to={getDashboardLink()}
-                      className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-green-50 transition-colors duration-200"
-                      onClick={() => setIsAccountDropdownOpen(false)}
-                    >
-                      <FaTachometerAlt className="text-green-600 text-sm" />
-                      <span className="text-sm font-medium">Dashboard</span>
-                    </Link>
                     
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-red-50 transition-colors duration-200 w-full text-left"
-                    >
-                      <FaSignOutAlt className="text-red-600 text-sm" />
-                      <span className="text-sm font-medium">Logout</span>
-                    </button>
+                    {/* Menu Items */}
+                    <div className="py-1">
+                      <Link
+                        to={getDashboardLink()}
+                        className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-green-50 transition-colors duration-200"
+                        onClick={() => setIsAccountDropdownOpen(false)}
+                      >
+                        <FaTachometerAlt className="text-green-600 text-sm" />
+                        <span className="text-sm font-medium">Dashboard</span>
+                      </Link>
+                      
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-red-50 transition-colors duration-200 w-full text-left"
+                      >
+                        <FaSignOutAlt className="text-red-600 text-sm" />
+                        <span className="text-sm font-medium">Logout</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </>
           ) : (
-            // Guest user - Login/Signup buttons
             <div className="flex items-center gap-3">
               <Link
                 to="/login"
@@ -389,48 +392,44 @@ const Navbar = () => {
             </Link>
 
             {/* Mobile Icons */}
-            <div className="flex items-center gap-6 pt-2 border-t border-gray-200"> {/* Increased gap-4 to gap-6 */}
-              {/* Wishlist Icon - Only for logged-in customers */}
-              {shouldShowWishlist() && (
-                <Link 
-                  to="/customer-dashboard/wishlist" 
+            {user && user.role === "customer" && (
+              <div className="flex items-center gap-6 pt-2 border-t border-gray-200">
+                {/* Wishlist Icon */}
+                <Link
+                  to="/customer-dashboard/wishlist"
                   className="relative text-gray-600 hover:text-green-600 transition-colors duration-200"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <FaRegHeart className="text-xl" /> {/* Increased from text-lg */}
+                  <FaRegHeart className="text-xl" />
                   {wishlistCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"> {/* Increased from w-4 h-4 */}
+                    <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                       {wishlistCount > 99 ? "99+" : wishlistCount}
                     </span>
                   )}
                 </Link>
-              )}
-              
-              {/* Cart Icon - Only for logged-in customers */}
-              {shouldShowWishlist() && (
+                {/* Cart Icon */}
                 <button
                   onClick={handleCartClick}
                   className="relative text-gray-600 hover:text-green-600 transition-colors duration-200"
                 >
-                  <FaShoppingCart className="text-xl" /> {/* Increased from text-lg */}
+                  <FaShoppingCart className="text-xl" />
                   {totalItems > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"> {/* Increased from w-4 h-4 */}
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                       {totalItems > 99 ? "99+" : totalItems}
                     </span>
                   )}
                 </button>
-              )}
-            </div>
-
+              </div>
+            )}
             {/* Mobile User Section */}
             {user ? (
               // Logged in user - Mobile account options
               <div className="pt-2 border-t border-gray-200">
                 <div className="flex items-center gap-3 mb-3">
                   {getUserProfileImage() ? (
-                    <img 
-                      src={getUserProfileImage()} 
-                      alt="Profile" 
+                    <img
+                      src={getUserProfileImage()}
+                      alt="Profile"
                       className="w-8 h-8 rounded-full object-cover border-2 border-green-200"
                     />
                   ) : (
@@ -445,7 +444,6 @@ const Navbar = () => {
                     <p className="text-xs text-gray-500 capitalize">{user.role}</p>
                   </div>
                 </div>
-                
                 <Link
                   to={getDashboardLink()}
                   className="flex items-center gap-3 py-2 text-gray-700 hover:text-green-600 transition-colors duration-200"
@@ -454,7 +452,6 @@ const Navbar = () => {
                   <FaTachometerAlt className="text-green-600 text-sm" />
                   <span className="font-medium text-sm">Dashboard</span>
                 </Link>
-                
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-3 py-2 text-gray-700 hover:text-red-600 transition-colors duration-200 w-full text-left"
@@ -464,7 +461,6 @@ const Navbar = () => {
                 </button>
               </div>
             ) : (
-              // Guest user - Mobile login/signup
               <div className="pt-2 border-t border-gray-200 flex flex-col gap-2">
                 <Link
                   to="/login"

@@ -40,6 +40,7 @@ import FertilizerArticle from "./BlogContents/Fertilizer";
 import Spice from "./BlogContents/Spice";
 import Sustainability from "./BlogContents/Sustainability";
 import Tomato from "./BlogContents/Tomato";
+import { Subtitles } from "lucide-react";
 
 const SamplePosts = [
   {
@@ -58,7 +59,12 @@ const SamplePosts = [
     title: "Organic Tea Farming Practices",
     excerpt:
       "This blog is your guide to the fascinating world of organic tea farming and its environmental, health, and flavor benefits...",
-    content: <OrganicTeaFarming />,
+    // content: <OrganicTeaFarming />,
+    content: {
+      title: "Organic Tea Farming Practices",
+      Subtitles: ["str1", "str2", "str3"],
+      content: "This blog is your guide to the fascinating world of organic tea farming and it"
+    },
     category: "Sustainability",
     date: "March 12, 2024",
     readTime: "7 min read",

@@ -34,6 +34,9 @@ import WishlistPage from "./components/CustomerDashboard/CustomerWishlist/Wishli
 import OrderHistoryPage from "./components/CustomerDashboard/CustomerOrderHistory/OrderHistoryPage";
 import CustomerNotificationsPage from "./components/CustomerDashboard/CustomerNotifications/NotificationsPage";
 
+// Blog section
+import BlogReading from "./pages/BlogReading.jsx";
+
 function App() {
   return (
     <CartProvider>
@@ -46,6 +49,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/faq" element={<Faq />} />
             <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:id" element={<BlogReading />} />
             <Route path="/contact" element={<ContactUs />} />
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/product/:id" element={<ProductDetails />} />

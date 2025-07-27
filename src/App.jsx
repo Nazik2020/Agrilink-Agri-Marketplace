@@ -9,7 +9,7 @@ import Home from "./pages/Home";
 import Marketplace from "./pages/Marketplace";
 import Blog from "./pages/Blog";
 import ContactUs from "./pages/ContactUs";
-import Faq from "./pages/Faq";
+//import Faq from "./pages/Faq";
 import ProductDetails from "./pages/ProductDetails";
 import Aboutus from "./pages/Aboutus";
 import Welcoming from "./pages/Welcoming";
@@ -22,12 +22,12 @@ import CustomerSignup from "./pages/CustomerSignup";
 import SellerSignup from "./pages/SellerSignup";
 import AdminDashboard from "./components/AdminDashboard/Dashboard";
 // Seller Dashboard
-import SellerDashboard from "./pages/SellerDashboard"
-import ProfilePage from "./components/SellerDashboard/SellerProfile/ProfilePage"
-import AddProductPage from "./components/SellerDashboard/AddProduct/AddProductPage"
-import AnalyticsPage from "./components/SellerDashboard/Analytics/AnalyticsPage"
-import WalletPage from "./components/SellerDashboard/Wallet/WalletPage"
-import NotificationsPage from "./components/SellerDashboard/Notifications/NotificationsPage"
+import SellerDashboard from "./pages/SellerDashboard";
+import ProfilePage from "./components/SellerDashboard/SellerProfile/ProfilePage";
+import AddProductPage from "./components/SellerDashboard/AddProduct/AddProductPage";
+import AnalyticsPage from "./components/SellerDashboard/Analytics/AnalyticsPage";
+import WalletPage from "./components/SellerDashboard/Wallet/WalletPage";
+import NotificationsPage from "./components/SellerDashboard/Notifications/NotificationsPage";
 
 // Customer Dashboard
 import CustomerDashboard from "./pages/CustomerDashboard";
@@ -36,14 +36,14 @@ import WishlistPage from "./components/CustomerDashboard/CustomerWishlist/Wishli
 import OrderHistoryPage from "./components/CustomerDashboard/CustomerOrderHistory/OrderHistoryPage";
 import CustomerNotificationsPage from "./components/CustomerDashboard/CustomerNotifications/NotificationsPage";
 
-
-
 function App() {
-  const location = useLocation()
+  const location = useLocation();
 
   // Check if we are in seller or customer dashboard
   const hideNavbar =
-    location.pathname.startsWith("/seller-dashboard") || location.pathname.startsWith("/customer-dashboard") || location.pathname.startsWith("/admin-dashboard")
+    location.pathname.startsWith("/seller-dashboard") ||
+    location.pathname.startsWith("/customer-dashboard") ||
+    location.pathname.startsWith("/admin-dashboard");
 
   return (
     <WishlistProvider>
@@ -60,7 +60,7 @@ function App() {
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/product/:id" element={<ProductDetails />} />
               <Route path="/about" element={<Aboutus />} />
-              <Route path="/faq" element={<Faq />} />
+              {/* //<Route path="/faq" element={<Faq />} /> */}
               <Route path="/Welcoming" element={<Welcoming />} />
               <Route path="/Login" element={<Login />} />
               <Route path="/ForgotPassword" element={<ForgotPassword />} />
@@ -86,14 +86,17 @@ function App() {
                 <Route path="profile" element={<CustomerProfilePage />} />
                 <Route path="wishlist" element={<WishlistPage />} />
                 <Route path="orders" element={<OrderHistoryPage />} />
-                <Route path="notifications" element={<CustomerNotificationsPage />} />
+                <Route
+                  path="notifications"
+                  element={<CustomerNotificationsPage />}
+                />
               </Route>
             </Routes>
           </main>
         </div>
       </CartProvider>
     </WishlistProvider>
-  )
+  );
 }
 
-export default App
+export default App;

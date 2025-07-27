@@ -1,14 +1,15 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useNavigate, useParams } from "react-router-dom"
-import { FaStar, FaArrowLeft, FaShoppingCart } from "react-icons/fa"
-import Footer from "../components/common/Footer"
-import CustomizationModal from "../components/marketplace/CustomizationModal"
-import BuyNowModal from "../components/marketplace/BuyNowModal"
-import { useCart } from "../components/cart/CartContext"
-import SimpleWishlistButton from "../components/wishlist/SimpleWishlistButton"
-import axios from "axios"
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { FaStar, FaArrowLeft, FaShoppingCart } from "react-icons/fa";
+import Footer from "../components/common/Footer";
+import CustomizationModal from "../components/marketplace/CustomizationModal";
+import BuyNowModal from "../components/marketplace/BuyNowModal";
+import { useCart } from "../components/cart/CartContext";
+import SimpleWishlistButton from "../components/wishlist/SimpleWishlistButton";
+import { FlagButton } from "../components/Flag";
+import axios from "axios";
 
 // Function to fetch product details from backend
 const fetchProductDetails = async (productId) => {
@@ -17,12 +18,12 @@ const fetchProductDetails = async (productId) => {
     const possibleUrls = [
       `http://localhost/backend/get_product_details.php?id=${productId}`,
       `http://localhost:8000/get_product_details.php?id=${productId}`,
-      `http://localhost:80/backend/get_product_details.php?id=${productId}`
+      `http://localhost:80/backend/get_product_details.php?id=${productId}`,
     ];
-    
+
     let response;
     let lastError;
-    
+
     for (const url of possibleUrls) {
       try {
         response = await axios.get(url);
@@ -34,30 +35,32 @@ const fetchProductDetails = async (productId) => {
         continue;
       }
     }
-    
-    throw lastError || new Error('Failed to fetch product details from any URL');
+
+    throw (
+      lastError || new Error("Failed to fetch product details from any URL")
+    );
   } catch (error) {
-    console.error('Error fetching product details:', error);
+    console.error("Error fetching product details:", error);
     throw error;
   }
-}
+};
 
 function ProductDetails() {
-  const navigate = useNavigate()
-  const { id } = useParams() // Get product ID from URL
-  const { addToCart } = useCart()
+  const navigate = useNavigate();
+  const { id } = useParams(); // Get product ID from URL
+  const { addToCart } = useCart();
 
   // SECTION: State Management
-  const [product, setProduct] = useState(null)
-  const [mainImg, setMainImg] = useState("")
-  const [quantity, setQuantity] = useState(1)
-  const [showCustomize, setShowCustomize] = useState(false)
-  const [showBuyNow, setShowBuyNow] = useState(false)
-  const [reviewText, setReviewText] = useState("")
-  const [reviewRating, setReviewRating] = useState(5)
-  const [reviews, setReviews] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [product, setProduct] = useState(null);
+  const [mainImg, setMainImg] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [showCustomize, setShowCustomize] = useState(false);
+  const [showBuyNow, setShowBuyNow] = useState(false);
+  const [reviewText, setReviewText] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // SECTION: Data Fetching
   useEffect(() => {
@@ -65,27 +68,27 @@ function ProductDetails() {
       setLoading(true);
       fetchProductDetails(id)
         .then((data) => {
-          setProduct(data)
+          setProduct(data);
           // Set main image from product images
           if (data.images && data.images.length > 0) {
             // Try different possible backend URLs for images
-            const imageUrl = data.images[0].startsWith('http') 
-              ? data.images[0] 
+            const imageUrl = data.images[0].startsWith("http")
+              ? data.images[0]
               : `http://localhost/backend/${data.images[0]}`;
             setMainImg(imageUrl);
           }
           setLoading(false);
         })
         .catch((error) => {
-          console.error('ProductDetails: Error fetching product:', error);
+          console.error("ProductDetails: Error fetching product:", error);
           setError(error.message);
           setLoading(false);
         });
     } else {
-      setError('No product ID provided');
+      setError("No product ID provided");
       setLoading(false);
     }
-  }, [id])
+  }, [id]);
 
   const handleAddToCart = () => {
     if (product) {
@@ -97,23 +100,26 @@ function ProductDetails() {
           category: product.category,
           price: product.price,
           maxQuantity: 100, // Default max quantity since we don't have this field
-        })
+        });
       }
     }
-  }
+  };
 
   const handleBuyNow = () => {
-    setShowBuyNow(true)
-  }
+    setShowBuyNow(true);
+  };
 
   const handleSubmitReview = () => {
     if (reviewText.trim()) {
       // TODO: Send review to backend
-      setReviews([...reviews, { name: "You", rating: reviewRating, text: reviewText }])
-      setReviewText("")
-      setReviewRating(5)
+      setReviews([
+        ...reviews,
+        { name: "You", rating: reviewRating, text: reviewText },
+      ]);
+      setReviewText("");
+      setReviewRating(5);
     }
-  }
+  };
 
   // Loading state
   if (loading) {
@@ -121,10 +127,12 @@ function ProductDetails() {
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-500 mx-auto mb-4"></div>
-          <span className="text-lg text-gray-500">Loading product details...</span>
+          <span className="text-lg text-gray-500">
+            Loading product details...
+          </span>
         </div>
       </div>
-    )
+    );
   }
 
   // Error state
@@ -133,17 +141,19 @@ function ProductDetails() {
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Error Loading Product</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            Error Loading Product
+          </h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button 
-            onClick={() => navigate('/marketplace')}
+          <button
+            onClick={() => navigate("/marketplace")}
             className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600"
           >
             Back to Marketplace
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   // Product not found
@@ -152,17 +162,21 @@ function ProductDetails() {
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-center">
           <div className="text-gray-400 text-6xl mb-4">📦</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Product Not Found</h2>
-          <p className="text-gray-600 mb-4">The product you're looking for doesn't exist.</p>
-          <button 
-            onClick={() => navigate('/marketplace')}
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            Product Not Found
+          </h2>
+          <p className="text-gray-600 mb-4">
+            The product you're looking for doesn't exist.
+          </p>
+          <button
+            onClick={() => navigate("/marketplace")}
             className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600"
           >
             Back to Marketplace
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -188,49 +202,67 @@ function ProductDetails() {
             </div>
             {/* Thumbnails aligned left under main image */}
             <div className="flex gap-4 mt-2 w-full max-w-[600px] justify-start">
-              {product.images && product.images.map((img, idx) => {
-                const imgSrc = img.startsWith('http') 
-                  ? img 
-                  : `http://localhost/backend/${img}`;
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => setMainImg(imgSrc)}
-                    className={`border-2 rounded-lg p-1 transition ${
-                      mainImg === imgSrc ? "border-green-500" : "border-transparent"
-                    }`}
-                  >
-                    <img src={imgSrc} alt={`Product image ${idx + 1}`} className="w-16 h-16 object-cover rounded" />
-                  </button>
-                );
-              })}
+              {product.images &&
+                product.images.map((img, idx) => {
+                  const imgSrc = img.startsWith("http")
+                    ? img
+                    : `http://localhost/backend/${img}`;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setMainImg(imgSrc)}
+                      className={`border-2 rounded-lg p-1 transition ${
+                        mainImg === imgSrc
+                          ? "border-green-500"
+                          : "border-transparent"
+                      }`}
+                    >
+                      <img
+                        src={imgSrc}
+                        alt={`Product image ${idx + 1}`}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    </button>
+                  );
+                })}
             </div>
           </div>
 
           {/* SECTION: Product Info */}
           <div className="md:w-1/2 flex flex-col justify-start mt-15">
-            <div className="mb-2 text-green-700 font-semibold text-lg">{product.category}</div>
+            <div className="mb-2 text-green-700 font-semibold text-lg">
+              {product.category}
+            </div>
             <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-gray-600 text-base">by {product.seller.name}</span>
+              <span className="text-gray-600 text-base">
+                by {product.seller.name}
+              </span>
             </div>
             <div className="flex items-center gap-3 mb-2">
-              <span className="text-green-600 text-3xl font-bold">${parseFloat(product.price).toFixed(2)}</span>
+              <span className="text-green-600 text-3xl font-bold">
+                ${parseFloat(product.price).toFixed(2)}
+              </span>
             </div>
             <p className="text-gray-700 mb-6 text-lg">{product.description}</p>
 
             {/* SECTION: Product Details */}
             <div className="mb-6 space-y-3">
-              {product.special_offer && product.special_offer !== 'No Special Offer' && (
-                <div className="bg-red-100 border border-red-300 rounded-lg p-3">
-                  <span className="font-semibold text-red-800">Special Offer:</span>
-                  <p className="text-red-700">{product.special_offer}</p>
-                </div>
-              )}
-              
+              {product.special_offer &&
+                product.special_offer !== "No Special Offer" && (
+                  <div className="bg-red-100 border border-red-300 rounded-lg p-3">
+                    <span className="font-semibold text-red-800">
+                      Special Offer:
+                    </span>
+                    <p className="text-red-700">{product.special_offer}</p>
+                  </div>
+                )}
+
               <div>
                 <span className="font-semibold text-gray-800">Added on:</span>
-                <p className="text-gray-600">{new Date(product.created_at).toLocaleDateString()}</p>
+                <p className="text-gray-600">
+                  {new Date(product.created_at).toLocaleDateString()}
+                </p>
               </div>
             </div>
 
@@ -243,7 +275,9 @@ function ProductDetails() {
               >
                 -
               </button>
-              <span className="text-lg min-w-[50px] text-center">{quantity}</span>
+              <span className="text-lg min-w-[50px] text-center">
+                {quantity}
+              </span>
               <button
                 className="border px-3 py-1 rounded text-xl cursor-pointer hover:bg-gray-100"
                 onClick={() => setQuantity((q) => q + 1)}
@@ -254,7 +288,10 @@ function ProductDetails() {
 
             {/* SECTION: Seller Information */}
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-              <h3 className="font-bold text-lg mb-3">Seller Information</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-lg">Seller Information</h3>
+                <FlagButton sellerId={product.seller.id} size="sm" />
+              </div>
               <div className="space-y-2">
                 <div>
                   <span className="font-semibold text-gray-800">Business:</span>
@@ -263,18 +300,24 @@ function ProductDetails() {
                 {product.seller.description && (
                   <div>
                     <span className="font-semibold text-gray-800">About:</span>
-                    <p className="text-gray-600">{product.seller.description}</p>
+                    <p className="text-gray-600">
+                      {product.seller.description}
+                    </p>
                   </div>
                 )}
                 {product.seller.address && (
                   <div>
-                    <span className="font-semibold text-gray-800">Location:</span>
+                    <span className="font-semibold text-gray-800">
+                      Location:
+                    </span>
                     <p className="text-gray-600">{product.seller.address}</p>
                   </div>
                 )}
                 {product.seller.contact && (
                   <div>
-                    <span className="font-semibold text-gray-800">Contact:</span>
+                    <span className="font-semibold text-gray-800">
+                      Contact:
+                    </span>
                     <p className="text-gray-600">{product.seller.contact}</p>
                   </div>
                 )}
@@ -309,7 +352,19 @@ function ProductDetails() {
         {/* SECTION: Customer Reviews */}
         <div className="w-full flex justify-center mt-12">
           <div className="w-full max-w-[1500px] mx-auto">
-            <h2 className="text-2xl font-bold mb-6">Customer Reviews</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Customer Reviews</h2>
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-600">
+                  Report this product:
+                </span>
+                <FlagButton
+                  sellerId={product.seller.id}
+                  productId={product.id}
+                  size="md"
+                />
+              </div>
+            </div>
             <div className="bg-white rounded-xl shadow p-6 mb-6">
               <h3 className="text-xl font-semibold mb-2">Write a Review</h3>
               <div className="mb-2">
@@ -319,7 +374,9 @@ function ProductDetails() {
                     <FaStar
                       key={star}
                       className={`inline mr-1 cursor-pointer text-2xl ${
-                        reviewRating >= star ? "text-yellow-400" : "text-gray-300"
+                        reviewRating >= star
+                          ? "text-yellow-400"
+                          : "text-gray-300"
                       }`}
                       onClick={() => setReviewRating(star)}
                     />
@@ -346,14 +403,28 @@ function ProductDetails() {
 
             {/* SECTION: List of Reviews */}
             <div className="space-y-4">
-              {reviews.length === 0 && <div className="text-gray-500">No reviews yet.</div>}
+              {reviews.length === 0 && (
+                <div className="text-gray-500">No reviews yet.</div>
+              )}
               {reviews.map((review, idx) => (
-                <div key={idx} className="bg-white rounded-xl shadow p-4 flex flex-col gap-1">
+                <div
+                  key={idx}
+                  className="bg-white rounded-xl shadow p-4 flex flex-col gap-1"
+                >
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-green-700">{review.name}</span>
+                    <span className="font-semibold text-green-700">
+                      {review.name}
+                    </span>
                     <span className="flex">
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <FaStar key={star} className={star <= review.rating ? "text-yellow-400" : "text-gray-300"} />
+                        <FaStar
+                          key={star}
+                          className={
+                            star <= review.rating
+                              ? "text-yellow-400"
+                              : "text-gray-300"
+                          }
+                        />
                       ))}
                     </span>
                   </div>
@@ -369,15 +440,18 @@ function ProductDetails() {
       <Footer />
 
       {/* Modal is rendered here, as a sibling to all content */}
-      <CustomizationModal open={showCustomize} onClose={() => setShowCustomize(false)} />
-      <BuyNowModal 
-        isOpen={showBuyNow} 
-        onClose={() => setShowBuyNow(false)} 
-        product={product} 
-        quantity={quantity} 
+      <CustomizationModal
+        open={showCustomize}
+        onClose={() => setShowCustomize(false)}
+      />
+      <BuyNowModal
+        isOpen={showBuyNow}
+        onClose={() => setShowBuyNow(false)}
+        product={product}
+        quantity={quantity}
       />
     </div>
-  )
+  );
 }
 
-export default ProductDetails
+export default ProductDetails;

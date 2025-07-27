@@ -16,7 +16,7 @@ const Sidebar = () => {
   useEffect(() => {
     const loadSellerData = async () => {
       try {
-        const sellerId = localStorage.getItem("seller_id");
+        const sellerId = sessionStorage.getItem("seller_id");
         if (sellerId) {
           const response = await axios.get(
             `http://localhost/backend/get_seller_profile.php?seller_id=${sellerId}`

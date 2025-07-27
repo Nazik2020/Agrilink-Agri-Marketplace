@@ -18,8 +18,8 @@ $business_name = $_POST['business_name'] ?? null;
 $business_description = $_POST['business_description'] ?? null;
 $country = $_POST['country'] ?? null;
 $contact_number = $_POST['contact_number'] ?? null;
-$email = $_POST['email'] ?? null;
 $address = $_POST['address'] ?? null;
+// Email field removed since it cannot be changed
 
 // Validate required fields
 if (empty($seller_id)) {
@@ -27,8 +27,8 @@ if (empty($seller_id)) {
     exit;
 }
 
-if (empty($business_name) || empty($email)) {
-    echo json_encode(["success" => false, "message" => "Business name and email are required"]);
+if (empty($business_name)) {
+    echo json_encode(["success" => false, "message" => "Business name is required"]);
     exit;
 }
 
@@ -58,15 +58,15 @@ try {
         exit;
     }
 
-    // Update seller profile
+    // Update seller profile (email field removed from update)
     if ($logo_path) {
-        $sql = "UPDATE sellers SET username=?, business_name=?, business_description=?, country=?, contact_number=?, email=?, address=?, business_logo=? WHERE id=?";
+        $sql = "UPDATE sellers SET username=?, business_name=?, business_description=?, country=?, contact_number=?, address=?, business_logo=? WHERE id=?";
         $stmt = $conn->prepare($sql);
-        $result = $stmt->execute([$username, $business_name, $business_description, $country, $contact_number, $email, $address, $logo_path, $seller_id]);
+        $result = $stmt->execute([$username, $business_name, $business_description, $country, $contact_number, $address, $logo_path, $seller_id]);
     } else {
-        $sql = "UPDATE sellers SET username=?, business_name=?, business_description=?, country=?, contact_number=?, email=?, address=? WHERE id=?";
+        $sql = "UPDATE sellers SET username=?, business_name=?, business_description=?, country=?, contact_number=?, address=? WHERE id=?";
         $stmt = $conn->prepare($sql);
-        $result = $stmt->execute([$username, $business_name, $business_description, $country, $contact_number, $email, $address, $seller_id]);
+        $result = $stmt->execute([$username, $business_name, $business_description, $country, $contact_number, $address, $seller_id]);
     }
     
     if ($result) {

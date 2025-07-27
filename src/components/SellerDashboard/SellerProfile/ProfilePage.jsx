@@ -19,7 +19,7 @@ const ProfilePage = () => {
   useEffect(() => {
     const loadSellerProfile = async () => {
       try {
-        const sellerId = localStorage.getItem("seller_id");
+        const sellerId = sessionStorage.getItem("seller_id");
         if (!sellerId) {
           alert("Please login as a seller");
           return;

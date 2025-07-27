@@ -83,9 +83,9 @@ export default function RightSection() {
           if (res.data.user.role === "admin") {
             navigate("/admin-dashboard");
           } else if (res.data.user.role === "seller") {
-            navigate("/"); // Changed from "/seller-dashboard" to "/"
+            navigate("/"); // Redirect sellers to home page
           } else {
-            // Redirect both customers and sellers to home page
+            // Redirect customers to home page
             navigate("/");
           }
         }, 2000);

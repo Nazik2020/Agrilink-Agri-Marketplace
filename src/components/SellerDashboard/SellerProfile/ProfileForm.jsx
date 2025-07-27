@@ -45,9 +45,8 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
       "businessDescription",
       "country",
       "contactNumber",
-      "email",
       "address",
-    ];
+    ]; // Removed email from required fields
 
     requiredFields.forEach((field) => {
       if (!profile[field] || profile[field].trim() === "") {
@@ -55,9 +54,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
       }
     });
 
-    if (profile.email && !/\S+@\S+\.\S+/.test(profile.email)) {
-      newErrors.email = "Please enter a valid email address.";
-    }
+    // Email validation removed since it's read-only
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -65,8 +62,8 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
 
   const handleSubmit = async () => {
     if (validateForm()) {
-      // Get seller_id from localStorage
-      const sellerId = localStorage.getItem("seller_id") || profile.id;
+      // Get seller_id from sessionStorage
+      const sellerId = sessionStorage.getItem("seller_id") || profile.id;
       
       if (!sellerId) {
         alert("Seller ID not found. Please login again.");
@@ -80,7 +77,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
       formData.append("business_description", profile.businessDescription);
       formData.append("country", profile.country);
       formData.append("contact_number", profile.contactNumber);
-      formData.append("email", profile.email);
+      // Email field removed since it cannot be changed
       formData.append("address", profile.address);
       if (logoFile) formData.append("business_logo", logoFile);
 
@@ -175,15 +172,41 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
               required
             />
 
-            <ProfileFormField
-              label="Email"
-              name="email"
-              type="email"
-              value={profile.email}
-              onChange={handleInputChange}
-              error={errors.email}
-              required
-            />
+            <div className="space-y-2">
+              <label className="block text-base font-semibold text-gray-500 flex items-center">
+                Email
+                <span className="ml-2 px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded-full">
+                  Read Only
+                </span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={profile.email}
+                onChange={handleInputChange}
+                placeholder="Enter your email"
+                className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-xl focus:outline-none transition-all duration-300 cursor-not-allowed"
+                readOnly
+                disabled
+              />
+              <p className="text-sm text-gray-500 mt-1 flex items-center">
+                <svg
+                  className="w-4 h-4 mr-1 text-blue-500"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Email address cannot be changed for security reasons
+              </p>
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+              )}
+            </div>
 
             <ProfileFormField
               label="Address"

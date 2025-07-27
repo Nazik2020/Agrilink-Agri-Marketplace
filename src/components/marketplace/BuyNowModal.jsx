@@ -1,36 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { CreditCard, Lock, CheckCircle, X } from 'lucide-react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { CreditCard, Lock, CheckCircle, X } from "lucide-react";
+import axios from "axios";
 
 const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
   // State management
   const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Success
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [stripeKey, setStripeKey] = useState('');
-  
+  const [error, setError] = useState("");
+  const [stripeKey, setStripeKey] = useState("");
+
   // Form data
   const [formData, setFormData] = useState({
     // Billing Information
-    billing_name: '',
-    billing_email: '',
-    billing_address: '',
-    billing_city: '',
-    billing_postal_code: '',
-    billing_country: 'United States',
-    
+    billing_name: "",
+    billing_email: "",
+    billing_address: "",
+    billing_city: "",
+    billing_postal_code: "",
+    billing_country: "United States",
+
     // Card Information
-    card_number: '',
-    card_expiry: '',
-    card_cvc: '',
-    card_name: '',
-    
+    card_number: "",
+    card_expiry: "",
+    card_cvc: "",
+    card_name: "",
+
     // Order details
     quantity: quantity,
-    customer_id: 3 // Using first available customer ID from database
+    customer_id: 3, // Using first available customer ID from database
   });
-  
+
   // Order summary
   const unitPrice = parseFloat(product?.price || 0);
   const totalAmount = unitPrice * formData.quantity;
@@ -65,86 +65,90 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
 
   const loadStripeConfig = async () => {
     try {
-      const response = await axios.get('http://localhost/backend/get_stripe_config.php');
+      const response = await axios.get(
+        "http://localhost/backend/get_stripe_config.php"
+      );
       if (response.data.success) {
         setStripeKey(response.data.publishable_key);
       }
     } catch (error) {
-      console.error('Error loading Stripe config:', error);
-      setError('Payment system unavailable');
+      console.error("Error loading Stripe config:", error);
+      setError("Payment system unavailable");
     }
   };
 
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   // Format card number input
   const handleCardNumberChange = (e) => {
-    let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    const formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
-    
-    setFormData(prev => ({
+    let value = e.target.value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
+    const formattedValue = value.match(/.{1,4}/g)?.join(" ") || value;
+
+    setFormData((prev) => ({
       ...prev,
-      card_number: formattedValue
+      card_number: formattedValue,
     }));
   };
 
   // Format expiry date input
   const handleExpiryChange = (e) => {
-    let value = e.target.value.replace(/\D/g, '');
+    let value = e.target.value.replace(/\D/g, "");
     if (value.length >= 2) {
-      value = value.substring(0,2) + '/' + value.substring(2,4);
+      value = value.substring(0, 2) + "/" + value.substring(2, 4);
     }
-    
-    setFormData(prev => ({
+
+    setFormData((prev) => ({
       ...prev,
-      card_expiry: value
+      card_expiry: value,
     }));
   };
 
   // Validate form
   const validateForm = () => {
     const errors = [];
-    
+
     // Billing validation
-    if (!formData.billing_name.trim()) errors.push('Name is required');
-    if (!formData.billing_email.trim()) errors.push('Email is required');
-    if (!formData.billing_address.trim()) errors.push('Address is required');
-    if (!formData.billing_city.trim()) errors.push('City is required');
-    if (!formData.billing_postal_code.trim()) errors.push('Postal code is required');
-    
+    if (!formData.billing_name.trim()) errors.push("Name is required");
+    if (!formData.billing_email.trim()) errors.push("Email is required");
+    if (!formData.billing_address.trim()) errors.push("Address is required");
+    if (!formData.billing_city.trim()) errors.push("City is required");
+    if (!formData.billing_postal_code.trim())
+      errors.push("Postal code is required");
+
     // Card validation (basic)
-    if (!formData.card_number.replace(/\s/g, '')) errors.push('Card number is required');
-    if (!formData.card_expiry) errors.push('Expiry date is required');
-    if (!formData.card_cvc) errors.push('CVC is required');
-    if (!formData.card_name.trim()) errors.push('Cardholder name is required');
-    
+    if (!formData.card_number.replace(/\s/g, ""))
+      errors.push("Card number is required");
+    if (!formData.card_expiry) errors.push("Expiry date is required");
+    if (!formData.card_cvc) errors.push("CVC is required");
+    if (!formData.card_name.trim()) errors.push("Cardholder name is required");
+
     return errors;
   };
 
   // Handle payment processing
   const handlePayment = async () => {
-    setError('');
+    setError("");
     setLoading(true);
-    
+
     try {
       // Validate form
       const validationErrors = validateForm();
       if (validationErrors.length > 0) {
-        setError(validationErrors.join(', '));
+        setError(validationErrors.join(", "));
         setLoading(false);
         return;
       }
 
       // Prepare checkout data
       const checkoutData = {
-        action: 'create_payment_intent',
+        action: "create_payment_intent",
         product_id: product.id,
         quantity: formData.quantity,
         customer_id: formData.customer_id,
@@ -153,12 +157,15 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
         billing_address: formData.billing_address,
         billing_city: formData.billing_city,
         billing_postal_code: formData.billing_postal_code,
-        billing_country: formData.billing_country
+        billing_country: formData.billing_country,
       };
 
       // Create payment intent
-      const response = await axios.post('http://localhost/backend/checkout_api.php', checkoutData);
-      
+      const response = await axios.post(
+        "http://localhost/backend/checkout_api.php",
+        checkoutData
+      );
+
       if (response.data.success) {
         // Simulate payment success (in real implementation, you'd use Stripe Elements)
         setTimeout(() => {
@@ -166,13 +173,12 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
           setLoading(false);
         }, 2000);
       } else {
-        setError(response.data.error || 'Payment failed');
+        setError(response.data.error || "Payment failed");
         setLoading(false);
       }
-      
     } catch (error) {
-      console.error('Payment error:', error);
-      setError('Payment processing failed');
+      console.error("Payment error:", error);
+      setError("Payment processing failed");
       setLoading(false);
     }
   };
@@ -180,21 +186,21 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
   // Reset modal when closed
   const handleClose = () => {
     setStep(1);
-    setError('');
+    setError("");
     setLoading(false);
     setFormData({
-      billing_name: '',
-      billing_email: '',
-      billing_address: '',
-      billing_city: '',
-      billing_postal_code: '',
-      billing_country: 'United States',
-      card_number: '',
-      card_expiry: '',
-      card_cvc: '',
-      card_name: '',
+      billing_name: "",
+      billing_email: "",
+      billing_address: "",
+      billing_city: "",
+      billing_postal_code: "",
+      billing_country: "United States",
+      card_number: "",
+      card_expiry: "",
+      card_cvc: "",
+      card_name: "",
       quantity: quantity,
-      customer_id: 1
+      customer_id: 1,
     });
     onClose();
   };
@@ -228,7 +234,11 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
                 <CreditCard className="text-white" size={18} />
               </div>
               <h2 className="text-xl font-bold">
-                {step === 1 ? 'Order Details' : step === 2 ? 'Payment Information' : 'Order Confirmed'}
+                {step === 1
+                  ? "Order Details"
+                  : step === 2
+                  ? "Payment Information"
+                  : "Order Confirmed"}
               </h2>
             </div>
             <button
@@ -243,23 +253,61 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
         {/* Progress Indicator */}
         <div className="px-6 py-4 bg-gray-50 border-b">
           <div className="flex items-center justify-between">
-            <div className={`flex items-center space-x-2 transition-all duration-300 ${step >= 1 ? 'text-green-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${step >= 1 ? 'bg-green-600 text-white shadow-lg' : 'bg-gray-200'}`}>
-                {step > 1 ? '✓' : '1'}
+            <div
+              className={`flex items-center space-x-2 transition-all duration-300 ${
+                step >= 1 ? "text-green-600" : "text-gray-400"
+              }`}
+            >
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                  step >= 1
+                    ? "bg-green-600 text-white shadow-lg"
+                    : "bg-gray-200"
+                }`}
+              >
+                {step > 1 ? "✓" : "1"}
               </div>
               <span className="font-semibold text-sm">Details</span>
             </div>
-            <div className={`flex-1 h-1 mx-4 rounded-full transition-all duration-500 ${step >= 2 ? 'bg-green-600' : 'bg-gray-200'}`}></div>
-            <div className={`flex items-center space-x-2 transition-all duration-300 ${step >= 2 ? 'text-green-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${step >= 2 ? 'bg-green-600 text-white shadow-lg' : 'bg-gray-200'}`}>
-                {step > 2 ? '✓' : '2'}
+            <div
+              className={`flex-1 h-1 mx-4 rounded-full transition-all duration-500 ${
+                step >= 2 ? "bg-green-600" : "bg-gray-200"
+              }`}
+            ></div>
+            <div
+              className={`flex items-center space-x-2 transition-all duration-300 ${
+                step >= 2 ? "text-green-600" : "text-gray-400"
+              }`}
+            >
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                  step >= 2
+                    ? "bg-green-600 text-white shadow-lg"
+                    : "bg-gray-200"
+                }`}
+              >
+                {step > 2 ? "✓" : "2"}
               </div>
               <span className="font-semibold text-sm">Payment</span>
             </div>
-            <div className={`flex-1 h-1 mx-4 rounded-full transition-all duration-500 ${step >= 3 ? 'bg-green-600' : 'bg-gray-200'}`}></div>
-            <div className={`flex items-center space-x-2 transition-all duration-300 ${step >= 3 ? 'text-green-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${step >= 3 ? 'bg-green-600 text-white shadow-lg' : 'bg-gray-200'}`}>
-                {step >= 3 ? '✓' : '3'}
+            <div
+              className={`flex-1 h-1 mx-4 rounded-full transition-all duration-500 ${
+                step >= 3 ? "bg-green-600" : "bg-gray-200"
+              }`}
+            ></div>
+            <div
+              className={`flex items-center space-x-2 transition-all duration-300 ${
+                step >= 3 ? "text-green-600" : "text-gray-400"
+              }`}
+            >
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                  step >= 3
+                    ? "bg-green-600 text-white shadow-lg"
+                    : "bg-gray-200"
+                }`}
+              >
+                {step >= 3 ? "✓" : "3"}
               </div>
               <span className="font-semibold text-sm">Success</span>
             </div>
@@ -272,32 +320,49 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
             <div className="space-y-4">
               {/* Order Summary */}
               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                <h3 className="font-bold text-lg mb-3 text-gray-800">Order Summary</h3>
+                <h3 className="font-bold text-lg mb-3 text-gray-800">
+                  Order Summary
+                </h3>
                 <div className="flex items-center space-x-4">
-                  <img 
-                    src={product?.images?.[0] || '/placeholder.svg'} 
+                  <img
+                    src={product?.images?.[0] || "/placeholder.svg"}
                     alt={product?.name}
                     className="w-16 h-16 object-cover rounded-lg border border-green-200"
                   />
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-800">{product?.name}</h4>
-                    <p className="text-gray-600">${unitPrice.toFixed(2)} each</p>
+                    <h4 className="font-semibold text-gray-800">
+                      {product?.name}
+                    </h4>
+                    <p className="text-gray-600">
+                      ${unitPrice.toFixed(2)} each
+                    </p>
                   </div>
                   <div className="text-right">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Qty</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Qty
+                    </label>
                     <input
                       type="number"
                       min="1"
                       max="10"
                       value={formData.quantity}
-                      onChange={(e) => setFormData(prev => ({...prev, quantity: parseInt(e.target.value) || 1}))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          quantity: parseInt(e.target.value) || 1,
+                        }))
+                      }
                       className="w-16 p-2 border border-gray-300 rounded text-center focus:ring-2 focus:ring-green-500 focus:border-green-600"
                     />
                   </div>
                 </div>
                 <div className="border-t border-green-200 mt-4 pt-4 flex justify-between items-center">
-                  <span className="font-bold text-lg text-gray-800">Total:</span>
-                  <span className="font-bold text-xl text-green-600">${totalAmount.toFixed(2)}</span>
+                  <span className="font-bold text-lg text-gray-800">
+                    Total:
+                  </span>
+                  <span className="font-bold text-xl text-green-600">
+                    ${totalAmount.toFixed(2)}
+                  </span>
                 </div>
               </div>
 
@@ -372,7 +437,9 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
                 </div>
                 <div>
                   <p className="font-bold text-green-800">🔒 Secure Payment</p>
-                  <p className="text-green-600 text-sm">Your payment information is encrypted and secure</p>
+                  <p className="text-green-600 text-sm">
+                    Your payment information is encrypted and secure
+                  </p>
                 </div>
               </div>
 
@@ -426,8 +493,12 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
               {/* Order Summary (compact) */}
               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                 <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-700">{product?.name} × {formData.quantity}</span>
-                  <span className="font-bold text-xl text-green-600">${totalAmount.toFixed(2)}</span>
+                  <span className="font-medium text-gray-700">
+                    {product?.name} × {formData.quantity}
+                  </span>
+                  <span className="font-bold text-xl text-green-600">
+                    ${totalAmount.toFixed(2)}
+                  </span>
                 </div>
               </div>
 
@@ -468,13 +539,23 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
                 <CheckCircle className="text-green-600" size={48} />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">Payment Successful!</h3>
-                <p className="text-gray-600">Your order has been confirmed and will be processed soon.</p>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                  Payment Successful!
+                </h3>
+                <p className="text-gray-600">
+                  Your order has been confirmed and will be processed soon.
+                </p>
               </div>
               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                <p className="font-semibold text-gray-800 mb-2">Order Details:</p>
-                <p className="text-gray-700 mb-1">{product?.name} × {formData.quantity}</p>
-                <p className="font-bold text-xl text-green-600">Total: ${totalAmount.toFixed(2)}</p>
+                <p className="font-semibold text-gray-800 mb-2">
+                  Order Details:
+                </p>
+                <p className="text-gray-700 mb-1">
+                  {product?.name} × {formData.quantity}
+                </p>
+                <p className="font-bold text-xl text-green-600">
+                  Total: ${totalAmount.toFixed(2)}
+                </p>
               </div>
               <button
                 onClick={handleClose}

@@ -41,7 +41,7 @@ const FlagModal = ({
     e.preventDefault();
     setIsSubmitting(true);
 
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = JSON.parse(sessionStorage.getItem("user"));
 
     try {
       const response = await axios.post(

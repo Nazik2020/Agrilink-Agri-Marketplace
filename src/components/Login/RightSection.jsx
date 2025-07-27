@@ -58,7 +58,7 @@ export default function RightSection() {
 
       if (res.data.success) {
         setMessage(res.data.message);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
+        sessionStorage.setItem("user", JSON.stringify(res.data.user));
         window.dispatchEvent(
           new CustomEvent("userStateChanged", {
             detail: { action: "login", user: res.data.user },
@@ -71,7 +71,7 @@ export default function RightSection() {
           res.data.user.role === "seller" &&
           res.data.user.id
         ) {
-          localStorage.setItem("seller_id", res.data.user.id);
+          sessionStorage.setItem("seller_id", res.data.user.id);
         }
 
         // Sync guest wishlist if user is a customer

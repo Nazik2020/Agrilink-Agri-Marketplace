@@ -11,7 +11,7 @@ const Services = () => {
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#14452F] mb-4">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#14452F] mb-4">
             Our Services
           </h2>
           <p className="text-xl text-green-600 font-medium">
@@ -32,13 +32,12 @@ const Services = () => {
               <h3 className=" text-[25px] font-bold text-[#14452F]">
                 Seller Analytics
               </h3>
-              <p className="text-[18px] text-gray-500">
-                Track revenue, profits, and business insights with clean visual
-                charts and summaries.
+              <p className="text-s text-gray-500 text-justify">
+              Easily track your revenue, monitor profit margins, and gain valuable business insights through clear visual charts, 
+              detailed summaries, 
+              and performance analytics..all designed to help you make smarter decisions and grow with confidence.
               </p>
-              <button className="mt-4 px-6 py-2 border-2 border-green-600 rounded-full text-green-600 font-medium hover:bg-green-600 hover:text-white transition">
-                Read More →
-              </button>
+             
             </div>
           </div>
 
@@ -51,15 +50,13 @@ const Services = () => {
             />
             <div className="p-6 space-y-3">
               <h3 className=" text-[25px] font-bold text-[#14452F]">
-                Fast Delivery
+              Global Market Access
               </h3>
-              <p className="text-[18px] text-gray-500">
-                Ensure fast and secure delivery of farm products to your
-                customers' doorsteps.
+              <p className="text-s text-gray-500 text-justify">
+              Break beyond borders with AgriLink’s global marketplace. Promote your products to international buyers, 
+              manage export-ready listings, and access tools that simplify compliance, logistics, and communication 
               </p>
-              <button className="mt-4 px-6 py-2 border-2 border-green-600 rounded-full text-green-600 font-medium hover:bg-green-600 hover:text-white transition">
-                Read More →
-              </button>
+              
             </div>
           </div>
 
@@ -72,15 +69,13 @@ const Services = () => {
             />
             <div className="p-6 space-y-3">
               <h3 className="text-[25px] font-bold text-[#14452F]">
-                Customer Feedback
+              Verified Buyer Reviews
               </h3>
-              <p className=" text-[18px] text-gray-500 ">
-                Get real-time insights and improve your service based on
-                verified customer feedback.
+              <p className=" text-s text-gray-500 text-justify">
+              Collect authentic reviews from verified buyers to build credibility, understand market demands, and refine your offerings...
+              all while growing a trusted presence in the global agri-marketplace.
               </p>
-              <button className="mt-4 px-6 py-2 border-2 border-green-600 rounded-full text-green-600 font-medium hover:bg-green-600 hover:text-white transition">
-                Read More →
-              </button>
+              
             </div>
           </div>
         </div>

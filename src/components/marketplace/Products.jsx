@@ -5,7 +5,7 @@ import axios from "axios";
 import { useCart } from "../cart/CartContext";
 import SimpleWishlistButton from "../wishlist/SimpleWishlistButton";
 
-const Products = () => {
+const Products = ({ displayCount = 8 }) => {
   const { addToCart } = useCart();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,9 +82,12 @@ const Products = () => {
     );
   }
 
+  // Get products to display based on displayCount
+  const displayedProducts = products.slice(0, displayCount);
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {products.map((product) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      {displayedProducts.map((product) => (
         <div
           key={product.id}
           className="bg-white rounded-2xl shadow-xl border border-gray-200 hover:shadow-2xl transition flex flex-col h-[370px] w-full max-w-xs mx-auto relative"

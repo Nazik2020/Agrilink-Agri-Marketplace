@@ -78,10 +78,8 @@ export default function RightSection() {
         setTimeout(() => {
           if (res.data.user.role === "admin") {
             navigate("/admin-dashboard");
-          } else if (res.data.user.role === "seller") {
-            navigate("/seller-dashboard");
           } else {
-            // Redirect customers to home page instead of dashboard
+            // Redirect both customers and sellers to home page
             navigate("/");
           }
         }, 2000);

@@ -1,10 +1,12 @@
 import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { FaPhoneAlt } from "react-icons/fa";
 import heroVideo from "../../assets/landing_page/hero_video.mp4";
 import heroImage from "../../assets/landing_page/hero_image.jpg";
 
 const Hero = () => {
   const videoRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (videoRef.current) {
@@ -12,9 +14,12 @@ const Hero = () => {
     }
   }, []);
 
+  const handleReadMore = () => {
+    navigate("/about");
+  };
+
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#1a1a1a]"
-     style={{ fontFamily: "Arial, sans-serif" }}>
+    <section className="relative min-h-screen overflow-hidden bg-[#1a1a1a]">
       {/* Background Video */}
       <video
         ref={videoRef}
@@ -64,7 +69,7 @@ const Hero = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center gap-6">
-            <button className="px-6 py-3 border-2 border-green-200 rounded-full text-green-200 font-medium hover:bg-green-200 hover:text-black transition">
+            <button onClick={handleReadMore} className="px-6 py-3 border-2 border-green-200 rounded-full text-green-200 font-medium hover:bg-green-200 hover:text-black transition">
               Read More →
             </button>
             <div className="flex items-center gap-3">

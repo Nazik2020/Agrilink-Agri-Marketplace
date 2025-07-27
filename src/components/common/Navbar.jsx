@@ -202,7 +202,7 @@ const Navbar = () => {
         </Link>
 
         {/* Navigation Links */}
-        <div className="hidden lg:flex gap-6 text-sm font-medium text-gray-700"> {/* Increased from text-xs */}
+        <div className="hidden lg:flex gap-6 text-base font-medium text-gray-700"> {/* Increased from text-xs */}
           <Link to="/" className="hover:text-green-600 transition-colors duration-200">
             Home
           </Link>
@@ -244,29 +244,29 @@ const Navbar = () => {
               )}
               {/* Cart Icon - Only for customers */}
               {user.role === "customer" && (
-                <button
-                  onClick={handleCartClick}
+          <button
+            onClick={handleCartClick}
                   className="relative text-gray-600 hover:text-green-600 transition-colors duration-200"
-                  title="Shopping Cart"
-                >
+            title="Shopping Cart"
+          >
                   <FaShoppingCart className="text-xl" />
-                  {totalItems > 0 && (
+            {totalItems > 0 && (
                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                      {totalItems > 99 ? "99+" : totalItems}
-                    </span>
-                  )}
-                </button>
+                {totalItems > 99 ? "99+" : totalItems}
+              </span>
+            )}
+          </button>
               )}
               {/* Account Dropdown (existing code) */}
-              <div className="relative">
-                <button
+          <div className="relative">
+            <button
                   onClick={() => setIsAccountDropdownOpen(!isAccountDropdownOpen)}
                   className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
-                >
+            >
                   <FaRegUserCircle className="text-lg text-gray-600" />
                   <FaChevronDown className={`text-gray-600 text-xs transition-transform duration-200 ${isAccountDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {isAccountDropdownOpen && (
+            </button>
+            {isAccountDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl z-50 py-3">
                     {/* User Profile Section */}
                     <div className="px-4 py-3 border-b border-gray-100">
@@ -316,21 +316,21 @@ const Navbar = () => {
             </>
           ) : (
             <div className="flex items-center gap-3">
-              <Link
-                to="/login"
+                <Link
+                  to="/login"
                 className="px-3 py-1.5 text-green-600 font-medium text-xs hover:text-green-700 transition-colors duration-200"
-              >
+                >
                 Login
-              </Link>
-              <Link
-                to="/Welcoming"
+                </Link>
+                <Link
+                  to="/Welcoming"
                 className="px-3 py-1.5 bg-green-600 text-white font-medium text-xs rounded-md hover:bg-green-700 transition-colors duration-200 shadow-sm hover:shadow-md"
-              >
+                >
                 Sign Up
-              </Link>
-            </div>
-          )}
-        </div>
+                </Link>
+              </div>
+            )}
+          </div>
 
         {/* Mobile Menu Button */}
         <div className="lg:hidden">
@@ -348,43 +348,43 @@ const Navbar = () => {
         <div className="lg:hidden bg-white border-t border-gray-200 px-4 py-3 shadow-lg">
           <div className="flex flex-col gap-3">
             {/* Navigation Links */}
-            <Link
-              to="/"
+          <Link
+            to="/"
               className="text-sm font-medium text-gray-700 hover:text-green-600 transition-colors duration-200"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Home
-            </Link>
-            <Link
-              to="/marketplace"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Home
+          </Link>
+          <Link
+            to="/marketplace"
               className="text-sm font-medium text-gray-700 hover:text-green-600 transition-colors duration-200"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Marketplace
-            </Link>
-            <Link
-              to="/blog"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Marketplace
+          </Link>
+          <Link
+            to="/blog"
               className="text-sm font-medium text-gray-700 hover:text-green-600 transition-colors duration-200"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Blog
-            </Link>
-            <Link
-              to="/contact"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Blog
+          </Link>
+          <Link
+            to="/contact"
               className="text-sm font-medium text-gray-700 hover:text-green-600 transition-colors duration-200"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Contact us
-            </Link>
-            <Link
-              to="/about"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Contact us
+          </Link>
+          <Link
+            to="/about"
               className="text-sm font-medium text-gray-700 hover:text-green-600 transition-colors duration-200"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              About Us
-            </Link>
-            <Link
-              to="/faq"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            About Us
+          </Link>
+          <Link
+            to="/faq"
               className="text-sm font-medium text-gray-700 hover:text-green-600 transition-colors duration-200"
               onClick={() => setIsMenuOpen(false)}
             >
@@ -398,28 +398,28 @@ const Navbar = () => {
                 <Link
                   to="/customer-dashboard/wishlist"
                   className="relative text-gray-600 hover:text-green-600 transition-colors duration-200"
-                  onClick={() => setIsMenuOpen(false)}
-                >
+            onClick={() => setIsMenuOpen(false)}
+          >
                   <FaRegHeart className="text-xl" />
                   {wishlistCount > 0 && (
                     <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                       {wishlistCount > 99 ? "99+" : wishlistCount}
                     </span>
                   )}
-                </Link>
+          </Link>
                 {/* Cart Icon */}
-                <button
-                  onClick={handleCartClick}
+             <button
+            onClick={handleCartClick}
                   className="relative text-gray-600 hover:text-green-600 transition-colors duration-200"
-                >
+          >
                   <FaShoppingCart className="text-xl" />
-                  {totalItems > 0 && (
+              {totalItems > 0 && (
                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                      {totalItems > 99 ? "99+" : totalItems}
-                    </span>
-                  )}
-                </button>
-              </div>
+                  {totalItems > 99 ? "99+" : totalItems}
+                </span>
+              )}
+          </button>
+          </div>
             )}
             {/* Mobile User Section */}
             {user ? (
@@ -452,13 +452,13 @@ const Navbar = () => {
                   <FaTachometerAlt className="text-green-600 text-sm" />
                   <span className="font-medium text-sm">Dashboard</span>
                 </Link>
-                <button
+            <button
                   onClick={handleLogout}
                   className="flex items-center gap-3 py-2 text-gray-700 hover:text-red-600 transition-colors duration-200 w-full text-left"
-                >
+            >
                   <FaSignOutAlt className="text-red-600 text-sm" />
                   <span className="font-medium text-sm">Logout</span>
-                </button>
+            </button>
               </div>
             ) : (
               <div className="pt-2 border-t border-gray-200 flex flex-col gap-2">

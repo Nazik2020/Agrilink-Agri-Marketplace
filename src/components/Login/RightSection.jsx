@@ -59,7 +59,11 @@ export default function RightSection() {
       if (res.data.success) {
         setMessage(res.data.message);
         localStorage.setItem("user", JSON.stringify(res.data.user));
-        window.dispatchEvent(new CustomEvent('userStateChanged', { detail: { action: 'login', user: res.data.user } }));
+        window.dispatchEvent(
+          new CustomEvent("userStateChanged", {
+            detail: { action: "login", user: res.data.user },
+          })
+        );
 
         // Set seller_id in localStorage if user is a seller
         if (
@@ -79,7 +83,7 @@ export default function RightSection() {
           if (res.data.user.role === "admin") {
             navigate("/admin-dashboard");
           } else if (res.data.user.role === "seller") {
-            navigate("/seller-dashboard");
+            navigate("/"); // Changed from "/seller-dashboard" to "/"
           } else {
             // Redirect customers to home page instead of dashboard
             navigate("/");
@@ -98,37 +102,51 @@ export default function RightSection() {
   // Function to sync guest wishlist
   const syncGuestWishlist = async (customerId) => {
     try {
-      console.log('Login: Starting guest wishlist sync for customer ID:', customerId);
-      
-      // Get guest wishlist from localStorage
-      const guestWishlist = JSON.parse(localStorage.getItem('guestWishlist') || '[]');
-      console.log('Login: Guest wishlist from localStorage:', guestWishlist);
-      
-      if (guestWishlist.length > 0) {
-        console.log('Login: Found', guestWishlist.length, 'items to sync');
-        
-        // Sync to backend
-        const syncRes = await axios.post("http://localhost/backend/sync_guest_wishlist.php", {
-          customerId: customerId,
-          productIds: guestWishlist
-        });
+      console.log(
+        "Login: Starting guest wishlist sync for customer ID:",
+        customerId
+      );
 
-        console.log('Login: Sync API response:', syncRes.data);
+      // Get guest wishlist from localStorage
+      const guestWishlist = JSON.parse(
+        localStorage.getItem("guestWishlist") || "[]"
+      );
+      console.log("Login: Guest wishlist from localStorage:", guestWishlist);
+
+      if (guestWishlist.length > 0) {
+        console.log("Login: Found", guestWishlist.length, "items to sync");
+
+        // Sync to backend
+        const syncRes = await axios.post(
+          "http://localhost/backend/sync_guest_wishlist.php",
+          {
+            customerId: customerId,
+            productIds: guestWishlist,
+          }
+        );
+
+        console.log("Login: Sync API response:", syncRes.data);
 
         if (syncRes.data.success) {
-          console.log('Login: Guest wishlist synced successfully:', syncRes.data.summary);
+          console.log(
+            "Login: Guest wishlist synced successfully:",
+            syncRes.data.summary
+          );
           // Clear guest wishlist from localStorage
-          localStorage.removeItem('guestWishlist');
-          console.log('Login: Guest wishlist cleared from localStorage');
+          localStorage.removeItem("guestWishlist");
+          console.log("Login: Guest wishlist cleared from localStorage");
         } else {
-          console.error('Login: Sync failed:', syncRes.data.message);
+          console.error("Login: Sync failed:", syncRes.data.message);
         }
       } else {
-        console.log('Login: No guest wishlist items to sync');
+        console.log("Login: No guest wishlist items to sync");
       }
     } catch (error) {
-      console.error('Login: Error syncing guest wishlist:', error);
-      console.error('Login: Error details:', error.response?.data || error.message);
+      console.error("Login: Error syncing guest wishlist:", error);
+      console.error(
+        "Login: Error details:",
+        error.response?.data || error.message
+      );
     }
   };
 

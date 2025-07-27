@@ -65,7 +65,7 @@ const FAQ = () => {
 
   const handleSubmitQuestion = () => {
     if (userQuestion.trim()) {
-      alert(`Thank you for your question: "${userQuestion}". Our team will review it and get back to you soon!`);
+      alert(Thank you for your question: "${userQuestion}". Our team will review it and get back to you soon!);
       setUserQuestion('');
     }
   };

@@ -21,17 +21,17 @@ import { useWishlist } from "../wishlist/WishlistContext";
 // User Management Class following OOP principles
 class UserManager {
   constructor() {
-    this.storageKey = 'user';
-    this.sellerStorageKey = 'seller_id';
+    this.storageKey = "user";
+    this.sellerStorageKey = "seller_id";
   }
 
   // Get current user from localStorage
   getCurrentUser() {
     try {
-      const userString = localStorage.getItem(this.storageKey);
+      const userString = sessionStorage.getItem(this.storageKey);
       return userString ? JSON.parse(userString) : null;
     } catch (error) {
-      console.error('Error parsing user data:', error);
+      console.error("Error parsing user data:", error);
       return null;
     }
   }
@@ -39,26 +39,30 @@ class UserManager {
   // Check if user is logged in and is a customer
   isCustomerLoggedIn() {
     const user = this.getCurrentUser();
-    return user && user.role === 'customer';
+    return user && user.role === "customer";
   }
 
   // Logout user
   logout() {
-    localStorage.removeItem(this.storageKey);
-    localStorage.removeItem(this.sellerStorageKey);
+    sessionStorage.removeItem(this.storageKey);
+    sessionStorage.removeItem(this.sellerStorageKey);
     // Dispatch custom event for immediate UI update
-    window.dispatchEvent(new CustomEvent('userStateChanged', { 
-      detail: { action: 'logout' } 
-    }));
+    window.dispatchEvent(
+      new CustomEvent("userStateChanged", {
+        detail: { action: "logout" },
+      })
+    );
   }
 
   // Login user
   login(userData) {
-    localStorage.setItem(this.storageKey, JSON.stringify(userData));
+    sessionStorage.setItem(this.storageKey, JSON.stringify(userData));
     // Dispatch custom event for immediate UI update
-    window.dispatchEvent(new CustomEvent('userStateChanged', { 
-      detail: { action: 'login', user: userData } 
-    }));
+    window.dispatchEvent(
+      new CustomEvent("userStateChanged", {
+        detail: { action: "login", user: userData },
+      })
+    );
   }
 }
 
@@ -98,13 +102,13 @@ const Navbar = () => {
     };
 
     // Add event listeners
-    window.addEventListener('userStateChanged', handleUserStateChange);
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener("userStateChanged", handleUserStateChange);
+    window.addEventListener("storage", handleStorageChange);
 
     // Cleanup event listeners
     return () => {
-      window.removeEventListener('userStateChanged', handleUserStateChange);
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener("userStateChanged", handleUserStateChange);
+      window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
@@ -139,28 +143,28 @@ const Navbar = () => {
     setUser(null);
     setIsAccountDropdownOpen(false);
     setIsMenuOpen(false);
-    navigate('/');
+    navigate("/");
   };
 
   // Dashboard link resolver
   const getDashboardLink = () => {
-    if (!user) return '/';
+    if (!user) return "/";
     switch (user.role) {
-      case 'admin':
-        return '/admin-dashboard';
-      case 'seller':
-        return '/seller-dashboard';
-      case 'customer':
-        return '/customer-dashboard';
+      case "admin":
+        return "/admin-dashboard";
+      case "seller":
+        return "/seller-dashboard";
+      case "customer":
+        return "/customer-dashboard";
       default:
-        return '/';
+        return "/";
     }
   };
 
   // User display name getter
   const getUserDisplayName = () => {
-    if (!user) return '';
-    return user.full_name || user.username || user.email || 'User';
+    if (!user) return "";
+    return user.full_name || user.username || user.email || "User";
   };
 
   // User profile image getter
@@ -176,8 +180,12 @@ const Navbar = () => {
 
   // Get user initial for dropdown
   const getUserInitial = () => {
-    if (!user) return '';
-    return user.full_name ? user.full_name.charAt(0) : user.username ? user.username.charAt(0) : 'U';
+    if (!user) return "";
+    return user.full_name
+      ? user.full_name.charAt(0)
+      : user.username
+      ? user.username.charAt(0)
+      : "U";
   };
 
   return (
@@ -186,43 +194,67 @@ const Navbar = () => {
         showNavbar ? "translate-y-0" : "-translate-y-full"
       }`}
     >
-      <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between"> {/* Increased py-2 to py-4 */}
+      <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between">
+        {" "}
+        {/* Increased py-2 to py-4 */}
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <img src={Logo} alt="Agrilink logo" className="w-12 h-12" /> {/* Increased from w-10 h-10 */}
-          <div className="w-px h-10 bg-gray-300"></div> {/* Increased from h-8 */}
+        <Link
+          to="/"
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
+          <img src={Logo} alt="Agrilink logo" className="w-12 h-12" />{" "}
+          {/* Increased from w-10 h-10 */}
+          <div className="w-px h-10 bg-gray-300"></div>{" "}
+          {/* Increased from h-8 */}
           <div className="flex flex-col leading-tight">
-            <span className="text-gray-600 font-semibold text-base"> {/* Increased from text-sm */}
+            <span className="text-gray-600 font-semibold text-base">
+              {" "}
+              {/* Increased from text-sm */}
               Agricultural
             </span>
-            <span className="text-gray-600 font-semibold text-base"> {/* Increased from text-sm */}
+            <span className="text-gray-600 font-semibold text-base">
+              {" "}
+              {/* Increased from text-sm */}
               Marketplace
             </span>
           </div>
         </Link>
-
         {/* Navigation Links */}
         <div className="hidden lg:flex gap-6 text-base font-medium text-gray-700"> {/* Increased from text-xs */}
           <Link to="/" className="hover:text-green-600 transition-colors duration-200">
             Home
           </Link>
-          <Link to="/marketplace" className="hover:text-green-600 transition-colors duration-200">
+          <Link
+            to="/marketplace"
+            className="hover:text-green-600 transition-colors duration-200"
+          >
             Marketplace
           </Link>
-          <Link to="/blog" className="hover:text-green-600 transition-colors duration-200">
+          <Link
+            to="/blog"
+            className="hover:text-green-600 transition-colors duration-200"
+          >
             Blog
           </Link>
-          <Link to="/contact" className="hover:text-green-600 transition-colors duration-200">
+          <Link
+            to="/contact"
+            className="hover:text-green-600 transition-colors duration-200"
+          >
             Contact us
           </Link>
-          <Link to="/about" className="hover:text-green-600 transition-colors duration-200">
+          <Link
+            to="/about"
+            className="hover:text-green-600 transition-colors duration-200"
+          >
             About Us
           </Link>
-          <Link to="/faq" className="hover:text-green-600 transition-colors duration-200">
+          <Link
+            to="/faq"
+            className="hover:text-green-600 transition-colors duration-200"
+          >
             FAQ
           </Link>
         </div>
-
         {/* Right Side Icons and Buttons */}
         <div className="hidden lg:flex items-center gap-6">
           {user ? (
@@ -258,23 +290,29 @@ const Navbar = () => {
           </button>
               )}
               {/* Account Dropdown (existing code) */}
-          <div className="relative">
-            <button
-                  onClick={() => setIsAccountDropdownOpen(!isAccountDropdownOpen)}
+              <div className="relative">
+                <button
+                  onClick={() =>
+                    setIsAccountDropdownOpen(!isAccountDropdownOpen)
+                  }
                   className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
             >
                   <FaRegUserCircle className="text-lg text-gray-600" />
-                  <FaChevronDown className={`text-gray-600 text-xs transition-transform duration-200 ${isAccountDropdownOpen ? 'rotate-180' : ''}`} />
-            </button>
-            {isAccountDropdownOpen && (
+                  <FaChevronDown
+                    className={`text-gray-600 text-xs transition-transform duration-200 ${
+                      isAccountDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {isAccountDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl z-50 py-3">
                     {/* User Profile Section */}
                     <div className="px-4 py-3 border-b border-gray-100">
                       <div className="flex items-center gap-3">
                         {getUserProfileImage() ? (
-                          <img 
-                            src={getUserProfileImage()} 
-                            alt="Profile" 
+                          <img
+                            src={getUserProfileImage()}
+                            alt="Profile"
                             className="w-10 h-10 rounded-full object-cover border-2 border-green-200"
                           />
                         ) : (
@@ -285,12 +323,16 @@ const Navbar = () => {
                           </div>
                         )}
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">{getUserDisplayName()}</p>
-                          <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {getUserDisplayName()}
+                          </p>
+                          <p className="text-xs text-gray-500 capitalize">
+                            {user.role}
+                          </p>
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Menu Items */}
                     <div className="py-1">
                       <Link
@@ -301,7 +343,7 @@ const Navbar = () => {
                         <FaTachometerAlt className="text-green-600 text-sm" />
                         <span className="text-sm font-medium">Dashboard</span>
                       </Link>
-                      
+
                       <button
                         onClick={handleLogout}
                         className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-red-50 transition-colors duration-200 w-full text-left"
@@ -327,11 +369,10 @@ const Navbar = () => {
                 className="px-3 py-1.5 bg-green-600 text-white font-medium text-xs rounded-md hover:bg-green-700 transition-colors duration-200 shadow-sm hover:shadow-md"
                 >
                 Sign Up
-                </Link>
-              </div>
-            )}
-          </div>
-
+              </Link>
+            </div>
+          )}
+        </div>
         {/* Mobile Menu Button */}
         <div className="lg:hidden">
           <button
@@ -440,8 +481,12 @@ const Navbar = () => {
                     </div>
                   )}
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{getUserDisplayName()}</p>
-                    <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {getUserDisplayName()}
+                    </p>
+                    <p className="text-xs text-gray-500 capitalize">
+                      {user.role}
+                    </p>
                   </div>
                 </div>
                 <Link
@@ -484,8 +529,8 @@ const Navbar = () => {
 
       {/* Click outside to close dropdown */}
       {isAccountDropdownOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
+        <div
+          className="fixed inset-0 z-40"
           onClick={() => setIsAccountDropdownOpen(false)}
         />
       )}

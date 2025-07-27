@@ -9,7 +9,7 @@ import Home from "./pages/Home";
 import Marketplace from "./pages/Marketplace";
 import Blog from "./pages/Blog";
 import ContactUs from "./pages/ContactUs";
-//import Faq from "./pages/Faq";
+import Faq from "./pages/Faq";
 import ProductDetails from "./pages/ProductDetails";
 import Aboutus from "./pages/Aboutus";
 import Welcoming from "./pages/Welcoming";
@@ -60,7 +60,7 @@ function App() {
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/product/:id" element={<ProductDetails />} />
               <Route path="/about" element={<Aboutus />} />
-              {/* //<Route path="/faq" element={<Faq />} /> */}
+              <Route path="/faq" element={<Faq />} />
               <Route path="/Welcoming" element={<Welcoming />} />
               <Route path="/Login" element={<Login />} />
               <Route path="/ForgotPassword" element={<ForgotPassword />} />

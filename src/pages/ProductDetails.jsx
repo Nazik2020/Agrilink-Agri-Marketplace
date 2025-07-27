@@ -106,6 +106,23 @@ function ProductDetails() {
   };
 
   const handleBuyNow = () => {
+    // Try to get user from localStorage or sessionStorage
+    let user = null;
+    try {
+      user =
+        JSON.parse(localStorage.getItem("user")) ||
+        JSON.parse(sessionStorage.getItem("user"));
+    } catch (e) {
+      user = null;
+    }
+    if (
+      !user ||
+      !user.user_type ||
+      user.user_type.toLowerCase().trim() !== "customer"
+    ) {
+      alert("Please login as a customer.");
+      return;
+    }
     setShowBuyNow(true);
   };
 

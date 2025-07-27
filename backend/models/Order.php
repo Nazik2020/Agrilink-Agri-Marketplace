@@ -37,27 +37,27 @@ class Order {
         $this->conn = $database;
     }
     
+    /**
+     * Generate a unique order ID in the format: ORD-YYYYMMDD-XXXX
+     */
+    private function generateOrderId() {
+        $datePart = date('Ymd'); // e.g., 20250727
 
-    // Generate a unique order ID in the format: ORD-YYYYMMDD-XXXX
-$datePart = date('Ymd'); // e.g., 20250727
+        // Get the last order number for today
+        $sql = "SELECT id FROM {$this->table} WHERE id LIKE ? ORDER BY id DESC LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute(["ORD-$datePart-%"]);
+        $lastId = $stmt->fetchColumn();
 
-// Get the last order number for today
-$sql = "SELECT id FROM {$this->table} WHERE id LIKE ? ORDER BY id DESC LIMIT 1";
-$stmt = $this->conn->prepare($sql);
-$stmt->execute(["ORD-$datePart-%"]);
-$lastId = $stmt->fetchColumn();
+        if ($lastId) {
+            $lastNumber = (int)substr($lastId, -4); // Get last 4 digits
+            $nextNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+        } else {
+            $nextNumber = '0001';
+        }
 
-if ($lastId) {
-    $lastNumber = (int)substr($lastId, -4); // Get last 4 digits
-    $nextNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
-} else {
-    $nextNumber = '0001';
-}
-
-$orderId = "ORD-$datePart-$nextNumber";
-$orderData['id'] = $orderId;
-
-
+        return "ORD-$datePart-$nextNumber";
+    }
 
     /**
      * Create new order
@@ -65,6 +65,12 @@ $orderData['id'] = $orderId;
     public function create($orderData) {
         try {
             error_log("Order creation attempt - Data: " . json_encode($orderData));
+            
+            // Generate unique order ID
+            $orderId = $this->generateOrderId();
+            $orderData['id'] = $orderId;
+            
+            error_log("Generated Order ID: " . $orderId);
             
             $sql = "INSERT INTO {$this->table} 
                     (id,customer_id, seller_id, product_id, product_name, quantity, 

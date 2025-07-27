@@ -5,7 +5,7 @@ import axios from "axios";
 import { useCart } from "../cart/CartContext";
 import SimpleWishlistButton from "../wishlist/SimpleWishlistButton";
 
-const Offers = () => {
+const Offers = ({ displayCount = 8 }) => {
   const { addToCart } = useCart();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,7 +80,7 @@ const Offers = () => {
     return (
       <div className="text-center py-12">
         <p className="text-red-600 text-lg">{error}</p>
-        <button
+        <button 
           onClick={() => window.location.reload()}
           className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600"
         >
@@ -109,90 +109,93 @@ const Offers = () => {
     );
   }
 
+  // Get products to display based on displayCount
+  const displayedProducts = products.slice(0, displayCount);
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {products.map((product) => {
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      {displayedProducts.map((product) => {
         if (!product || !product.id || !product.product_name) {
           console.warn("Invalid product data:", product);
           return null;
         }
 
         return (
-          <div
-            key={product.id}
-            className="bg-white rounded-2xl shadow-xl border border-gray-200 hover:shadow-2xl transition flex flex-col h-[370px] w-full max-w-xs mx-auto relative"
-          >
-            {/* Discount Badge */}
+        <div
+          key={product.id}
+          className="bg-white rounded-2xl shadow-xl border border-gray-200 hover:shadow-2xl transition flex flex-col h-[370px] w-full max-w-xs mx-auto relative"
+        >
+          {/* Discount Badge */}
             {product.special_offer && (
-              <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
+            <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
                 {product.special_offer}
-              </span>
-            )}
+            </span>
+          )}
 
             {/* Wishlist Button */}
             <div className="absolute top-3 right-3 z-10">
               <SimpleWishlistButton productId={product.id} />
             </div>
 
-            <Link to={`/product/${product.id}`} className="block">
-              <img
+          <Link to={`/product/${product.id}`} className="block">
+            <img
                 src={
                   product.product_images && product.product_images.length > 0
                     ? `http://localhost/backend/${product.product_images[0]}`
                     : "/placeholder.svg"
                 }
-                alt={product.product_name}
-                className="w-full h-40 object-cover rounded-t-2xl"
-                onError={(e) => {
+              alt={product.product_name}
+              className="w-full h-40 object-cover rounded-t-2xl"
+              onError={(e) => {
                   e.target.src =
                     "https://via.placeholder.com/300x200?text=Image+Not+Found";
-                }}
-              />
-            </Link>
+              }}
+            />
+          </Link>
 
-            <div className="flex flex-col flex-1 px-4 pt-3 pb-4">
-              <div className="flex items-center justify-between mb-1">
+          <div className="flex flex-col flex-1 px-4 pt-3 pb-4">
+            <div className="flex items-center justify-between mb-1">
                 <span className="text-green-600 font-semibold text-sm">
                   {product.category || "Offers"}
                 </span>
-                <span className="flex items-center text-yellow-500 text-sm font-semibold">
-                  <FaStar className="mr-1 text-base" />
+              <span className="flex items-center text-yellow-500 text-sm font-semibold">
+                <FaStar className="mr-1 text-base" />
                   {product.rating || "5.0"}
-                </span>
-              </div>
+              </span>
+            </div>
 
-              <Link to={`/product/${product.id}`}>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700">
-                  {product.product_name}
-                </h3>
-              </Link>
+            <Link to={`/product/${product.id}`}>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700">
+                {product.product_name}
+              </h3>
+            </Link>
 
               <p className="text-gray-600 text-sm line-clamp-2 mb-3">
                 {product.product_description || "Special offer product"}
               </p>
 
-              <div className="flex items-end justify-between mt-auto">
-                <div>
+            <div className="flex items-end justify-between mt-auto">
+              <div>
                   <span className="text-green-700 font-bold text-lg">
                     ${parseFloat(product.price || 0).toFixed(2)}
                   </span>
-                  {product.oldPrice && (
+                {product.oldPrice && (
                     <span className="text-gray-400 text-base line-through ml-2">
                       ${parseFloat(product.oldPrice).toFixed(2)}
                     </span>
-                  )}
-                </div>
-
-                <button
-                  className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base"
-                  onClick={() => handleAddToCart(product)}
-                >
-                  <FaShoppingCart className="text-lg" />
-                  Add
-                </button>
+                )}
               </div>
+
+              <button
+                className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base"
+                onClick={() => handleAddToCart(product)}
+              >
+                <FaShoppingCart className="text-lg" />
+                Add
+              </button>
             </div>
           </div>
+        </div>
         );
       })}
     </div>

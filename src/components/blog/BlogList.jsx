@@ -83,9 +83,10 @@ const BlogList = () => {
     <div className="w-full max-w-full px-40 py-12 mx-auto">
       <div className="text-center mb-12">
         <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Blogs</h2>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Stay informed with the latest insights, tips, and trends in agriculture and farming
-        </p>
+        <p className="text-base text-gray-600 max-w-4xl mx-auto">
+        Stay informed with the latest insights, expert tips, and emerging trends in agriculture and farming.
+        From sustainable cultivation practices to global market movements, explore valuable knowledge that helps 
+        growers, exporters, and agri-entrepreneurs stay ahead in a fast-evolving industry.        </p>
       </div>
 
       <BlogSearch onSearch={handleSearch} onCategoryFilter={handleCategoryFilter} />

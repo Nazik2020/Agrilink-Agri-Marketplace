@@ -3,6 +3,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
 import SamplePosts from "./SamplePosts"
+import Footer from "../common/Footer"
 
 const BlogDetail = () => {
   const { id } = useParams()
@@ -65,7 +66,7 @@ const BlogDetail = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Bar */}
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate(-1)}
@@ -84,9 +85,9 @@ const BlogDetail = () => {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-6">
         {/* Header Section */}
-        <article className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <article className="rounded-lg p-6 mb-6">
           <div className="mb-4">
             <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-medium">{post.category}</span>
           </div>
@@ -119,7 +120,7 @@ const BlogDetail = () => {
         </article>
 
         {/* Content Section */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">{post.content}</div>
+        <div className="rounded-lg overflow-hidden mb-8">{post.content}</div>
 
         {/* Related Articles */}
         {relatedPosts.length > 0 && (
@@ -149,6 +150,7 @@ const BlogDetail = () => {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   )
 }

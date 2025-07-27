@@ -5,7 +5,7 @@ import axios from "axios";
 import { useCart } from "../cart/CartContext";
 import SimpleWishlistButton from "../wishlist/SimpleWishlistButton";
 
-const Allproducts = () => {
+const Allproducts = ({ displayCount = 8 }) => {
   const { addToCart } = useCart();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,9 +48,17 @@ const Allproducts = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
-        <p className="ml-4 text-gray-600">Loading products...</p>
+      <div className="flex flex-col justify-center items-center h-64">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-200 border-t-green-600"></div>
+          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-green-400 animate-ping"></div>
+        </div>
+        <p className="mt-6 text-gray-600 text-lg font-medium">Loading amazing products...</p>
+        <div className="flex space-x-2 mt-4">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce"></div>
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+        </div>
       </div>
     );
   }
@@ -59,13 +67,17 @@ const Allproducts = () => {
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600 text-lg">{error}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600"
-        >
-          Try Again
-        </button>
+        <div className="max-w-md mx-auto">
+          <div className="text-6xl mb-6">⚠️</div>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">Oops! Something went wrong</h3>
+          <p className="text-gray-600 text-lg mb-6">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-3 rounded-2xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
@@ -91,7 +103,7 @@ const Allproducts = () => {
               onClick={() =>
                 (window.location.href = "/seller-dashboard/add-product")
               }
-              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition cursor-pointer font-semibold"
+              className="px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-2xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 cursor-pointer font-semibold shadow-lg"
             >
               Start Selling
             </button>
@@ -105,9 +117,12 @@ const Allproducts = () => {
     );
   }
 
+  // Get products to display based on displayCount
+  const displayedProducts = products.slice(0, displayCount);
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {products.map((product) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      {displayedProducts.map((product) => (
         <div
           key={product.id}
           className="bg-white rounded-2xl shadow-xl border border-gray-200 hover:shadow-2xl transition flex flex-col h-[370px] w-full max-w-xs mx-auto relative"

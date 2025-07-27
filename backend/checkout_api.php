@@ -74,17 +74,47 @@ try {
  * Handle payment intent creation
  */
 function handleCreatePaymentIntent($checkoutService, $input) {
-    // Validate required fields
-    $required = ['product_id', 'quantity', 'customer_id', 'billing_name', 'billing_email', 
-                'billing_address', 'billing_city', 'billing_postal_code', 'billing_country'];
+    // Check if this is a cart checkout or single product checkout
+    $isCartCheckout = isset($input['cart_items']) && is_array($input['cart_items']) && !empty($input['cart_items']);
     
-    foreach ($required as $field) {
-        if (empty($input[$field])) {
-            echo json_encode([
-                'success' => false,
-                'error' => "Missing required field: {$field}"
-            ]);
-            return;
+    if ($isCartCheckout) {
+        // Cart checkout validation
+        $required = ['cart_items', 'customer_id', 'billing_name', 'billing_email', 
+                    'billing_address', 'billing_postal_code', 'billing_country'];
+        
+        foreach ($required as $field) {
+            if (empty($input[$field])) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => "Missing required field: {$field}"
+                ]);
+                return;
+            }
+        }
+        
+        // Validate cart items structure
+        foreach ($input['cart_items'] as $item) {
+            if (empty($item['product_id']) || empty($item['quantity']) || !isset($item['price'])) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => "Invalid cart item structure"
+                ]);
+                return;
+            }
+        }
+    } else {
+        // Single product checkout validation
+        $required = ['product_id', 'quantity', 'customer_id', 'billing_name', 'billing_email', 
+                    'billing_address', 'billing_postal_code', 'billing_country'];
+        
+        foreach ($required as $field) {
+            if (empty($input[$field])) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => "Missing required field: {$field}"
+                ]);
+                return;
+            }
         }
     }
     

@@ -19,6 +19,7 @@ $full_name = $data['fullName'] ?? '';
 $address = $data['address'] ?? '';
 $contactno = $data['contactNumber'] ?? '';
 $country = $data['country'] ?? '';
+$postal_code = $data['postalCode'] ?? '';
 
 if (empty($originalEmail)) {
     echo json_encode(["success" => false, "message" => "Original email is required"]);
@@ -37,11 +38,17 @@ if (!empty($contactno) && !preg_match('/^\d{7,15}$/', $contactno)) {
     exit;
 }
 
+// Postal code validation (3-10 alphanumeric characters, spaces, hyphens)
+if (!empty($postal_code) && !preg_match('/^[A-Za-z0-9\- ]{3,10}$/', $postal_code)) {
+    echo json_encode(["success" => false, "message" => "Invalid postal code format"]);
+    exit;
+}
+
 try {
     $customer = new Customer($conn);
     
     // Email cannot be changed - always use original email for updates
-    $success = $customer->updateProfile($originalEmail, $full_name, $address, $contactno, $country);
+    $success = $customer->updateProfile($originalEmail, $full_name, $address, $contactno, $country, $postal_code);
     
     if ($success) {
         echo json_encode([

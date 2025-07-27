@@ -24,6 +24,12 @@ const cartReducer = (state, action) => {
         isOpen: !state.isOpen
       };
 
+    case 'TOGGLE_BUY_NOW_MODAL':
+      return {
+        ...state,
+        showBuyNowModal: !state.showBuyNowModal
+      };
+
     default:
       return state;
   }
@@ -32,7 +38,8 @@ const cartReducer = (state, action) => {
 const initialState = {
   items: [],
   isOpen: false,
-  loading: false
+  loading: false,
+  showBuyNowModal: false
 };
 
 export const CartProvider = ({ children }) => {
@@ -217,6 +224,38 @@ export const CartProvider = ({ children }) => {
 
   const toggleCart = () => dispatch({ type: 'TOGGLE_CART' });
 
+  // Buy now functionality
+  const handleBuyNow = () => {
+    // Check if user is logged in as customer
+    const userString = sessionStorage.getItem("user");
+    if (!userString) {
+      alert("Please login as a customer to proceed with checkout.");
+      return;
+    }
+
+    try {
+      const user = JSON.parse(userString);
+      if (user.role !== 'customer') {
+        alert("Please login as a customer to proceed with checkout.");
+        return;
+      }
+
+      // Check if cart has items
+      if (state.items.length === 0) {
+        alert("Your cart is empty. Please add items before checkout.");
+        return;
+      }
+
+      // Open buy now modal
+      dispatch({ type: 'TOGGLE_BUY_NOW_MODAL' });
+    } catch (error) {
+      console.error("Error checking user status:", error);
+      alert("Please login as a customer to proceed with checkout.");
+    }
+  };
+
+  const toggleBuyNowModal = () => dispatch({ type: 'TOGGLE_BUY_NOW_MODAL' });
+
   // Calculate totals
   const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = state.items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
@@ -238,7 +277,9 @@ export const CartProvider = ({ children }) => {
       shipping,
       tax,
       total,
-      customerId
+      customerId,
+      handleBuyNow,
+      toggleBuyNowModal
     }}>
       {children}
     </CartContext.Provider>

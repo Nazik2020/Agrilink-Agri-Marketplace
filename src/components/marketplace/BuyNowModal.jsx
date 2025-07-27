@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { CreditCard, Lock, CheckCircle, X } from "lucide-react";
+import { CreditCard, Lock, CheckCircle, X, User, Mail, MapPin, Phone, Globe } from "lucide-react";
 import axios from "axios";
+import { useCart } from "../cart/CartContext";
 
-const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
+const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = false }) => {
+  const { items: cartItems, total: cartTotal, subtotal: cartSubtotal, shipping: cartShipping, tax: cartTax, clearCart, customerId } = useCart();
+  
   // State management
   const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Success
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [stripeKey, setStripeKey] = useState("");
+  const [customerData, setCustomerData] = useState(null);
+  const [customerDataLoading, setCustomerDataLoading] = useState(false);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -16,7 +21,6 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
     billing_name: "",
     billing_email: "",
     billing_address: "",
-    billing_city: "",
     billing_postal_code: "",
     billing_country: "United States",
 
@@ -28,14 +32,73 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
 
     // Order details
     quantity: quantity,
-    customer_id: 3, // Using first available customer ID from database
+    customer_id: customerId || 1,
   });
 
-  // Order summary
+  // Order summary - handle both single product and cart checkout
   const unitPrice = parseFloat(product?.price || 0);
-  const totalAmount = unitPrice * formData.quantity;
+  const singleProductTotal = unitPrice * formData.quantity;
+  
+  // Use cart totals if this is a cart checkout, otherwise use single product totals
+  const totalAmount = isCartCheckout ? cartTotal : singleProductTotal;
+  const subtotal = isCartCheckout ? cartSubtotal : singleProductTotal;
+  const shipping = isCartCheckout ? cartShipping : 0;
+  const tax = isCartCheckout ? cartTax : 0;
 
-  // Load Stripe configuration
+  // Load customer data when modal opens
+  useEffect(() => {
+    if (isOpen && customerId) {
+      loadCustomerData();
+    }
+  }, [isOpen, customerId]);
+
+  // Load customer data from database
+  const loadCustomerData = async () => {
+    if (!customerId) {
+      console.log("No customer ID available");
+      return;
+    }
+
+    console.log("Loading customer data for ID:", customerId);
+    setCustomerDataLoading(true);
+    try {
+      const response = await axios.post('http://localhost/backend/get_customer_billing_data.php', {
+        customer_id: customerId
+      });
+
+      console.log("Customer data response:", response.data);
+
+      if (response.data.success) {
+        const billingData = response.data.billingData;
+        setCustomerData(response.data.customerInfo);
+        
+        console.log("Billing data loaded:", billingData);
+        console.log("Customer info loaded:", response.data.customerInfo);
+        
+        // Auto-populate form with customer data
+        setFormData(prev => ({
+          ...prev,
+          billing_name: billingData.billing_name,
+          billing_email: billingData.billing_email,
+          billing_address: billingData.billing_address,
+          billing_postal_code: billingData.billing_postal_code,
+          billing_country: billingData.billing_country,
+          customer_id: customerId
+        }));
+      } else {
+        console.error("Failed to load customer data:", response.data.message);
+        setError(response.data.message);
+      }
+    } catch (error) {
+      console.error('Error loading customer data:', error);
+      console.error('Error response:', error.response?.data);
+      setError('Failed to load customer data');
+    } finally {
+      setCustomerDataLoading(false);
+    }
+  };
+
+  // Load customer data from database
   useEffect(() => {
     if (isOpen) {
       loadStripeConfig();
@@ -114,13 +177,10 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
   const validateForm = () => {
     const errors = [];
 
-    // Billing validation
-    if (!formData.billing_name.trim()) errors.push("Name is required");
-    if (!formData.billing_email.trim()) errors.push("Email is required");
-    if (!formData.billing_address.trim()) errors.push("Address is required");
-    if (!formData.billing_city.trim()) errors.push("City is required");
-    if (!formData.billing_postal_code.trim())
-      errors.push("Postal code is required");
+    // Billing validation - only check if customer data is loaded
+    if (!customerData) {
+      errors.push("Customer billing information is required. Please ensure your profile is complete.");
+    }
 
     // Card validation (basic)
     if (!formData.card_number.replace(/\s/g, ""))
@@ -137,9 +197,19 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
     setError("");
     setLoading(true);
 
+    console.log("=== Payment Debug Info ===");
+    console.log("Customer ID:", customerId);
+    console.log("Customer Data:", customerData);
+    console.log("Form Data:", formData);
+    console.log("Is Cart Checkout:", isCartCheckout);
+    console.log("Cart Items:", cartItems);
+    console.log("Total Amount:", totalAmount);
+
     try {
       // Validate form
       const validationErrors = validateForm();
+      console.log("Validation Errors:", validationErrors);
+      
       if (validationErrors.length > 0) {
         setError(validationErrors.join(", "));
         setLoading(false);
@@ -149,22 +219,36 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
       // Prepare checkout data
       const checkoutData = {
         action: "create_payment_intent",
-        product_id: product.id,
-        quantity: formData.quantity,
         customer_id: formData.customer_id,
         billing_name: formData.billing_name,
         billing_email: formData.billing_email,
         billing_address: formData.billing_address,
-        billing_city: formData.billing_city,
         billing_postal_code: formData.billing_postal_code,
         billing_country: formData.billing_country,
       };
+
+      // Add cart items or single product
+      if (isCartCheckout) {
+        checkoutData.cart_items = cartItems.map(item => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          price: item.price
+        }));
+        checkoutData.total_amount = totalAmount;
+      } else {
+        checkoutData.product_id = product.id;
+        checkoutData.quantity = formData.quantity;
+      }
+
+      console.log("Checkout Data being sent:", checkoutData);
 
       // Create payment intent
       const response = await axios.post(
         "http://localhost/backend/checkout_api.php",
         checkoutData
       );
+
+      console.log("Backend Response:", response.data);
 
       if (response.data.success) {
         // Simulate payment success (in real implementation, you'd use Stripe Elements)
@@ -178,6 +262,7 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
       }
     } catch (error) {
       console.error("Payment error:", error);
+      console.error("Error response:", error.response?.data);
       setError("Payment processing failed");
       setLoading(false);
     }
@@ -188,11 +273,12 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
     setStep(1);
     setError("");
     setLoading(false);
+    setCustomerData(null);
+    setCustomerDataLoading(false);
     setFormData({
       billing_name: "",
       billing_email: "",
       billing_address: "",
-      billing_city: "",
       billing_postal_code: "",
       billing_country: "United States",
       card_number: "",
@@ -200,8 +286,14 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
       card_cvc: "",
       card_name: "",
       quantity: quantity,
-      customer_id: 1,
+      customer_id: customerId || 1,
     });
+    
+    // Clear cart if this was a cart checkout and payment was successful
+    if (isCartCheckout && step === 3) {
+      clearCart();
+    }
+    
     onClose();
   };
 
@@ -323,47 +415,107 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
                 <h3 className="font-bold text-lg mb-3 text-gray-800">
                   Order Summary
                 </h3>
-                <div className="flex items-center space-x-4">
-                  <img
-                    src={product?.images?.[0] || "/placeholder.svg"}
-                    alt={product?.name}
-                    className="w-16 h-16 object-cover rounded-lg border border-green-200"
-                  />
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-gray-800">
-                      {product?.name}
-                    </h4>
-                    <p className="text-gray-600">
-                      ${unitPrice.toFixed(2)} each
-                    </p>
+                
+                {isCartCheckout ? (
+                  // Cart checkout - show all cart items
+                  <div className="space-y-3">
+                    {cartItems.map((item, index) => (
+                      <div key={index} className="flex items-center space-x-4">
+                        <img
+                          src={item.product_images ? `http://localhost/backend/${item.product_images.split(',')[0]}` : "/placeholder.svg"}
+                          alt={item.product_name}
+                          className="w-16 h-16 object-cover rounded-lg border border-green-200"
+                        />
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-800">
+                            {item.product_name}
+                          </h4>
+                          <p className="text-gray-600">
+                            ${parseFloat(item.price).toFixed(2)} each
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
+                          <div className="font-semibold text-gray-800">
+                            ${(parseFloat(item.price) * item.quantity).toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* Cart totals */}
+                    <div className="border-t border-green-200 mt-4 pt-4 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Subtotal:</span>
+                        <span className="font-semibold">${subtotal.toFixed(2)}</span>
+                      </div>
+                      {shipping > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Shipping:</span>
+                          <span className="font-semibold">${shipping.toFixed(2)}</span>
+                        </div>
+                      )}
+                      {tax > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Tax:</span>
+                          <span className="font-semibold">${tax.toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center text-lg">
+                        <span className="font-bold text-gray-800">Total:</span>
+                        <span className="font-bold text-xl text-green-600">
+                          ${totalAmount.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Qty
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={formData.quantity}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          quantity: parseInt(e.target.value) || 1,
-                        }))
-                      }
-                      className="w-16 p-2 border border-gray-300 rounded text-center focus:ring-2 focus:ring-green-500 focus:border-green-600"
+                ) : (
+                  // Single product checkout
+                  <div className="flex items-center space-x-4">
+                    <img
+                      src={product?.images?.[0] || "/placeholder.svg"}
+                      alt={product?.name}
+                      className="w-16 h-16 object-cover rounded-lg border border-green-200"
                     />
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-800">
+                        {product?.name}
+                      </h4>
+                      <p className="text-gray-600">
+                        ${unitPrice.toFixed(2)} each
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Qty
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={formData.quantity}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            quantity: parseInt(e.target.value) || 1,
+                          }))
+                        }
+                        className="w-16 p-2 border border-gray-300 rounded text-center focus:ring-2 focus:ring-green-500 focus:border-green-600"
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="border-t border-green-200 mt-4 pt-4 flex justify-between items-center">
-                  <span className="font-bold text-lg text-gray-800">
-                    Total:
-                  </span>
-                  <span className="font-bold text-xl text-green-600">
-                    ${totalAmount.toFixed(2)}
-                  </span>
-                </div>
+                )}
+                
+                {!isCartCheckout && (
+                  <div className="border-t border-green-200 mt-4 pt-4 flex justify-between items-center">
+                    <span className="font-bold text-lg text-gray-800">
+                      Total:
+                    </span>
+                    <span className="font-bold text-xl text-green-600">
+                      ${totalAmount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Billing Information */}
@@ -373,49 +525,121 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
                     <span className="text-green-600 text-sm">📍</span>
                   </div>
                   Billing Information
+                  <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded-full">
+                    Auto-filled from Profile
+                  </span>
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    name="billing_name"
-                    placeholder="Full Name"
-                    value={formData.billing_name}
-                    onChange={handleInputChange}
-                    className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-600 transition-all duration-200"
-                  />
-                  <input
-                    type="email"
-                    name="billing_email"
-                    placeholder="Email Address"
-                    value={formData.billing_email}
-                    onChange={handleInputChange}
-                    className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-600 transition-all duration-200"
-                  />
-                  <input
-                    type="text"
-                    name="billing_address"
-                    placeholder="Street Address"
-                    value={formData.billing_address}
-                    onChange={handleInputChange}
-                    className="sm:col-span-2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-600 transition-all duration-200"
-                  />
-                  <input
-                    type="text"
-                    name="billing_city"
-                    placeholder="City"
-                    value={formData.billing_city}
-                    onChange={handleInputChange}
-                    className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-600 transition-all duration-200"
-                  />
-                  <input
-                    type="text"
-                    name="billing_postal_code"
-                    placeholder="Postal Code"
-                    value={formData.billing_postal_code}
-                    onChange={handleInputChange}
-                    className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-600 transition-all duration-200"
-                  />
-                </div>
+
+                {customerDataLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading your billing information...</p>
+                  </div>
+                ) : customerData ? (
+                  <div className="space-y-4">
+                    {/* Customer Information Display */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <User className="w-5 h-5 text-blue-600" />
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Full Name
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.billing_name}
+                            readOnly
+                            disabled
+                            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-3">
+                        <Mail className="w-5 h-5 text-blue-600" />
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Email Address
+                          </label>
+                          <input
+                            type="email"
+                            value={formData.billing_email}
+                            readOnly
+                            disabled
+                            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-3">
+                        <MapPin className="w-5 h-5 text-blue-600" />
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Street Address
+                          </label>
+                          <input
+                            type="text"
+                            value={formData.billing_address}
+                            readOnly
+                            disabled
+                            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="flex items-center space-x-3">
+                          <MapPin className="w-5 h-5 text-blue-600" />
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Postal Code
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.billing_postal_code}
+                              readOnly
+                              disabled
+                              className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-3">
+                          <Globe className="w-5 h-5 text-blue-600" />
+                          <div className="flex-1">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Country
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.billing_country}
+                              readOnly
+                              disabled
+                              className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Information Message */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-sm text-blue-700 flex items-center">
+                        <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                        Billing information is automatically filled from your profile and cannot be changed here. 
+                        To update your information, please visit your profile page.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-red-700 text-sm">
+                      Unable to load your billing information. Please ensure your profile is complete.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <button
@@ -492,14 +716,35 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
 
               {/* Order Summary (compact) */}
               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-700">
-                    {product?.name} × {formData.quantity}
-                  </span>
-                  <span className="font-bold text-xl text-green-600">
-                    ${totalAmount.toFixed(2)}
-                  </span>
-                </div>
+                {isCartCheckout ? (
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-gray-700">
+                        {cartItems.length} items
+                      </span>
+                      <span className="font-bold text-xl text-green-600">
+                        ${totalAmount.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {cartItems.map((item, index) => (
+                        <div key={index} className="flex justify-between">
+                          <span>{item.product_name} × {item.quantity}</span>
+                          <span>${(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-gray-700">
+                      {product?.name} × {formData.quantity}
+                    </span>
+                    <span className="font-bold text-xl text-green-600">
+                      ${totalAmount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {error && (
@@ -550,12 +795,27 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1 }) => {
                 <p className="font-semibold text-gray-800 mb-2">
                   Order Details:
                 </p>
-                <p className="text-gray-700 mb-1">
-                  {product?.name} × {formData.quantity}
-                </p>
-                <p className="font-bold text-xl text-green-600">
-                  Total: ${totalAmount.toFixed(2)}
-                </p>
+                {isCartCheckout ? (
+                  <div className="space-y-2">
+                    {cartItems.map((item, index) => (
+                      <p key={index} className="text-gray-700">
+                        {item.product_name} × {item.quantity}
+                      </p>
+                    ))}
+                    <p className="font-bold text-xl text-green-600">
+                      Total: ${totalAmount.toFixed(2)}
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-gray-700 mb-1">
+                      {product?.name} × {formData.quantity}
+                    </p>
+                    <p className="font-bold text-xl text-green-600">
+                      Total: ${totalAmount.toFixed(2)}
+                    </p>
+                  </>
+                )}
               </div>
               <button
                 onClick={handleClose}

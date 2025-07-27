@@ -5,7 +5,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FaStar, FaArrowLeft, FaShoppingCart } from "react-icons/fa";
 import Footer from "../components/common/Footer";
 import CustomizationModal from "../components/marketplace/CustomizationModal";
-import BuyNowModal from "../components/marketplace/BuyNowModal";
 import { useCart } from "../components/cart/CartContext";
 import SimpleWishlistButton from "../components/wishlist/SimpleWishlistButton";
 import { FlagButton } from "../components/Flag";
@@ -55,7 +54,6 @@ function ProductDetails() {
   const [mainImg, setMainImg] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [showCustomize, setShowCustomize] = useState(false);
-  const [showBuyNow, setShowBuyNow] = useState(false);
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
   const [reviews, setReviews] = useState([]);
@@ -103,27 +101,6 @@ function ProductDetails() {
         });
       }
     }
-  };
-
-  const handleBuyNow = () => {
-    // Try to get user from localStorage or sessionStorage
-    let user = null;
-    try {
-      user =
-        JSON.parse(localStorage.getItem("user")) ||
-        JSON.parse(sessionStorage.getItem("user"));
-    } catch (e) {
-      user = null;
-    }
-    if (
-      !user ||
-      !user.user_type ||
-      user.user_type.toLowerCase().trim() !== "customer"
-    ) {
-      alert("Please login as a customer.");
-      return;
-    }
-    setShowBuyNow(true);
   };
 
   const handleSubmitReview = () => {
@@ -344,19 +321,13 @@ function ProductDetails() {
             {/* SECTION: Action Buttons */}
             <div className="flex gap-3 mb-3">
               <button
-                className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg text-lg flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg text-lg font-semibold flex items-center justify-center gap-2 cursor-pointer"
                 onClick={handleAddToCart}
               >
                 <FaShoppingCart /> Add to Cart
               </button>
               <SimpleWishlistButton productId={product.id} />
             </div>
-            <button
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg text-lg font-semibold mb-3 cursor-pointer"
-              onClick={handleBuyNow}
-            >
-              Buy Now
-            </button>
             <button
               className="w-full border border-gray-300 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 cursor-pointer"
               onClick={() => setShowCustomize(true)}
@@ -460,12 +431,6 @@ function ProductDetails() {
       <CustomizationModal
         open={showCustomize}
         onClose={() => setShowCustomize(false)}
-      />
-      <BuyNowModal
-        isOpen={showBuyNow}
-        onClose={() => setShowBuyNow(false)}
-        product={product}
-        quantity={quantity}
       />
     </div>
   );

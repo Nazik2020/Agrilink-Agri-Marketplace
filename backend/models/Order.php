@@ -37,22 +37,49 @@ class Order {
         $this->conn = $database;
     }
     
+
+    // Generate a unique order ID in the format: ORD-YYYYMMDD-XXXX
+$datePart = date('Ymd'); // e.g., 20250727
+
+// Get the last order number for today
+$sql = "SELECT id FROM {$this->table} WHERE id LIKE ? ORDER BY id DESC LIMIT 1";
+$stmt = $this->conn->prepare($sql);
+$stmt->execute(["ORD-$datePart-%"]);
+$lastId = $stmt->fetchColumn();
+
+if ($lastId) {
+    $lastNumber = (int)substr($lastId, -4); // Get last 4 digits
+    $nextNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+} else {
+    $nextNumber = '0001';
+}
+
+$orderId = "ORD-$datePart-$nextNumber";
+$orderData['id'] = $orderId;
+
+
+
     /**
      * Create new order
      */
     public function create($orderData) {
         try {
+            error_log("Order creation attempt - Data: " . json_encode($orderData));
+            
             $sql = "INSERT INTO {$this->table} 
-                    (customer_id, seller_id, product_id, product_name, quantity, 
+                    (id,customer_id, seller_id, product_id, product_name, quantity, 
                      unit_price, total_amount, order_status, payment_status, 
                      payment_method, billing_name, billing_email, billing_address, 
-                     billing_city, billing_postal_code, billing_country, 
-                     card_last_four, transaction_id) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                     billing_postal_code, billing_country, 
+                     card_last_four, transaction_id, created_at, updated_at) 
+                    VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+            
+            error_log("SQL Query: " . $sql);
             
             $stmt = $this->conn->prepare($sql);
             
-            $result = $stmt->execute([
+            $params = [
+                $orderData['id'],
                 $orderData['customer_id'],
                 $orderData['seller_id'],
                 $orderData['product_id'],
@@ -66,21 +93,31 @@ class Order {
                 $orderData['billing_name'],
                 $orderData['billing_email'],
                 $orderData['billing_address'],
-                $orderData['billing_city'],
                 $orderData['billing_postal_code'],
                 $orderData['billing_country'],
                 $orderData['card_last_four'] ?? null,
                 $orderData['transaction_id'] ?? null
-            ]);
+            ];
+            
+            error_log("Parameters: " . json_encode($params));
+            
+            $result = $stmt->execute($params);
             
             if ($result) {
-                return $this->conn->lastInsertId();
+                $orderId = $orderData['id'];
+                error_log("Order created successfully with ID: " . $orderId);
+                return $orderId;
+            } else {
+                error_log("Order creation failed - execute() returned false");
+                return false;
             }
             
-            return false;
-            
         } catch (PDOException $e) {
-            error_log("Order creation error: " . $e->getMessage());
+            error_log("Order creation PDO error: " . $e->getMessage());
+            error_log("Order creation error code: " . $e->getCode());
+            return false;
+        } catch (Exception $e) {
+            error_log("Order creation general error: " . $e->getMessage());
             return false;
         }
     }

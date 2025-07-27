@@ -3,9 +3,10 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useCart } from '../../components/cart/CartContext';
 import CartItem from './CartItem';
 import OrderSummary from './OrderSummary';
+import BuyNowModal from '../marketplace/BuyNowModal';
 
 const CartModal = () => {
-  const { isOpen, items, loading, toggleCart, clearCart, totalItems } = useCart();
+  const { isOpen, items, loading, toggleCart, clearCart, totalItems, showBuyNowModal, toggleBuyNowModal } = useCart();
 
   if (!isOpen) return null;
 
@@ -85,6 +86,15 @@ const CartModal = () => {
           </div>
         </div>
       </div>
+
+      {/* Buy Now Modal */}
+      <BuyNowModal
+        isOpen={showBuyNowModal}
+        onClose={toggleBuyNowModal}
+        product={null} // We'll need to modify BuyNowModal to handle cart checkout
+        quantity={1}
+        isCartCheckout={true}
+      />
     </div>
   );
 };

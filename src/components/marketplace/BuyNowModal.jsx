@@ -68,26 +68,54 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
 
       console.log("Customer data response:", response.data);
 
-      if (response.data.success) {
+      if (response.data.success || response.data.billingData) {
         const billingData = response.data.billingData;
         setCustomerData(response.data.customerInfo);
         
         console.log("Billing data loaded:", billingData);
         console.log("Customer info loaded:", response.data.customerInfo);
         
-        // Auto-populate form with customer data
+        // Auto-populate form with available customer data
         setFormData(prev => ({
           ...prev,
-          billing_name: billingData.billing_name,
-          billing_email: billingData.billing_email,
-          billing_address: billingData.billing_address,
-          billing_postal_code: billingData.billing_postal_code,
-          billing_country: billingData.billing_country,
+          billing_name: billingData.billing_name || '',
+          billing_email: billingData.billing_email || '',
+          billing_address: billingData.billing_address || '',
+          billing_postal_code: billingData.billing_postal_code || '',
+          billing_country: billingData.billing_country || 'United States',
           customer_id: customerId
         }));
+        
+        // Count auto-filled fields
+        const autoFilledCount = Object.values(billingData).filter(value => 
+          value && value !== '' && value !== 'United States'
+        ).length;
+        
+        if (autoFilledCount > 0) {
+          console.log(`Auto-filled ${autoFilledCount} fields from customer profile`);
+        }
+        
+        // Clear any previous error
+        setError('');
       } else {
-        console.error("Failed to load customer data:", response.data.message);
-        setError(response.data.message);
+        console.error("Could not load customer data:", response.data.message);
+        
+        // Fallback: Set minimal data from session
+        const userString = sessionStorage.getItem("user");
+        if (userString) {
+          try {
+            const user = JSON.parse(userString);
+            setFormData(prev => ({
+              ...prev,
+              billing_name: user.full_name || '',
+              billing_email: user.email || '',
+              billing_country: 'United States',
+              customer_id: customerId
+            }));
+          } catch (e) {
+            console.error("Error parsing user from session:", e);
+          }
+        }
       }
     } catch (error) {
       console.error('Error loading customer data:', error);
@@ -177,9 +205,18 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
   const validateForm = () => {
     const errors = [];
 
-    // Billing validation - only check if customer data is loaded
-    if (!customerData) {
-      errors.push("Customer billing information is required. Please ensure your profile is complete.");
+    // Billing validation - check required fields
+    if (!formData.billing_name.trim()) {
+      errors.push("Billing name is required");
+    }
+    if (!formData.billing_email.trim()) {
+      errors.push("Billing email is required");
+    }
+    if (!formData.billing_address.trim()) {
+      errors.push("Billing address is required");
+    }
+    if (!formData.billing_postal_code.trim()) {
+      errors.push("Postal code is required");
     }
 
     // Card validation (basic)

@@ -69,11 +69,8 @@ function ProductDetails() {
           setProduct(data);
           // Set main image from product images
           if (data.images && data.images.length > 0) {
-            // Try different possible backend URLs for images
-            const imageUrl = data.images[0].startsWith("http")
-              ? data.images[0]
-              : `http://localhost/backend/${data.images[0]}`;
-            setMainImg(imageUrl);
+            // Use the full URL from backend (already processed)
+            setMainImg(data.images[0]);
           }
           setLoading(false);
         })
@@ -198,21 +195,19 @@ function ProductDetails() {
             <div className="flex gap-4 mt-2 w-full max-w-[600px] justify-start">
               {product.images &&
                 product.images.map((img, idx) => {
-                  const imgSrc = img.startsWith("http")
-                    ? img
-                    : `http://localhost/backend/${img}`;
+                  // Use the full URL from backend (already processed)
                   return (
                     <button
                       key={idx}
-                      onClick={() => setMainImg(imgSrc)}
+                      onClick={() => setMainImg(img)}
                       className={`border-2 rounded-lg p-1 transition ${
-                        mainImg === imgSrc
+                        mainImg === img
                           ? "border-green-500"
                           : "border-transparent"
                       }`}
                     >
                       <img
-                        src={imgSrc}
+                        src={img}
                         alt={`Product image ${idx + 1}`}
                         className="w-16 h-16 object-cover rounded"
                       />

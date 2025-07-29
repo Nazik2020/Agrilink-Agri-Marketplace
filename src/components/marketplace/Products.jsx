@@ -56,14 +56,22 @@ const Products = ({ displayCount = 8 }) => {
   // Error state
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-600 text-lg">{error}</p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600"
-        >
-          Try Again
-        </button>
+      <div className="text-center py-16">
+        <div className="max-w-md mx-auto">
+          <div className="text-6xl mb-6">❌</div>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">
+            Error Loading Products
+          </h3>
+          <p className="text-gray-600 text-lg mb-2">
+            {error}
+          </p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
@@ -74,9 +82,15 @@ const Products = ({ displayCount = 8 }) => {
       <div className="text-center py-16">
         <div className="max-w-md mx-auto">
           <div className="text-6xl mb-6">📦</div>
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">No Products Available Yet</h3>
-          <p className="text-gray-600 text-lg mb-2">We currently don't have any products in this category.</p>
-          <p className="text-gray-500">Check back later for new product listings!</p>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">
+            No Products Available Yet
+          </h3>
+          <p className="text-gray-600 text-lg mb-2">
+            We currently don't have any products in stock.
+          </p>
+          <p className="text-gray-500">
+            Check back later for new product listings!
+          </p>
         </div>
       </div>
     );
@@ -108,7 +122,7 @@ const Products = ({ displayCount = 8 }) => {
             <img
               src={
                 product.product_images && product.product_images.length > 0
-                  ? `http://localhost/backend/${product.product_images[0]}`
+                  ? product.product_images[0] // Use the full URL from backend
                   : "https://via.placeholder.com/300x200?text=No+Image"
               }
               alt={product.product_name}
@@ -157,6 +171,6 @@ const Products = ({ displayCount = 8 }) => {
       ))}
     </div>
   );
-}
+};
 
-export default Products
+export default Products;

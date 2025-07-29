@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px dashed #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖼️ Image Upload Test</h1>
+        
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="seller_id">Seller ID:</label>
+                <input type="number" id="seller_id" name="seller_id" value="1" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="product_name">Product Name:</label>
+                <input type="text" id="product_name" name="product_name" value="Test Product" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="product_description">Product Description:</label>
+                <textarea id="product_description" name="product_description" rows="3" required>This is a test product for image upload testing.</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="price">Price:</label>
+                <input type="number" id="price" name="price" value="99.99" step="0.01" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="category">Category:</label>
+                <select id="category" name="category" required>
+                    <option value="Products">Products</option>
+                    <option value="Seeds">Seeds</option>
+                    <option value="Fertilizers">Fertilizers</option>
+                    <option value="Cinnamon">Cinnamon</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="special_offer">Special Offer:</label>
+                <input type="text" id="special_offer" name="special_offer" value="No Special Offer">
+            </div>
+            
+            <div class="form-group">
+                <label for="product_images">Product Images (Select multiple):</label>
+                <input type="file" id="product_images" name="product_images[]" multiple accept="image/*" required>
+            </div>
+            
+            <button type="submit">Upload Product with Images</button>
+        </form>
+        
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result info';
+            resultDiv.textContent = 'Uploading... Please wait.';
+            
+            try {
+                const response = await fetch('add_product.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = '✅ SUCCESS!\n\n' + JSON.stringify(result, null, 2);
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = '❌ FAILED!\n\n' + JSON.stringify(result, null, 2);
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ ERROR!\n\n' + error.message;
+            }
+        });
+    </script>
+</body>
+</html> 

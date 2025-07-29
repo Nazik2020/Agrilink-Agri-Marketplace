@@ -28,10 +28,19 @@ try {
     
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Process product images from JSON
+    // Process product images from JSON and convert to full URLs
     foreach ($products as &$product) {
         if ($product['product_images']) {
-            $product['product_images'] = json_decode($product['product_images'], true);
+            $image_paths = json_decode($product['product_images'], true);
+            if (is_array($image_paths)) {
+                // Convert each image path to a full URL
+                $product['product_images'] = array_map(function($image_path) {
+                    // Fix: Use correct URL format without double backend
+                    return "http://localhost/backend/get_image.php?path=" . urlencode($image_path);
+                }, $image_paths);
+            } else {
+                $product['product_images'] = [];
+            }
         } else {
             $product['product_images'] = [];
         }

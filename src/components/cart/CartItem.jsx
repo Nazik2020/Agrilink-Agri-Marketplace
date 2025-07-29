@@ -22,7 +22,7 @@ const CartItem = ({ item }) => {
     try {
       const images = JSON.parse(productImages);
       return images.length > 0
-        ? `http://localhost/backend/${images[0]}`
+        ? images[0] // Use the full URL from backend
         : "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop";
     } catch (error) {
       console.error("Error parsing product images:", error);

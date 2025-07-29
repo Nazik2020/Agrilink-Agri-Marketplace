@@ -422,7 +422,7 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
                     {cartItems.map((item, index) => (
                       <div key={index} className="flex items-center space-x-4">
                         <img
-                          src={item.product_images ? `http://localhost/backend/${item.product_images.split(',')[0]}` : "/placeholder.svg"}
+                          src={item.product_images ? item.product_images.split(',')[0] : "/placeholder.svg"}
                           alt={item.product_name}
                           className="w-16 h-16 object-cover rounded-lg border border-green-200"
                         />

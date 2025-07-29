@@ -36,11 +36,25 @@ try {
         exit;
     }
     
-    // Process product images from JSON
+    // Process product images from JSON and convert to full URLs
     if ($product['product_images']) {
-        $product['product_images'] = json_decode($product['product_images'], true);
+        $image_paths = json_decode($product['product_images'], true);
+        if (is_array($image_paths)) {
+            // Convert each image path to a full URL
+            $product['product_images'] = array_map(function($image_path) {
+                // Fix: Use correct URL format without double backend
+                return "http://localhost/backend/get_image.php?path=" . urlencode($image_path);
+            }, $image_paths);
+        } else {
+            $product['product_images'] = [];
+        }
     } else {
         $product['product_images'] = [];
+    }
+    
+    // Process seller logo if exists
+    if ($product['seller_logo']) {
+        $product['seller_logo_url'] = "http://localhost/backend/get_image.php?path=" . urlencode($product['seller_logo']);
     }
     
     // Format the response
@@ -61,7 +75,7 @@ try {
                 "contact" => $product['seller_contact'],
                 "email" => $product['seller_email'],
                 "address" => $product['seller_address'],
-                "logo" => $product['seller_logo']
+                "logo" => $product['seller_logo_url'] ?? null
             ]
         ]
     ];

@@ -40,32 +40,63 @@ try {
     // Validate customer data completeness
     $validation = $customerManager->validateCustomerData();
 
+    // Always return data, even if incomplete - let frontend handle validation
+    $billingInfo = $customerManager->getBillingData();
+
     if (!$validation['isValid']) {
+        // Return partial data with warning
         echo json_encode([
             "success" => false,
             "message" => $validation['message'],
-            "missingFields" => $validation['missingFields']
+            "missingFields" => $validation['missingFields'],
+            "billingData" => $billingInfo['billingData'], // Extract the actual billing data
+            "customerInfo" => [
+                "id" => $customerManager->getCustomerId(),
+                "name" => $customerManager->getCustomerName(),
+                "email" => $customerManager->getCustomerEmail(),
+                "address" => $customerManager->getCustomerAddress(),
+                "contact" => $customerManager->getCustomerContact(),
+                "country" => $customerManager->getCustomerCountry(),
+                "postal_code" => $customerManager->getCustomerPostalCode()
+            ]
         ]);
         exit;
     }
 
     // Get billing data
-    $billingData = $customerManager->getBillingData();
+    $billingInfo = $customerManager->getBillingData();
 
-    echo json_encode([
-        "success" => true,
-        "message" => "Customer billing data retrieved successfully",
-        "billingData" => $billingData,
-        "customerInfo" => [
-            "id" => $customerManager->getCustomerId(),
-            "name" => $customerManager->getCustomerName(),
-            "email" => $customerManager->getCustomerEmail(),
-            "address" => $customerManager->getCustomerAddress(),
-            "contact" => $customerManager->getCustomerContact(),
-            "country" => $customerManager->getCustomerCountry(),
-            "postal_code" => $customerManager->getCustomerPostalCode()
-        ]
-    ]);
+    if ($billingInfo['hasCompleteProfile']) {
+        echo json_encode([
+            "success" => true,
+            "message" => "All billing information auto-filled from your profile!",
+            "billingData" => $billingInfo['billingData'],
+            "customerInfo" => [
+                "id" => $customerManager->getCustomerId(),
+                "name" => $customerManager->getCustomerName(),
+                "email" => $customerManager->getCustomerEmail(),
+                "address" => $customerManager->getCustomerAddress(),
+                "contact" => $customerManager->getCustomerContact(),
+                "country" => $customerManager->getCustomerCountry(),
+                "postal_code" => $customerManager->getCustomerPostalCode()
+            ]
+        ]);
+    } else {
+        echo json_encode([
+            "success" => true,
+            "message" => "Some billing info auto-filled. Please complete: " . implode(', ', $billingInfo['missingFields']),
+            "billingData" => $billingInfo['billingData'],
+            "customerInfo" => [
+                "id" => $customerManager->getCustomerId(),
+                "name" => $customerManager->getCustomerName(),
+                "email" => $customerManager->getCustomerEmail(),
+                "address" => $customerManager->getCustomerAddress(),
+                "contact" => $customerManager->getCustomerContact(),
+                "country" => $customerManager->getCustomerCountry(),
+                "postal_code" => $customerManager->getCustomerPostalCode()
+            ]
+        ]);
+    }
 
 } catch (Exception $e) {
     error_log("Error in get_customer_billing_data.php: " . $e->getMessage());

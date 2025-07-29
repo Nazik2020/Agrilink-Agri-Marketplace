@@ -26,7 +26,7 @@ class CustomerDataManager {
     public function loadCustomerData() {
         try {
             $stmt = $this->conn->prepare("
-                SELECT id, full_name, email, address, contactno, country, postal_code, profile_image, created_at, updated_at
+                SELECT id, full_name, email, address, contactno, country, postal_code, profile_image
                 FROM customers 
                 WHERE id = ?
             ");
@@ -121,20 +121,43 @@ class CustomerDataManager {
         $validation = [
             'isValid' => true,
             'missingFields' => [],
-            'message' => ''
+            'message' => '',
+            'hasMinimalData' => false,
+            'hasCompleteProfile' => false
         ];
 
-        $requiredFields = ['full_name', 'email', 'address', 'contactno', 'country', 'postal_code'];
-        
-        foreach ($requiredFields as $field) {
-            if (empty($this->customerData[$field])) {
-                $validation['missingFields'][] = $field;
-                $validation['isValid'] = false;
-            }
+        // Check if we have minimal data (from signup)
+        $hasMinimal = !empty($this->customerData['full_name']) && !empty($this->customerData['email']);
+        $validation['hasMinimalData'] = $hasMinimal;
+
+        if (!$hasMinimal) {
+            $validation['isValid'] = false;
+            $validation['message'] = 'Customer account data is incomplete. Please contact support.';
+            return $validation;
         }
 
-        if (!$validation['isValid']) {
-            $validation['message'] = 'Customer profile incomplete. Please update your profile first.';
+        // Check if customer has completed their profile (billing info)
+        $hasCompleteProfile = !empty($this->customerData['address']) && 
+                             !empty($this->customerData['contactno']) && 
+                             !empty($this->customerData['country']) && 
+                             !empty($this->customerData['postal_code']);
+        
+        $validation['hasCompleteProfile'] = $hasCompleteProfile;
+
+        if ($hasCompleteProfile) {
+            $validation['isValid'] = true;
+            $validation['message'] = 'Profile complete. Billing information will be auto-filled.';
+        } else {
+            // Identify missing profile fields
+            $missingFields = [];
+            if (empty($this->customerData['address'])) $missingFields[] = 'address';
+            if (empty($this->customerData['contactno'])) $missingFields[] = 'contact number';
+            if (empty($this->customerData['country'])) $missingFields[] = 'country';
+            if (empty($this->customerData['postal_code'])) $missingFields[] = 'postal code';
+            
+            $validation['missingFields'] = $missingFields;
+            $validation['isValid'] = true; // Still allow checkout
+            $validation['message'] = 'Please complete your profile for auto-filled billing. Missing: ' . implode(', ', $missingFields);
         }
 
         return $validation;
@@ -142,19 +165,29 @@ class CustomerDataManager {
 
     /**
      * Get formatted customer data for billing
-     * @return array Formatted billing data
+     * @return array Formatted billing data with completeness info
      */
     public function getBillingData() {
         if (!$this->isDataLoaded()) {
             return null;
         }
         
+        $billingData = [
+            'billing_name' => $this->customerData['full_name'] ?? '',
+            'billing_email' => $this->customerData['email'] ?? '',
+            'billing_address' => $this->customerData['address'] ?? '',
+            'billing_postal_code' => $this->customerData['postal_code'] ?? '',
+            'billing_country' => $this->customerData['country'] ?? ''
+        ];
+
+        // Check profile completeness
+        $validation = $this->validateCustomerData();
+        
         return [
-            'billing_name' => $this->customerData['full_name'],
-            'billing_email' => $this->customerData['email'],
-            'billing_address' => $this->customerData['address'],
-            'billing_postal_code' => $this->customerData['postal_code'],
-            'billing_country' => $this->customerData['country']
+            'billingData' => $billingData,
+            'hasCompleteProfile' => $validation['hasCompleteProfile'],
+            'missingFields' => $validation['missingFields'] ?? [],
+            'message' => $validation['message']
         ];
     }
 

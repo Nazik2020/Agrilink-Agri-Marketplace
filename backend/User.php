@@ -26,12 +26,16 @@ class User {
                 password_hash($data['password'], PASSWORD_BCRYPT)
             ]);
         } elseif ($this->table === 'customers') {
-            $stmt = $this->conn->prepare("INSERT INTO customers (full_name, username, email, password) VALUES (?, ?, ?, ?)");
+            $stmt = $this->conn->prepare("INSERT INTO customers (full_name, username, email, password, address, contactno, country, postal_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
             return $stmt->execute([
                 $data['fullName'],
                 $data['userName'],
                 $data['email'],
-                password_hash($data['password'], PASSWORD_BCRYPT)
+                password_hash($data['password'], PASSWORD_BCRYPT),
+                $data['address'] ?? '',
+                $data['contactno'] ?? '',
+                $data['country'] ?? '',
+                $data['postal_code'] ?? ''
             ]);
         }
         return false;

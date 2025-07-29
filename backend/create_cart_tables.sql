@@ -1,3 +1,6 @@
+-- MIGRATION: Remove unique constraint for (customer_id, product_id) in reviews table to allow multiple reviews per customer per product
+-- Run this SQL in your database:
+-- ALTER TABLE reviews DROP INDEX unique_customer_product;
 -- Create cart table to store customer cart information
 CREATE TABLE IF NOT EXISTS cart (
     cart_id INT AUTO_INCREMENT PRIMARY KEY,

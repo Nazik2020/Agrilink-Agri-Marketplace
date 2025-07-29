@@ -52,13 +52,37 @@ export const CartProvider = ({ children }) => {
     if (userString) {
       try {
         const user = JSON.parse(userString);
-        if (user.role === 'customer') {
+        // Check both 'role' and 'user_type' for backwards compatibility
+        if (user.role === 'customer' || user.user_type === 'customer') {
           setCustomerId(user.id);
+          console.log('Customer ID set from sessionStorage:', user.id);
         }
       } catch (error) {
         console.error("Error parsing user from sessionStorage:", error);
       }
     }
+  }, []);
+
+  // Listen for user state changes (login/logout)
+  useEffect(() => {
+    const handleUserStateChange = (event) => {
+      const { action, user } = event.detail;
+      
+      if (action === 'login' && (user.role === 'customer' || user.user_type === 'customer')) {
+        setCustomerId(user.id);
+        console.log('Customer ID set from login event:', user.id);
+      } else if (action === 'logout') {
+        setCustomerId(null);
+        dispatch({ type: 'SET_CART_ITEMS', payload: [] });
+        console.log('Customer logged out, cart cleared');
+      }
+    };
+
+    window.addEventListener('userStateChanged', handleUserStateChange);
+    
+    return () => {
+      window.removeEventListener('userStateChanged', handleUserStateChange);
+    };
   }, []);
 
   // Load cart items from database when customer ID is available
@@ -235,7 +259,8 @@ export const CartProvider = ({ children }) => {
 
     try {
       const user = JSON.parse(userString);
-      if (user.role !== 'customer') {
+      // Check both 'role' and 'user_type' for backwards compatibility
+      if (user.role !== 'customer' && user.user_type !== 'customer') {
         alert("Please login as a customer to proceed with checkout.");
         return;
       }

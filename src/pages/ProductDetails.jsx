@@ -1,4 +1,13 @@
-"use client";
+// Helper to get current user from sessionStorage
+function getCurrentUser() {
+  try {
+    const userString = sessionStorage.getItem("user");
+    return userString ? JSON.parse(userString) : null;
+  } catch (error) {
+    return null;
+  }
+}
+("use client");
 
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -59,6 +68,10 @@ function ProductDetails() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [reviewSuccess, setReviewSuccess] = useState(false);
+  const [editingReviewId, setEditingReviewId] = useState(null);
+  const [editReviewText, setEditReviewText] = useState("");
+  const [editReviewRating, setEditReviewRating] = useState(5);
 
   // SECTION: Data Fetching
   useEffect(() => {
@@ -100,15 +113,136 @@ function ProductDetails() {
     }
   };
 
-  const handleSubmitReview = () => {
+  // Fetch reviews from backend
+  const fetchReviews = async (productId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost/backend/get_reviews.php?product_id=${productId}`
+      );
+      console.log('Raw get_reviews.php response:', response.data);
+      if (response.data && response.data.reviews) {
+        const mappedReviews = response.data.reviews.map((r) => ({
+          id: r.id,
+          customer_id: r.customer_id,
+          name: r.customer_name,
+          rating: r.rating,
+          text: r.review_text,
+        }));
+        console.log('Fetched reviews:', mappedReviews);
+        setReviews(mappedReviews);
+      } else {
+        setReviews([]);
+      }
+    } catch (err) {
+      setReviews([]);
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      fetchReviews(id);
+    }
+  }, [id]);
+
+  // Get current user
+  const currentUser = getCurrentUser();
+  const customerId =
+    currentUser && currentUser.role === "customer" ? currentUser.id : null;
+  console.log('Current user:', currentUser, 'CustomerId:', customerId);
+
+  // Submit review to backend
+  const handleSubmitReview = async () => {
+    if (!customerId) {
+      alert("You must be logged in as a customer to submit a review.");
+      return;
+    }
     if (reviewText.trim()) {
-      // TODO: Send review to backend
-      setReviews([
-        ...reviews,
-        { name: "You", rating: reviewRating, text: reviewText },
-      ]);
-      setReviewText("");
-      setReviewRating(5);
+      try {
+        const response = await axios.post(
+          "http://localhost/backend/add_review.php",
+          {
+            product_id: id,
+            customer_id: customerId,
+            rating: reviewRating,
+            comment: reviewText,
+          }
+        );
+        if (response.data.success) {
+          setReviewText("");
+          setReviewRating(5);
+          setReviewSuccess(true);
+          fetchReviews(id); // Refresh reviews from backend
+          setTimeout(() => setReviewSuccess(false), 3000);
+        } else {
+          alert(response.data.message || "Failed to add review.");
+        }
+      } catch (err) {
+        alert("Error submitting review.");
+      }
+    }
+  };
+
+  // Edit review handlers
+  const handleEditClick = (review) => {
+    setEditingReviewId(review.id);
+    setEditReviewText(review.text);
+    setEditReviewRating(review.rating);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingReviewId(null);
+    setEditReviewText("");
+    setEditReviewRating(5);
+  };
+
+  const handleSaveEdit = async (reviewId) => {
+    if (!editReviewText.trim()) {
+      alert("Review cannot be empty.");
+      return;
+    }
+    try {
+      const response = await axios.post(
+        "http://localhost/backend/add_review.php",
+        {
+          product_id: id,
+          customer_id: customerId,
+          rating: editReviewRating,
+          comment: editReviewText,
+        }
+      );
+      if (response.data.success) {
+        setEditingReviewId(null);
+        setEditReviewText("");
+        setEditReviewRating(5);
+        fetchReviews(id);
+      } else {
+        alert(response.data.message || "Failed to update review.");
+      }
+    } catch (err) {
+      alert("Error updating review.");
+    }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!customerId) {
+      alert("You must be logged in as a customer to delete your review.");
+      return;
+    }
+    try {
+      const response = await axios.post(
+        "http://localhost/backend/delete_review.php",
+        {
+          review_id: reviewId,
+          customer_id: customerId,
+        }
+      );
+      if (response.data.success) {
+        fetchReviews(id); // Refresh reviews from backend
+      } else {
+        alert(response.data.message || "Failed to delete review.");
+      }
+    } catch (err) {
+      alert("Error deleting review.");
     }
   };
 
@@ -382,6 +516,11 @@ function ProductDetails() {
               >
                 Submit Review
               </button>
+              {reviewSuccess && (
+                <div className="mt-3 text-green-600 font-semibold">
+                  Review submitted!
+                </div>
+              )}
             </div>
 
             {/* SECTION: List of Reviews */}
@@ -396,22 +535,90 @@ function ProductDetails() {
                 >
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-green-700">
-                      {review.name}
+                      {customerId && review.customer_id === customerId
+                        ? "You"
+                        : review.name}
                     </span>
                     <span className="flex">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <FaStar
                           key={star}
                           className={
-                            star <= review.rating
+                            star <=
+                            (editingReviewId === review.id
+                              ? editReviewRating
+                              : review.rating)
                               ? "text-yellow-400"
                               : "text-gray-300"
                           }
                         />
                       ))}
                     </span>
+                    {/* Show edit/delete buttons for the logged-in user's review */}
+                    {customerId && review.customer_id === customerId && (
+                      <>
+                        {editingReviewId === review.id ? (
+                          <>
+                            <button
+                              className="ml-2 text-green-600 hover:underline"
+                              onClick={() => handleSaveEdit(review.id)}
+                            >
+                              Save
+                            </button>
+                            <button
+                              className="ml-2 text-gray-500 hover:underline"
+                              onClick={handleCancelEdit}
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              className="ml-2 text-blue-500 hover:underline"
+                              onClick={() => handleEditClick(review)}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="ml-2 text-red-500 hover:underline"
+                              onClick={() => handleDeleteReview(review.id)}
+                            >
+                              Delete
+                            </button>
+                          </>
+                        )}
+                      </>
+                    )}
                   </div>
-                  <div className="text-gray-700">{review.text}</div>
+                  {editingReviewId === review.id ? (
+                    <>
+                      <div className="flex items-center gap-2 mb-2 mt-2">
+                        <span className="font-semibold">Edit Rating:</span>
+                        <span className="ml-2">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <FaStar
+                              key={star}
+                              className={`inline mr-1 cursor-pointer text-2xl ${
+                                editReviewRating >= star
+                                  ? "text-yellow-400"
+                                  : "text-gray-300"
+                              }`}
+                              onClick={() => setEditReviewRating(star)}
+                            />
+                          ))}
+                        </span>
+                      </div>
+                      <textarea
+                        className="w-full border border-gray-300 focus:border-gray-500 rounded p-3 mt-2 focus:outline-none"
+                        rows={2}
+                        value={editReviewText}
+                        onChange={(e) => setEditReviewText(e.target.value)}
+                      />
+                    </>
+                  ) : (
+                    <div className="text-gray-700">{review.text}</div>
+                  )}
                 </div>
               ))}
             </div>

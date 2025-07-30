@@ -70,7 +70,7 @@ try {
     $stmt->execute([$resetToken, $expiryTime, $email]);
     
     // Send email with reset link
-    $resetLink = "http://localhost:3000/reset-password?token={$resetToken}&type={$userType}";
+    $resetLink = "http://localhost:3000/reset-password?token={$resetToken}&userType={$userType}";
     
     $mail = new PHPMailer(true);
     try {

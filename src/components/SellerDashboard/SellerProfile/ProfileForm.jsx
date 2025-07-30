@@ -64,7 +64,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
     if (validateForm()) {
       // Get seller_id from sessionStorage
       const sellerId = sessionStorage.getItem("seller_id") || profile.id;
-      
+
       if (!sellerId) {
         alert("Seller ID not found. Please login again.");
         return;
@@ -91,11 +91,24 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
         );
         if (res.data.success) {
           alert("Profile Saved Successfully!");
-          // Update profile with new logo path if uploaded
-          if (res.data.logo_path) {
-            onChange({ ...profile, business_logo: res.data.logo_path });
-            setLogoPreview(`http://localhost/backend/${res.data.logo_path}`);
-          }
+          // Always update sessionStorage seller object for sidebar (even if logo not changed)
+          try {
+            const seller = JSON.parse(sessionStorage.getItem("seller")) || {};
+            seller.username = profile.contactName;
+            seller.business_name = profile.businessName;
+            seller.business_description = profile.businessDescription;
+            seller.country = profile.country;
+            seller.contact_number = profile.contactNumber;
+            seller.address = profile.address;
+            // Update logo if changed
+            if (res.data.logo_path) {
+              seller.business_logo = res.data.logo_path;
+              onChange({ ...profile, business_logo: res.data.logo_path });
+              setLogoPreview(`http://localhost/backend/${res.data.logo_path}`);
+            }
+            sessionStorage.setItem("seller", JSON.stringify(seller));
+            window.dispatchEvent(new Event("storage"));
+          } catch (e) {}
         } else {
           alert("Profile update failed! " + (res.data.message || ""));
           console.log(res.data);
@@ -224,14 +237,14 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
           <label className="block text-base font-semibold text-gray-500 mb-4">
             Business Logo
           </label>
-          
+
           {/* Logo Preview */}
           {logoPreview && (
             <div className="mb-4 flex justify-center">
               <div className="relative">
-                <img 
-                  src={logoPreview} 
-                  alt="Business Logo" 
+                <img
+                  src={logoPreview}
+                  alt="Business Logo"
                   className="w-32 h-32 object-cover rounded-lg border-2 border-green-200 shadow-md"
                 />
                 <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
@@ -240,7 +253,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
               </div>
             </div>
           )}
-          
+
           <FileUploader onUpload={handleLogoUpload} />
         </div>
 

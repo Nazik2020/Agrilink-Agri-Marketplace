@@ -139,11 +139,61 @@ const CustomerProfilePage = () => {
     }));
   };
 
+  // Store the actual file for upload
+  const [profileImageFile, setProfileImageFile] = useState(null);
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Show preview immediately (left frame)
       setProfileImage(URL.createObjectURL(file));
+      setProfileImageFile(file);
     }
+  };
+
+  // Helper to get the original email robustly
+  const getOriginalEmail = () => {
+    const userString = sessionStorage.getItem("user");
+    let email = null;
+    if (userString) {
+      try {
+        const user = JSON.parse(userString);
+        email = user.email;
+      } catch (error) {
+        console.error("Error parsing user from localStorage:", error);
+      }
+    }
+    if (!email) {
+      email = sessionStorage.getItem("userEmail");
+    }
+    return email;
+  };
+
+  const fetchProfile = (emailToFetch) => {
+    setLoading(true);
+    fetch("http://localhost/backend/get_customer_profile.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: emailToFetch }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.profile) {
+          setFormData((prev) => ({
+            ...prev,
+            fullName: data.profile.full_name || "",
+            email: data.profile.email || "",
+            address: data.profile.address || "",
+            contactNumber: data.profile.contactno || "",
+            country: data.profile.country || "",
+            postalCode: data.profile.postal_code || "",
+          }));
+          if (data.profile.profile_image) {
+            setProfileImage(data.profile.profile_image);
+          }
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
   };
 
   const handleSaveProfile = () => {
@@ -161,48 +211,64 @@ const CustomerProfilePage = () => {
 
     setSaving(true);
 
-    // Get original email from user object in localStorage
-    const userString = sessionStorage.getItem("user");
-    let originalEmail = null;
-
-    if (userString) {
-      try {
-        const user = JSON.parse(userString);
-        originalEmail = user.email;
-      } catch (error) {
-        console.error("Error parsing user from localStorage:", error);
-      }
-    }
-
-    // Fallback to old method for backward compatibility
+    const originalEmail = getOriginalEmail();
     if (!originalEmail) {
-      originalEmail = sessionStorage.getItem("userEmail");
+      setToast({
+        show: true,
+        message: "No user email found. Please login again.",
+        type: "error",
+      });
+      setSaving(false);
+      setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
+      return;
     }
 
-    const requestData = {
-      ...formData,
-      originalEmail: originalEmail, // Send original email for comparison
-    };
-
-    console.log("Sending update request:", requestData); // Debug log
+    const formDataToSend = new FormData();
+    formDataToSend.append("originalEmail", String(originalEmail || ""));
+    formDataToSend.append("fullName", String(formData.fullName || ""));
+    formDataToSend.append("email", String(formData.email || ""));
+    formDataToSend.append("address", String(formData.address || ""));
+    formDataToSend.append(
+      "contactNumber",
+      String(formData.contactNumber || "")
+    );
+    formDataToSend.append("country", String(formData.country || ""));
+    formDataToSend.append("postalCode", String(formData.postalCode || ""));
+    if (profileImageFile) {
+      formDataToSend.append("profile_image", profileImageFile);
+    }
+    // Debug: log FormData keys and values
+    for (let pair of formDataToSend.entries()) {
+      console.log("FormData:", pair[0], pair[1]);
+    }
 
     fetch("http://localhost/backend/update_customer_profile.php", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestData),
+      body: formDataToSend,
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log("Update response:", data); // Debug log
-
+        setSaving(false);
         if (data.success) {
           setToast({
             show: true,
             message: "Profile updated successfully!",
             type: "success",
           });
-
-          // Email cannot be changed, so no need to update localStorage
+          // Update sessionStorage user object with new profile_image for sidebar
+          try {
+            const user = JSON.parse(sessionStorage.getItem("user"));
+            if (user && data.profile_image_path) {
+              user.profile_image = data.profile_image_path.startsWith("http")
+                ? data.profile_image_path
+                : `http://localhost/backend/${data.profile_image_path}`;
+              sessionStorage.setItem("user", JSON.stringify(user));
+              // Trigger storage event for sidebar update
+              window.dispatchEvent(new Event("storage"));
+            }
+          } catch (e) {}
+          // Always re-fetch profile to update image and data
+          fetchProfile(originalEmail);
         } else {
           setToast({
             show: true,
@@ -211,20 +277,18 @@ const CustomerProfilePage = () => {
             type: "error",
           });
         }
-        setSaving(false);
         setTimeout(
           () => setToast({ show: false, message: "", type: "" }),
           3000
         );
       })
       .catch((error) => {
-        console.error("Update error:", error); // Debug log
+        setSaving(false);
         setToast({
           show: true,
           message: "Network error. Please try again.",
           type: "error",
         });
-        setSaving(false);
         setTimeout(
           () => setToast({ show: false, message: "", type: "" }),
           3000

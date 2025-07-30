@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { User, Heart, ShoppingBag, Bell, LogOut } from "lucide-react";
 import customer from "../../../assets/CustomerDashboard/3412435.jpg";
@@ -6,14 +6,33 @@ const CustomerSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get username from localStorage user object
-  let username = "";
-  try {
-    const user = JSON.parse(sessionStorage.getItem("user"));
-    if (user && user.username) {
-      username = user.username;
-    }
-  } catch (e) {}
+  // Get username and profile image from sessionStorage user object
+  const [username, setUsername] = useState("");
+  const [profileImage, setProfileImage] = useState(null);
+
+  useEffect(() => {
+    try {
+      const user = JSON.parse(sessionStorage.getItem("user"));
+      if (user && user.username) {
+        setUsername(user.username);
+      }
+      if (user && user.profile_image) {
+        setProfileImage(user.profile_image);
+      }
+    } catch (e) {}
+
+    // Listen for profile updates (e.g., after upload)
+    const handleStorage = () => {
+      try {
+        const user = JSON.parse(sessionStorage.getItem("user"));
+        if (user && user.profile_image) {
+          setProfileImage(user.profile_image);
+        }
+      } catch (e) {}
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
 
   const handleLogout = () => {
     console.log("Customer logged out");
@@ -41,8 +60,11 @@ const CustomerSidebar = () => {
       <div className="flex flex-col items-center mb-8 mt-5">
         <div className="relative mb-4">
           <img
-            src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop"
-            alt="Sarah Miller"
+            src={
+              profileImage ||
+              "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop"
+            }
+            alt="Profile"
             className="w-30 h-30 rounded-full object-cover border-4 border-green-100 shadow-lg"
           />
           <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>

@@ -82,15 +82,15 @@ const WishlistPage = () => {
         category: item.category || "Product",
         price: parseFloat(item.price),
         maxQuantity: 10, // Default max quantity
-        image: getProductImage(item.product_images)
+        image: getProductImage(item.product_images),
       };
 
       // Add to cart using the cart context
       addToCart(productForCart);
-      
+
       // Show success message
       showToast(`${item.product_name} added to cart successfully!`, "success");
-      
+
       console.log("Added to cart from wishlist:", productForCart);
     } catch (error) {
       console.error("Error adding to cart:", error);
@@ -112,7 +112,9 @@ const WishlistPage = () => {
     try {
       const images = JSON.parse(productImages);
       return images.length > 0
-        ? images[0]
+        ? images[0].startsWith("http")
+          ? images[0]
+          : `http://localhost/backend/${images[0]}`
         : "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop";
     } catch (error) {
       console.error("Error parsing product images:", error);
@@ -160,7 +162,8 @@ const WishlistPage = () => {
               My Wishlist
             </h1>
             <p className="text-gray-600">
-              {wishlist.length} {wishlist.length === 1 ? "item" : "items"} in your wishlist
+              {wishlist.length} {wishlist.length === 1 ? "item" : "items"} in
+              your wishlist
             </p>
           </div>
         </div>

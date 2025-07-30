@@ -16,7 +16,7 @@ const ResetPassword = () => {
   const [message, setMessage] = useState("");
 
   const token = searchParams.get("token");
-  const userType = searchParams.get("type"); // Changed from "userType" to "type"
+  const userType = searchParams.get("userType");
 
   useEffect(() => {
     if (!token || !userType) {

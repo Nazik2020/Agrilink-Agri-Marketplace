@@ -91,11 +91,24 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
         );
         if (res.data.success) {
           alert("Profile Saved Successfully!");
-          // Update profile with new logo path if uploaded
-          if (res.data.logo_path) {
-            onChange({ ...profile, business_logo: res.data.logo_path });
-            setLogoPreview(`http://localhost/backend/${res.data.logo_path}`);
-          }
+          // Always update sessionStorage seller object for sidebar (even if logo not changed)
+          try {
+            const seller = JSON.parse(sessionStorage.getItem("seller")) || {};
+            seller.username = profile.contactName;
+            seller.business_name = profile.businessName;
+            seller.business_description = profile.businessDescription;
+            seller.country = profile.country;
+            seller.contact_number = profile.contactNumber;
+            seller.address = profile.address;
+            // Update logo if changed
+            if (res.data.logo_path) {
+              seller.business_logo = res.data.logo_path;
+              onChange({ ...profile, business_logo: res.data.logo_path });
+              setLogoPreview(`http://localhost/backend/${res.data.logo_path}`);
+            }
+            sessionStorage.setItem("seller", JSON.stringify(seller));
+            window.dispatchEvent(new Event("storage"));
+          } catch (e) {}
         } else {
           alert("Profile update failed! " + (res.data.message || ""));
           console.log(res.data);

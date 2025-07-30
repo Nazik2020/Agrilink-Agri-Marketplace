@@ -122,7 +122,7 @@ function ProductDetails() {
       const response = await axios.get(
         `http://localhost/backend/get_reviews.php?product_id=${productId}`
       );
-      console.log('Raw get_reviews.php response:', response.data);
+      console.log("Raw get_reviews.php response:", response.data);
       if (response.data && response.data.reviews) {
         const mappedReviews = response.data.reviews.map((r) => ({
           id: r.id,
@@ -131,7 +131,7 @@ function ProductDetails() {
           rating: r.rating,
           text: r.review_text,
         }));
-        console.log('Fetched reviews:', mappedReviews);
+        console.log("Fetched reviews:", mappedReviews);
         setReviews(mappedReviews);
       } else {
         setReviews([]);
@@ -151,7 +151,7 @@ function ProductDetails() {
   const currentUser = getCurrentUser();
   const customerId =
     currentUser && currentUser.role === "customer" ? currentUser.id : null;
-  console.log('Current user:', currentUser, 'CustomerId:', customerId);
+  console.log("Current user:", currentUser, "CustomerId:", customerId);
 
   // Submit review to backend
   const handleSubmitReview = async () => {
@@ -462,12 +462,24 @@ function ProductDetails() {
               </button>
               <SimpleWishlistButton productId={product.id} />
             </div>
-            <button
-              className="w-full border border-gray-300 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 cursor-pointer"
-              onClick={() => setShowCustomize(true)}
-            >
-              Request Customization
-            </button>
+            {/* Only show customization button for logged-in customers */}
+            {currentUser && currentUser.role === "customer" ? (
+              <button
+                className="w-full border border-gray-300 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 cursor-pointer"
+                onClick={() => setShowCustomize(true)}
+              >
+                Request Customization
+              </button>
+            ) : (
+              <button
+                className="w-full border border-gray-300 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 cursor-pointer"
+                onClick={() =>
+                  alert("Please login as a customer to request customization.")
+                }
+              >
+                Request Customization
+              </button>
+            )}
           </div>
         </div>
 

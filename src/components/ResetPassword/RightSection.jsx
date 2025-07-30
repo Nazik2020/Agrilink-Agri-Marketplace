@@ -233,9 +233,7 @@ export default function RightSection() {
                 }`}
               />
               {errors.confirmPassword && (
-                <p className="text-red-500 text-sm">
-                  {errors.confirmPassword}
-                </p>
+                <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
               )}
             </div>
 
@@ -253,7 +251,7 @@ export default function RightSection() {
               onClick={() => navigate("/Login")}
               className="text-green-600 hover:text-green-700 text-sm underline"
             >
-              Back to Login
+              {/* Back to Login */}
             </button>
           </div>
         </div>

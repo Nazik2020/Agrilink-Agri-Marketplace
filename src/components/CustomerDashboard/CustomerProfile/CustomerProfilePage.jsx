@@ -224,19 +224,22 @@ const CustomerProfilePage = () => {
     }
 
     const formDataToSend = new FormData();
-    formDataToSend.append('originalEmail', String(originalEmail || ''));
-    formDataToSend.append('fullName', String(formData.fullName || ''));
-    formDataToSend.append('email', String(formData.email || ''));
-    formDataToSend.append('address', String(formData.address || ''));
-    formDataToSend.append('contactNumber', String(formData.contactNumber || ''));
-    formDataToSend.append('country', String(formData.country || ''));
-    formDataToSend.append('postalCode', String(formData.postalCode || ''));
+    formDataToSend.append("originalEmail", String(originalEmail || ""));
+    formDataToSend.append("fullName", String(formData.fullName || ""));
+    formDataToSend.append("email", String(formData.email || ""));
+    formDataToSend.append("address", String(formData.address || ""));
+    formDataToSend.append(
+      "contactNumber",
+      String(formData.contactNumber || "")
+    );
+    formDataToSend.append("country", String(formData.country || ""));
+    formDataToSend.append("postalCode", String(formData.postalCode || ""));
     if (profileImageFile) {
-      formDataToSend.append('profile_image', profileImageFile);
+      formDataToSend.append("profile_image", profileImageFile);
     }
     // Debug: log FormData keys and values
     for (let pair of formDataToSend.entries()) {
-      console.log('FormData:', pair[0], pair[1]);
+      console.log("FormData:", pair[0], pair[1]);
     }
 
     fetch("http://localhost/backend/update_customer_profile.php", {
@@ -256,10 +259,9 @@ const CustomerProfilePage = () => {
           try {
             const user = JSON.parse(sessionStorage.getItem("user"));
             if (user && data.profile_image_path) {
-              user.profile_image =
-                data.profile_image_path.startsWith("http")
-                  ? data.profile_image_path
-                  : `http://localhost/backend/${data.profile_image_path}`;
+              user.profile_image = data.profile_image_path.startsWith("http")
+                ? data.profile_image_path
+                : `http://localhost/backend/${data.profile_image_path}`;
               sessionStorage.setItem("user", JSON.stringify(user));
               // Trigger storage event for sidebar update
               window.dispatchEvent(new Event("storage"));

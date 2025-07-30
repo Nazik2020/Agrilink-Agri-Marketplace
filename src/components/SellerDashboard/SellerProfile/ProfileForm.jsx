@@ -64,7 +64,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
     if (validateForm()) {
       // Get seller_id from sessionStorage
       const sellerId = sessionStorage.getItem("seller_id") || profile.id;
-      
+
       if (!sellerId) {
         alert("Seller ID not found. Please login again.");
         return;
@@ -237,14 +237,14 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
           <label className="block text-base font-semibold text-gray-500 mb-4">
             Business Logo
           </label>
-          
+
           {/* Logo Preview */}
           {logoPreview && (
             <div className="mb-4 flex justify-center">
               <div className="relative">
-                <img 
-                  src={logoPreview} 
-                  alt="Business Logo" 
+                <img
+                  src={logoPreview}
+                  alt="Business Logo"
                   className="w-32 h-32 object-cover rounded-lg border-2 border-green-200 shadow-md"
                 />
                 <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
@@ -253,7 +253,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
               </div>
             </div>
           )}
-          
+
           <FileUploader onUpload={handleLogoUpload} />
         </div>
 

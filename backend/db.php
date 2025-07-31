@@ -1,8 +1,15 @@
 <?php
-$host = "localhost";
+// $host = "localhost";
+// $db = "agrilink";
+// $user = "root";
+// $pass = "";
+
+
+
+$host = "agrilink1.mysql.database.azure.com";
 $db = "agrilink";
-$user = "root";
-$pass = "";
+$user = "agrilink_admin"; 
+$pass = "Nzk2020#";
 
 function getDbConnection() {
   global $host, $db, $user, $pass;
@@ -15,7 +22,6 @@ function getDbConnection() {
   }
 }
 
-// Legacy support - create global connection
 try {
   $conn = getDbConnection();
 } catch (Exception $e) {

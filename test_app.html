@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Test BuyNowModal</title>
+  </head>
+  <body>
+    <h1>Test Page for BuyNowModal</h1>
+    <p>
+      Go to the main app at
+      <a href="http://localhost:3000">http://localhost:3000</a>
+    </p>
+
+    <script>
+      // Test if the app loads correctly
+      setTimeout(() => {
+        fetch("http://localhost:3000")
+          .then((response) => {
+            console.log("Server status:", response.status);
+            if (response.ok) {
+              console.log("✅ Server is running");
+            } else {
+              console.log("❌ Server issue");
+            }
+          })
+          .catch((error) => {
+            console.log("❌ Cannot connect to server:", error);
+          });
+      }, 1000);
+    </script>
+  </body>
+</html>

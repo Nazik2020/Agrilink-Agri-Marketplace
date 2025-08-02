@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Customer Data API</title>
+  </head>
+  <body>
+    <h1>Test Customer Data API</h1>
+
+    <div>
+      <h2>Session Storage User:</h2>
+      <pre id="sessionUser"></pre>
+    </div>
+
+    <div>
+      <h2>Test API Call:</h2>
+      <button onclick="testAPI()">Test Customer Data API</button>
+      <pre id="apiResult"></pre>
+    </div>
+
+    <script>
+      // Display session storage user
+      const userString = sessionStorage.getItem("user");
+      document.getElementById("sessionUser").textContent =
+        userString || "No user in session storage";
+
+      async function testAPI() {
+        const userString = sessionStorage.getItem("user");
+        let customer_id = 1;
+        let customer_email = null;
+
+        if (userString) {
+          try {
+            const user = JSON.parse(userString);
+            customer_id = user.id;
+            customer_email = user.email;
+            console.log("Found user in session:", user);
+          } catch (e) {
+            console.error("Error parsing user:", e);
+          }
+        }
+
+        console.log(
+          "Testing with customer_id:",
+          customer_id,
+          "customer_email:",
+          customer_email
+        );
+
+        try {
+          const response = await fetch(
+            "http://localhost/agrilink/backend/get_customer_billing_data.php",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                customer_id: customer_id,
+                customer_email: customer_email,
+              }),
+            }
+          );
+
+          const data = await response.json();
+          console.log("API Response:", data);
+          document.getElementById("apiResult").textContent = JSON.stringify(
+            data,
+            null,
+            2
+          );
+
+          if (data.success && data.customerInfo) {
+            console.log(
+              "✅ Successfully loaded customer data:",
+              data.customerInfo
+            );
+          } else {
+            console.log("❌ Failed to load customer data:", data.message);
+          }
+        } catch (error) {
+          console.error("Error calling API:", error);
+          document.getElementById("apiResult").textContent =
+            "Error: " + error.message;
+        }
+      }
+    </script>
+  </body>
+</html>

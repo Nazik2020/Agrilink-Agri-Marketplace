@@ -545,9 +545,9 @@ function ProductDetails() {
               {reviews.length === 0 && (
                 <div className="text-gray-500">No reviews yet.</div>
               )}
-              {reviews.map((review, idx) => (
+              {reviews.map((review) => (
                 <div
-                  key={idx}
+                  key={review.id}
                   className="bg-white rounded-xl shadow p-4 flex flex-col gap-1"
                 >
                   <div className="flex items-center gap-2">

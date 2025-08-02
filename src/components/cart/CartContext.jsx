@@ -1,33 +1,39 @@
-import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
-import axios from 'axios';
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useState,
+} from "react";
+import axios from "axios";
 
 const CartContext = createContext();
 
 const cartReducer = (state, action) => {
   switch (action.type) {
-    case 'SET_CART_ITEMS':
+    case "SET_CART_ITEMS":
       return {
         ...state,
         items: action.payload,
-        loading: false
+        loading: false,
       };
 
-    case 'SET_LOADING':
+    case "SET_LOADING":
       return {
         ...state,
-        loading: action.payload
+        loading: action.payload,
       };
 
-    case 'TOGGLE_CART':
+    case "TOGGLE_CART":
       return {
         ...state,
-        isOpen: !state.isOpen
+        isOpen: !state.isOpen,
       };
 
-    case 'TOGGLE_BUY_NOW_MODAL':
+    case "TOGGLE_BUY_NOW_MODAL":
       return {
         ...state,
-        showBuyNowModal: !state.showBuyNowModal
+        showBuyNowModal: !state.showBuyNowModal,
       };
 
     default:
@@ -39,7 +45,7 @@ const initialState = {
   items: [],
   isOpen: false,
   loading: false,
-  showBuyNowModal: false
+  showBuyNowModal: false,
 };
 
 export const CartProvider = ({ children }) => {
@@ -53,9 +59,9 @@ export const CartProvider = ({ children }) => {
       try {
         const user = JSON.parse(userString);
         // Check both 'role' and 'user_type' for backwards compatibility
-        if (user.role === 'customer' || user.user_type === 'customer') {
+        if (user.role === "customer" || user.user_type === "customer") {
           setCustomerId(user.id);
-          console.log('Customer ID set from sessionStorage:', user.id);
+          console.log("Customer ID set from sessionStorage:", user.id);
         }
       } catch (error) {
         console.error("Error parsing user from sessionStorage:", error);
@@ -67,21 +73,24 @@ export const CartProvider = ({ children }) => {
   useEffect(() => {
     const handleUserStateChange = (event) => {
       const { action, user } = event.detail;
-      
-      if (action === 'login' && (user.role === 'customer' || user.user_type === 'customer')) {
+
+      if (
+        action === "login" &&
+        (user.role === "customer" || user.user_type === "customer")
+      ) {
         setCustomerId(user.id);
-        console.log('Customer ID set from login event:', user.id);
-      } else if (action === 'logout') {
+        console.log("Customer ID set from login event:", user.id);
+      } else if (action === "logout") {
         setCustomerId(null);
-        dispatch({ type: 'SET_CART_ITEMS', payload: [] });
-        console.log('Customer logged out, cart cleared');
+        dispatch({ type: "SET_CART_ITEMS", payload: [] });
+        console.log("Customer logged out, cart cleared");
       }
     };
 
-    window.addEventListener('userStateChanged', handleUserStateChange);
-    
+    window.addEventListener("userStateChanged", handleUserStateChange);
+
     return () => {
-      window.removeEventListener('userStateChanged', handleUserStateChange);
+      window.removeEventListener("userStateChanged", handleUserStateChange);
     };
   }, []);
 
@@ -96,157 +105,178 @@ export const CartProvider = ({ children }) => {
   const loadCartFromDatabase = async () => {
     if (!customerId) return;
 
-    dispatch({ type: 'SET_LOADING', payload: true });
-    
-    try {
-      console.log('Loading cart for customer ID:', customerId);
-      
-      const response = await axios.post('http://localhost/backend/get_cart.php', {
-        customer_id: customerId
-      });
+    dispatch({ type: "SET_LOADING", payload: true });
 
-      console.log('Cart response:', response.data);
+    try {
+      console.log("Loading cart for customer ID:", customerId);
+
+      const response = await axios.post(
+        "http://localhost:8080/backend/get_cart.php",
+        {
+          customer_id: customerId,
+        }
+      );
+
+      console.log("Cart response:", response.data);
 
       if (response.data.success) {
-        console.log('Cart items loaded:', response.data.cart_items);
-        dispatch({ type: 'SET_CART_ITEMS', payload: response.data.cart_items });
+        console.log("Cart items loaded:", response.data.cart_items);
+        dispatch({ type: "SET_CART_ITEMS", payload: response.data.cart_items });
       } else {
-        console.error('Failed to load cart:', response.data.message);
-        dispatch({ type: 'SET_CART_ITEMS', payload: [] });
+        console.error("Failed to load cart:", response.data.message);
+        dispatch({ type: "SET_CART_ITEMS", payload: [] });
       }
     } catch (error) {
-      console.error('Error loading cart from database:', error);
-      dispatch({ type: 'SET_CART_ITEMS', payload: [] });
+      console.error("Error loading cart from database:", error);
+      dispatch({ type: "SET_CART_ITEMS", payload: [] });
     }
   };
 
   // Add item to cart
   const addToCart = async (product) => {
     if (!customerId) {
-      console.error('No customer ID available');
+      console.error("No customer ID available");
       return;
     }
 
     // Determine the correct product ID
     const productId = product.id || product.product_id;
-    
+
     if (!productId) {
-      console.error('No product ID found in product object:', product);
+      console.error("No product ID found in product object:", product);
       return;
     }
 
-    console.log('Adding to cart:', {
+    console.log("Adding to cart:", {
       customerId,
       productId,
-      product: product
+      product: product,
     });
 
     try {
       // Send to database first
-      const response = await axios.post('http://localhost/backend/add_to_cart.php', {
-        customer_id: customerId,
-        product_id: productId,
-        quantity: 1,
-        price: product.price
-      });
+      const response = await axios.post(
+        "http://localhost:8080/backend/add_to_cart.php",
+        {
+          customer_id: customerId,
+          product_id: productId,
+          quantity: 1,
+          price: product.price,
+        }
+      );
 
-      console.log('Database response:', response.data);
+      console.log("Database response:", response.data);
 
       if (response.data.success) {
-        console.log('Successfully added to cart:', response.data);
+        console.log("Successfully added to cart:", response.data);
         // Reload cart from database to get updated state
         await loadCartFromDatabase();
       } else {
-        console.error('Failed to add item to cart in database:', response.data.message);
+        console.error(
+          "Failed to add item to cart in database:",
+          response.data.message
+        );
       }
     } catch (error) {
-      console.error('Error adding item to cart:', error);
+      console.error("Error adding item to cart:", error);
     }
   };
 
   // Update quantity
   const updateQuantity = async (productId, quantity) => {
     if (!customerId) {
-      console.error('No customer ID available');
+      console.error("No customer ID available");
       return;
     }
 
     try {
-      console.log('Updating quantity:', { customerId, productId, quantity });
+      console.log("Updating quantity:", { customerId, productId, quantity });
 
-      const response = await axios.post('http://localhost/backend/update_cart_item.php', {
-        customer_id: customerId,
-        product_id: productId,
-        quantity: quantity
-      });
+      const response = await axios.post(
+        "http://localhost:8080/backend/update_cart_item.php",
+        {
+          customer_id: customerId,
+          product_id: productId,
+          quantity: quantity,
+        }
+      );
 
-      console.log('Update response:', response.data);
+      console.log("Update response:", response.data);
 
       if (response.data.success) {
         // Reload cart from database to get updated state
         await loadCartFromDatabase();
       } else {
-        console.error('Failed to update quantity in database:', response.data.message);
+        console.error(
+          "Failed to update quantity in database:",
+          response.data.message
+        );
       }
     } catch (error) {
-      console.error('Error updating quantity:', error);
+      console.error("Error updating quantity:", error);
     }
   };
 
   // Remove item from cart
   const removeItem = async (productId) => {
     if (!customerId) {
-      console.error('No customer ID available');
+      console.error("No customer ID available");
       return;
     }
 
     try {
-      console.log('Removing item:', { customerId, productId });
+      console.log("Removing item:", { customerId, productId });
 
-      const response = await axios.post('http://localhost/backend/remove_from_cart.php', {
-        customer_id: customerId,
-        product_id: productId
-      });
+      const response = await axios.post(
+        "http://localhost:8080/backend/remove_from_cart.php",
+        {
+          customer_id: customerId,
+          product_id: productId,
+        }
+      );
 
-      console.log('Remove response:', response.data);
+      console.log("Remove response:", response.data);
 
       if (response.data.success) {
         // Reload cart from database to get updated state
         await loadCartFromDatabase();
       } else {
-        console.error('Failed to remove item from cart in database:', response.data.message);
+        console.error(
+          "Failed to remove item from cart in database:",
+          response.data.message
+        );
       }
     } catch (error) {
-      console.error('Error removing item from cart:', error);
+      console.error("Error removing item from cart:", error);
     }
   };
 
   // Clear cart
   const clearCart = async () => {
     if (!customerId) {
-      console.error('No customer ID available');
+      console.error("No customer ID available");
       return;
     }
 
     try {
-      console.log('Clearing cart for customer:', customerId);
+      console.log("Clearing cart for customer:", customerId);
 
       // Remove all items one by one
       for (const item of state.items) {
-        await axios.post('http://localhost/backend/remove_from_cart.php', {
+        await axios.post("http://localhost:8080/backend/remove_from_cart.php", {
           customer_id: customerId,
-          product_id: item.product_id
+          product_id: item.product_id,
         });
       }
 
       // Reload cart from database to get updated state
       await loadCartFromDatabase();
     } catch (error) {
-      console.error('Error clearing cart:', error);
+      console.error("Error clearing cart:", error);
     }
   };
 
-  const toggleCart = () => dispatch({ type: 'TOGGLE_CART' });
+  const toggleCart = () => dispatch({ type: "TOGGLE_CART" });
 
   // Buy now functionality
   const handleBuyNow = () => {
@@ -260,7 +290,7 @@ export const CartProvider = ({ children }) => {
     try {
       const user = JSON.parse(userString);
       // Check both 'role' and 'user_type' for backwards compatibility
-      if (user.role !== 'customer' && user.user_type !== 'customer') {
+      if (user.role !== "customer" && user.user_type !== "customer") {
         alert("Please login as a customer to proceed with checkout.");
         return;
       }
@@ -272,40 +302,45 @@ export const CartProvider = ({ children }) => {
       }
 
       // Open buy now modal
-      dispatch({ type: 'TOGGLE_BUY_NOW_MODAL' });
+      dispatch({ type: "TOGGLE_BUY_NOW_MODAL" });
     } catch (error) {
       console.error("Error checking user status:", error);
       alert("Please login as a customer to proceed with checkout.");
     }
   };
 
-  const toggleBuyNowModal = () => dispatch({ type: 'TOGGLE_BUY_NOW_MODAL' });
+  const toggleBuyNowModal = () => dispatch({ type: "TOGGLE_BUY_NOW_MODAL" });
 
   // Calculate totals
   const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = state.items.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+  const subtotal = state.items.reduce(
+    (sum, item) => sum + parseFloat(item.price) * item.quantity,
+    0
+  );
   const shipping = subtotal > 100 ? 0 : 15;
   const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax;
 
   return (
-    <CartContext.Provider value={{
-      ...state,
-      updateQuantity,
-      removeItem,
-      clearCart,
-      toggleCart,
-      addToCart,
-      loadCartFromDatabase,
-      totalItems,
-      subtotal,
-      shipping,
-      tax,
-      total,
-      customerId,
-      handleBuyNow,
-      toggleBuyNowModal
-    }}>
+    <CartContext.Provider
+      value={{
+        ...state,
+        updateQuantity,
+        removeItem,
+        clearCart,
+        toggleCart,
+        addToCart,
+        loadCartFromDatabase,
+        totalItems,
+        subtotal,
+        shipping,
+        tax,
+        total,
+        customerId,
+        handleBuyNow,
+        toggleBuyNowModal,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
@@ -314,7 +349,7 @@ export const CartProvider = ({ children }) => {
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error("useCart must be used within a CartProvider");
   }
   return context;
 };

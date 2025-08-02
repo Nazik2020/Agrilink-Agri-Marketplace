@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order History Live Update Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .test-section { background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 8px; border: 1px solid #dee2e6; }
+        .button { background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .button:hover { background: #218838; }
+        .button:disabled { background: #6c757d; cursor: not-allowed; }
+        .result { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; border: 1px solid #ddd; }
+        .success { border-left: 4px solid #28a745; }
+        .error { border-left: 4px solid #dc3545; }
+        .info { border-left: 4px solid #17a2b8; }
+    </style>
+</head>
+<body>
+    <h1>🔄 Order History Live Update Test</h1>
+    
+    <div class="test-section">
+        <h3>Step 1: Check Current Order Count</h3>
+        <p>First, let's see how many orders the current customer has:</p>
+        <button class="button" onclick="checkCurrentOrders()">Check Current Orders</button>
+        <div id="currentOrdersResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Step 2: Simulate Adding an Order</h3>
+        <p>We'll add a test order to see if the count increases:</p>
+        <button class="button" onclick="simulateOrder()">Add Test Order</button>
+        <div id="simulateOrderResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Step 3: Check Updated Order Count</h3>
+        <p>Check if the order count increased after adding the test order:</p>
+        <button class="button" onclick="checkUpdatedOrders()">Check Updated Orders</button>
+        <div id="updatedOrdersResult" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Step 4: Refresh Your React App</h3>
+        <p>Now go back to your React app and refresh the Order History page to see if the new order appears immediately!</p>
+        <button class="button" onclick="openReactApp()">Open React App Order History</button>
+    </div>
+
+    <script>
+        // Get customer ID from sessionStorage (same way as React app)
+        function getCustomerId() {
+            try {
+                const userString = sessionStorage.getItem("user");
+                if (userString) {
+                    const user = JSON.parse(userString);
+                    if (user.role === "customer" || user.user_type === "customer") {
+                        return user.id;
+                    }
+                }
+            } catch (error) {
+                console.error("Error parsing user:", error);
+            }
+            return null;
+        }
+
+        // Check current orders
+        async function checkCurrentOrders() {
+            const customerId = getCustomerId();
+            const resultDiv = document.getElementById('currentOrdersResult');
+            
+            if (!customerId) {
+                resultDiv.innerHTML = '<div class="error">❌ No customer logged in. Please login first in your React app.</div>';
+                resultDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8080/backend/order_history/orders.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ customer_id: customerId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="info">
+                            ℹ️ <strong>Customer ID:</strong> ${customerId}<br>
+                            📊 <strong>Current Order Count:</strong> ${data.count}<br>
+                            📅 <strong>Data Source:</strong> ${data.source}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">❌ Error: ${data.message}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = \`<div class="error">❌ Network Error: \${error.message}</div>\`;
+            }
+            
+            resultDiv.style.display = 'block';
+        }
+
+        // Simulate adding an order
+        async function simulateOrder() {
+            const customerId = getCustomerId();
+            const resultDiv = document.getElementById('simulateOrderResult');
+            
+            if (!customerId) {
+                resultDiv.innerHTML = '<div class="error">❌ No customer logged in.</div>';
+                resultDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8080/backend/test_add_order.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ customer_id: customerId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = \`
+                        <div class="success">
+                            ✅ <strong>Test Order Added!</strong><br>
+                            🆔 <strong>Order ID:</strong> \${data.order_id}<br>
+                            👤 <strong>Customer ID:</strong> \${data.customer_id}<br>
+                            📊 <strong>New Total Orders:</strong> \${data.new_order_count}<br>
+                            ⏰ <strong>Timestamp:</strong> \${data.timestamp}
+                        </div>
+                    \`;
+                } else {
+                    resultDiv.innerHTML = \`<div class="error">❌ Error: \${data.message}</div>\`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = \`<div class="error">❌ Network Error: \${error.message}</div>\`;
+            }
+            
+            resultDiv.style.display = 'block';
+        }
+
+        // Check updated orders
+        async function checkUpdatedOrders() {
+            await checkCurrentOrders();
+            document.getElementById('updatedOrdersResult').innerHTML = document.getElementById('currentOrdersResult').innerHTML;
+            document.getElementById('updatedOrdersResult').style.display = 'block';
+        }
+
+        // Open React app
+        function openReactApp() {
+            window.open('http://localhost:3000', '_blank');
+        }
+
+        // Auto-detect customer on load
+        window.onload = function() {
+            const customerId = getCustomerId();
+            if (customerId) {
+                document.body.insertAdjacentHTML('afterbegin', \`
+                    <div class="test-section">
+                        <h3>🎯 Detected Customer</h3>
+                        <div class="info">
+                            👤 <strong>Logged in as Customer ID:</strong> \${customerId}<br>
+                            📧 You can now test live order updates!
+                        </div>
+                    </div>
+                \`);
+            } else {
+                document.body.insertAdjacentHTML('afterbegin', \`
+                    <div class="test-section">
+                        <h3>⚠️ No Customer Detected</h3>
+                        <div class="error">
+                            Please login as a customer in your React app first, then refresh this page.
+                        </div>
+                    </div>
+                \`);
+            }
+        };
+    </script>
+</body>
+</html>

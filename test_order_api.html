@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Order History API</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .test-container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      .success {
+        color: #28a745;
+      }
+      .error {
+        color: #dc3545;
+      }
+      .info {
+        color: #17a2b8;
+      }
+      pre {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧪 Order History API Test</h1>
+
+    <div class="test-container">
+      <h2>Test Connection</h2>
+      <button onclick="testConnection()">Test PHP Server</button>
+      <button onclick="testAPI()">Test Order History API</button>
+      <div id="results"></div>
+    </div>
+
+    <script>
+      async function testConnection() {
+        const resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML =
+          '<p class="info">🔍 Testing server connection...</p>';
+
+        try {
+          const response = await fetch(
+            "http://localhost:8080/backend/test_server.php"
+          );
+          const data = await response.text();
+
+          resultsDiv.innerHTML = `
+                    <p class="success">✅ Server connected successfully!</p>
+                    <pre>${data}</pre>
+                `;
+        } catch (error) {
+          resultsDiv.innerHTML = `
+                    <p class="error">❌ Connection failed: ${error.message}</p>
+                `;
+        }
+      }
+
+      async function testAPI() {
+        const resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML =
+          '<p class="info">🔍 Testing Order History API...</p>';
+
+        try {
+          const response = await fetch(
+            "http://localhost:8080/backend/order_history/get_customer_orders.php",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                customer_id: 1,
+              }),
+            }
+          );
+
+          const data = await response.json();
+
+          resultsDiv.innerHTML = `
+                    <p class="success">✅ API called successfully!</p>
+                    <p><strong>Status:</strong> ${response.status}</p>
+                    <p><strong>Response:</strong></p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+        } catch (error) {
+          resultsDiv.innerHTML = `
+                    <p class="error">❌ API call failed: ${error.message}</p>
+                `;
+        }
+      }
+
+      // Auto-test when page loads
+      window.onload = function () {
+        testConnection();
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Session Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .debug-box { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .highlight { background: yellow; padding: 2px 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Customer Authentication Debug</h1>
+    
+    <div class="debug-box">
+        <h3>SessionStorage Contents:</h3>
+        <div id="sessionData"></div>
+    </div>
+    
+    <div class="debug-box">
+        <h3>Detected Customer Info:</h3>
+        <div id="customerInfo"></div>
+    </div>
+    
+    <button onclick="refreshData()">🔄 Refresh Data</button>
+    <button onclick="clearSession()">🗑️ Clear Session</button>
+    
+    <script>
+        function refreshData() {
+            // Show all sessionStorage
+            const sessionDiv = document.getElementById('sessionData');
+            let sessionHtml = '<pre>';
+            
+            if (sessionStorage.length === 0) {
+                sessionHtml += 'No sessionStorage data found';
+            } else {
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    const value = sessionStorage.getItem(key);
+                    sessionHtml += `${key}: ${value}\n`;
+                }
+            }
+            sessionHtml += '</pre>';
+            sessionDiv.innerHTML = sessionHtml;
+            
+            // Parse user data like CartContext does
+            const customerDiv = document.getElementById('customerInfo');
+            try {
+                const userString = sessionStorage.getItem("user");
+                if (userString) {
+                    const user = JSON.parse(userString);
+                    let customerHtml = `
+                        <p><strong>Email:</strong> <span class="highlight">${user.email || 'Not found'}</span></p>
+                        <p><strong>ID:</strong> <span class="highlight">${user.id || 'Not found'}</span></p>
+                        <p><strong>Role:</strong> <span class="highlight">${user.role || user.user_type || 'Not found'}</span></p>
+                        <p><strong>Name:</strong> ${user.name || user.username || 'Not found'}</p>
+                        <h4>Full User Object:</h4>
+                        <pre>${JSON.stringify(user, null, 2)}</pre>
+                    `;
+                    customerDiv.innerHTML = customerHtml;
+                } else {
+                    customerDiv.innerHTML = '<p style="color: red;">No user data in sessionStorage</p>';
+                }
+            } catch (error) {
+                customerDiv.innerHTML = `<p style="color: red;">Error parsing user data: ${error.message}</p>`;
+            }
+        }
+        
+        function clearSession() {
+            sessionStorage.clear();
+            refreshData();
+        }
+        
+        // Auto-refresh every 2 seconds
+        setInterval(refreshData, 2000);
+        refreshData();
+    </script>
+</body>
+</html>

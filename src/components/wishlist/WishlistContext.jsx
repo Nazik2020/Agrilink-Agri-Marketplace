@@ -61,7 +61,7 @@ export const WishlistProvider = ({ children }) => {
       // Logged-in customer
       try {
         const response = await axios.post(
-          "http://localhost/backend/add_to_wishlist.php",
+          "http://localhost:8080/backend/add_to_wishlist.php",
           {
             productId: productId,
             customerId: user.id,
@@ -100,7 +100,7 @@ export const WishlistProvider = ({ children }) => {
       // Logged-in customer
       try {
         const response = await axios.post(
-          "http://localhost/backend/remove_from_wishlist.php",
+          "http://localhost:8080/backend/remove_from_wishlist.php",
           {
             productId: productId,
             customerId: user.id,
@@ -153,13 +153,13 @@ export const WishlistProvider = ({ children }) => {
           user.id
         );
 
-        // Add timeout to prevent infinite loading
+        // Add timeout to prevent infinite loading - REDUCED TO 5 SECONDS
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Request timeout")), 10000)
+          setTimeout(() => reject(new Error("Request timeout")), 5000)
         );
 
         const responsePromise = axios.post(
-          "http://localhost/backend/get_wishlist.php",
+          "http://localhost:8080/backend/get_wishlist.php",
           {
             customerId: user.id,
           }

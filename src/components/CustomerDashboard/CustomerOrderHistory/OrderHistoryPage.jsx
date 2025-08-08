@@ -28,7 +28,7 @@ const OrderHistoryPage = () => {
   // Test server connection
   const testServerConnection = async () => {
     const testUrls = [
-      "http://localhost:8080/backend/test_server.php", // Try localhost first (most likely to work)
+      "http://localhost:8080/test_server.php", // Try localhost first (most likely to work)
       "http://localhost/Agrilink-Agri-Marketplace/backend/test_server.php",
       "http://127.0.0.1:8080/backend/test_server.php", // 127.0.0.1 as fallback
     ];
@@ -65,7 +65,7 @@ const OrderHistoryPage = () => {
       }
 
       // Use the fast, working API endpoint
-      const apiUrl = "http://localhost:8080/backend/order_history/orders.php";
+      const apiUrl = "http://localhost:8080/order_history/orders.php";
       console.log("📡 Fetching orders from:", apiUrl);
 
       const response = await axios.post(
@@ -81,7 +81,7 @@ const OrderHistoryPage = () => {
 
       if (response.data.success) {
         // Format the data for your UI - use 'orders' not 'data'
-        const formattedOrders = response.data.orders.map(order => ({
+        const formattedOrders = response.data.orders.map((order) => ({
           productId: order.product_id,
           orderId: order.order_id,
           productName: order.product_name,
@@ -91,7 +91,7 @@ const OrderHistoryPage = () => {
           status: order.order_status,
           paymentStatus: order.payment_status,
           paymentMethod: order.payment_method,
-          orderNumber: order.order_number
+          orderNumber: order.order_number,
         }));
 
         setOrderItems(formattedOrders);
@@ -123,7 +123,7 @@ const OrderHistoryPage = () => {
           productName: "Premium Carrots",
           date: "2024-01-12",
           quantity: 3,
-          totalAmount: 19.50,
+          totalAmount: 19.5,
         },
         {
           productId: "PRD-004",
@@ -139,15 +139,14 @@ const OrderHistoryPage = () => {
           productName: "Bell Peppers",
           date: "2024-01-10",
           quantity: 4,
-          totalAmount: 28.00,
-        }
+          totalAmount: 28.0,
+        },
       ]);
       setError(null);
-
     } catch (err) {
       console.error("Error:", err);
       setError("Showing demo data");
-      
+
       // Fallback demo data
       setOrderItems([
         {
@@ -157,7 +156,7 @@ const OrderHistoryPage = () => {
           date: "2024-01-15",
           quantity: 1,
           totalAmount: 15.99,
-        }
+        },
       ]);
     } finally {
       setLoading(false);
@@ -187,7 +186,7 @@ const OrderHistoryPage = () => {
           </span>
           {/* Debug: Show current customer ID */}
           <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
-            Customer ID: {getCustomerId() || 'Not logged in'}
+            Customer ID: {getCustomerId() || "Not logged in"}
           </span>
         </div>
 
@@ -344,7 +343,10 @@ const OrderHistoryPage = () => {
                       </span>
                     </td>
                     <td className="py-4 px-4 text-right font-semibold text-green-600">
-                      ${typeof item.totalAmount === 'number' ? item.totalAmount.toFixed(2) : parseFloat(item.totalAmount || 0).toFixed(2)}
+                      $
+                      {typeof item.totalAmount === "number"
+                        ? item.totalAmount.toFixed(2)
+                        : parseFloat(item.totalAmount || 0).toFixed(2)}
                     </td>
                   </tr>
                 ))}

@@ -25,7 +25,7 @@ if ($input) {
 try {
     // Use the correct database connection from db.php
     $pdo = getDbConnection();
-    
+
     // Get real orders from database
     $stmt = $pdo->prepare("
         SELECT 
@@ -54,10 +54,19 @@ try {
         ORDER BY created_at DESC
         LIMIT 50
     ");
-    
+
     $stmt->execute([$customerId]);
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
+    // Add average_rating for each product in the orders
+    foreach ($orders as &$order) {
+        $avgStmt = $pdo->prepare("SELECT AVG(rating) as avg_rating FROM reviews WHERE product_id = ?");
+        $avgStmt->execute([$order['product_id']]);
+        $avg = $avgStmt->fetch(PDO::FETCH_ASSOC);
+        $order['average_rating'] = $avg && $avg['avg_rating'] !== null ? round($avg['avg_rating'], 2) : null;
+    }
+    unset($order);
+
     if (count($orders) > 0) {
         // Real data found!
         echo json_encode([
@@ -103,7 +112,8 @@ $sampleOrders = [
         'billing_name' => 'Customer ' . $customerId,
         'billing_email' => 'customer' . $customerId . '@example.com',
         'created_at' => '2024-01-15 10:30:00',
-        'order_number' => 'AGR-20240115-001'
+        'order_number' => 'AGR-20240115-001',
+        'average_rating' => 4.5
     ],
     [
         'order_id' => 2,
@@ -119,7 +129,8 @@ $sampleOrders = [
         'billing_name' => 'Customer ' . $customerId,
         'billing_email' => 'customer' . $customerId . '@example.com',
         'created_at' => '2024-01-12 14:20:00',
-        'order_number' => 'AGR-20240112-002'
+        'order_number' => 'AGR-20240112-002',
+        'average_rating' => 4.0
     ],
     [
         'order_id' => 3,
@@ -135,7 +146,8 @@ $sampleOrders = [
         'billing_name' => 'Customer ' . $customerId,
         'billing_email' => 'customer' . $customerId . '@example.com',
         'created_at' => '2024-01-10 09:15:00',
-        'order_number' => 'AGR-20240110-003'
+        'order_number' => 'AGR-20240110-003',
+        'average_rating' => 5.0
     ]
 ];
 

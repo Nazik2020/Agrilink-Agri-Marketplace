@@ -5,21 +5,26 @@
 
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
-require_once __DIR__ . '/config/stripe.php';
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
 
 try {
     echo json_encode([
         'success' => true,
-        'publishable_key' => StripeConfig::getPublishableKey(),
-        'test_mode' => StripeConfig::isTestMode()
+        'publishable_key' => 'pk_test_mock_key_for_development',
+        'publishableKey' => 'pk_test_mock_key_for_development',
+        'currency' => 'usd',
+        'country' => 'US'
     ]);
     
 } catch (Exception $e) {
-    error_log("Stripe config API error: " . $e->getMessage());
     echo json_encode([
         'success' => false,
-        'error' => 'Configuration error'
+        'error' => 'Configuration error: ' . $e->getMessage()
     ]);
 }
 ?>

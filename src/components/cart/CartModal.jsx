@@ -1,23 +1,29 @@
-import React from 'react';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { useCart } from '../../components/cart/CartContext';
-import CartItem from './CartItem';
-import OrderSummary from './OrderSummary';
-import BuyNowModal from '../marketplace/BuyNowModal';
+import React from "react";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { useCart } from "../../components/cart/CartContext";
+import CartItem from "./CartItem";
+import OrderSummary from "./OrderSummary";
+import BuyNowModal from "../marketplace/BuyNowModal";
 
 const CartModal = () => {
-  const { isOpen, items, loading, toggleCart, clearCart, totalItems, showBuyNowModal, toggleBuyNowModal } = useCart();
+  const {
+    isOpen,
+    items,
+    loading,
+    toggleCart,
+    clearCart,
+    totalItems,
+    showBuyNowModal,
+    toggleBuyNowModal,
+  } = useCart();
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-gray-100"
-        onClick={toggleCart}
-      />
-      
+      <div className="absolute inset-0 bg-gray-100" onClick={toggleCart} />
+
       {/* Modal */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl mx-4 max-h-[90vh] overflow-hidden">
         {/* Header */}
@@ -29,12 +35,14 @@ const CartModal = () => {
             <ArrowLeft className="w-5 h-5 mr-2" />
             Continue Shopping
           </button>
-          
+
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-900">Shopping Cart</h2>
-            <p className="text-gray-500 text-sm">{totalItems} items in your cart</p>
+            <p className="text-gray-500 text-sm">
+              {totalItems} items in your cart
+            </p>
           </div>
-          
+
           <button
             onClick={clearCart}
             className="text-red-500 hover:text-red-700 font-medium"
@@ -73,8 +81,14 @@ const CartModal = () => {
               </div>
             ) : (
               <div className="space-y-6">
-                {items.map((item) => (
-                  <CartItem key={item.cart_item_id} item={item} />
+                {items.map((item, index) => (
+                  <CartItem
+                    key={
+                      item.cart_item_id ||
+                      `cart-item-${item.product_id}-${index}`
+                    }
+                    item={item}
+                  />
                 ))}
               </div>
             )}

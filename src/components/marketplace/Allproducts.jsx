@@ -4,6 +4,7 @@ import { FaShoppingCart, FaHeart } from "react-icons/fa";
 import axios from "axios";
 import { useCart } from "../cart/CartContext";
 import SimpleWishlistButton from "../wishlist/SimpleWishlistButton";
+import StarRating from "./StarRating";
 
 const Allproducts = ({ displayCount = 8 }) => {
   const { addToCart } = useCart();
@@ -16,7 +17,7 @@ const Allproducts = ({ displayCount = 8 }) => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(
-          "http://localhost/backend/get_products.php"
+          "http://localhost:8080/get_products.php"
         );
         if (response.data.success) {
           setProducts(response.data.products);
@@ -53,11 +54,19 @@ const Allproducts = ({ displayCount = 8 }) => {
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-200 border-t-green-600"></div>
           <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-green-400 animate-ping"></div>
         </div>
-        <p className="mt-6 text-gray-600 text-lg font-medium">Loading amazing products...</p>
+        <p className="mt-6 text-gray-600 text-lg font-medium">
+          Loading amazing products...
+        </p>
         <div className="flex space-x-2 mt-4">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce"></div>
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+          <div
+            className="w-2 h-2 bg-green-500 rounded-full animate-bounce"
+            style={{ animationDelay: "0.1s" }}
+          ></div>
+          <div
+            className="w-2 h-2 bg-green-500 rounded-full animate-bounce"
+            style={{ animationDelay: "0.2s" }}
+          ></div>
         </div>
       </div>
     );
@@ -69,7 +78,9 @@ const Allproducts = ({ displayCount = 8 }) => {
       <div className="text-center py-12">
         <div className="max-w-md mx-auto">
           <div className="text-6xl mb-6">⚠️</div>
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Oops! Something went wrong</h3>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">
+            Oops! Something went wrong
+          </h3>
           <p className="text-gray-600 text-lg mb-6">{error}</p>
           <button
             onClick={() => window.location.reload()}
@@ -153,6 +164,10 @@ const Allproducts = ({ displayCount = 8 }) => {
           </Link>
 
           <div className="flex flex-col flex-1 px-4 pt-3 pb-4">
+            {/* Average Rating */}
+            <div className="mb-1">
+              <StarRating rating={product.average_rating} />
+            </div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-green-600 font-semibold text-sm">
                 {product.category}
@@ -161,19 +176,24 @@ const Allproducts = ({ displayCount = 8 }) => {
                 by {product.seller_name || "Unknown"}
               </span>
             </div>
-
-            <Link to={`/product/${product.id}`}>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700">
+            <Link to={`/product/${product.id}`} title={product.product_name}>
+              <h3
+                className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700 truncate"
+                style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  width: '100%'
+                }}
+              >
                 {product.product_name}
               </h3>
             </Link>
-
             <p className="text-gray-600 text-sm line-clamp-2 mb-3">
               {product.product_description.length > 80
                 ? product.product_description.substring(0, 80) + "..."
                 : product.product_description}
             </p>
-
             <div className="flex items-end justify-between mt-auto">
               <div>
                 <span className="text-green-700 font-bold text-lg">

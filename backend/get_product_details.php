@@ -40,9 +40,7 @@ try {
     if ($product['product_images']) {
         $image_paths = json_decode($product['product_images'], true);
         if (is_array($image_paths)) {
-            // Convert each image path to a full URL
             $product['product_images'] = array_map(function($image_path) {
-                // Fix: Use correct URL format without double backend
                 return "http://localhost/backend/get_image.php?path=" . urlencode($image_path);
             }, $image_paths);
         } else {
@@ -52,10 +50,11 @@ try {
         $product['product_images'] = [];
     }
     
-    // Process seller logo if exists
-    if ($product['seller_logo']) {
-        $product['seller_logo_url'] = "http://localhost/backend/get_image.php?path=" . urlencode($product['seller_logo']);
-    }
+    // Calculate average rating for this product
+    $avgStmt = $conn->prepare("SELECT AVG(rating) as avg_rating FROM reviews WHERE product_id = ?");
+    $avgStmt->execute([$product_id]);
+    $avg = $avgStmt->fetch(PDO::FETCH_ASSOC);
+    $average_rating = $avg && $avg['avg_rating'] !== null ? round($avg['avg_rating'], 2) : null;
     
     // Format the response
     $response = [
@@ -69,17 +68,18 @@ try {
             "special_offer" => $product['special_offer'],
             "images" => $product['product_images'],
             "created_at" => $product['created_at'],
+            "average_rating" => $average_rating,
             "seller" => [
                 "name" => $product['seller_name'],
                 "description" => $product['seller_description'],
                 "contact" => $product['seller_contact'],
                 "email" => $product['seller_email'],
                 "address" => $product['seller_address'],
-                "logo" => $product['seller_logo_url'] ?? null
+                "logo" => $product['seller_logo'] ? "http://localhost/backend/get_image.php?path=" . urlencode($product['seller_logo']) : null
             ]
         ]
     ];
-    
+
     echo json_encode($response);
 
 } catch (PDOException $e) {

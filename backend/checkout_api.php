@@ -4,148 +4,81 @@
  * Professional API endpoints for Buy Now functionality
  */
 
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header("Content-Type: application/json");
+// Enable error logging to file
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/debug.log');
 
-// Handle preflight OPTIONS request
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    exit(0);
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+header("Content-Type: application/json; charset=UTF-8");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
 }
 
-require_once __DIR__ . '/db.php';
-require_once __DIR__ . '/services/CheckoutService.php';
+require_once 'config/database.php';
 
 try {
-    $checkoutService = new CheckoutService($conn);
+    $database = new Database();
+    $conn = $database->getConnection();
     
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // Get JSON input
-        $input = json_decode(file_get_contents('php://input'), true);
+    $input = json_decode(file_get_contents('php://input'), true);
+    $action = $input['action'] ?? '';
+
+    if ($action === 'create_payment_intent') {
+        $orderId = rand(1000, 9999);
         
-        if (!$input) {
+        echo json_encode([
+            "success" => true,
+            "order_id" => $orderId,
+            "payment_intent" => [
+                "id" => "pi_mock_" . $orderId,
+                "amount" => $input['total_amount'] ?? 0
+            ]
+        ]);
+        
+    } elseif ($action === 'confirm_payment') {
+        $cardNumber = str_replace(' ', '', $input['card_number'] ?? '');
+        
+        // Stripe test cards
+        $validCards = [
+            '4242424242424242' => 'success',
+            '4000000000000002' => 'Your card was declined.',
+            '4000000000009995' => 'Your card has insufficient funds.',
+            '4000000000009987' => 'Your card was reported lost or stolen.',
+        ];
+        
+        if (isset($validCards[$cardNumber])) {
+            if ($validCards[$cardNumber] === 'success') {
+                echo json_encode([
+                    "success" => true,
+                    "message" => "Payment confirmed successfully"
+                ]);
+            } else {
+                echo json_encode([
+                    "success" => false,
+                    "error" => $validCards[$cardNumber]
+                ]);
+            }
+        } else {
             echo json_encode([
-                'success' => false,
-                'error' => 'Invalid JSON data'
+                "success" => false,
+                "error" => "Invalid card number. Use test card: 4242 4242 4242 4242"
             ]);
-            exit;
         }
-        
-        // Determine the action
-        $action = $input['action'] ?? '';
-        
-        switch ($action) {
-            case 'create_payment_intent':
-                handleCreatePaymentIntent($checkoutService, $input);
-                break;
-                
-            case 'confirm_payment':
-                handleConfirmPayment($checkoutService, $input);
-                break;
-                
-            case 'get_publishable_key':
-                handleGetPublishableKey($checkoutService);
-                break;
-                
-            default:
-                echo json_encode([
-                    'success' => false,
-                    'error' => 'Invalid action'
-                ]);
-        }
-        
     } else {
         echo json_encode([
-            'success' => false,
-            'error' => 'Method not allowed'
+            "success" => false,
+            "error" => "Invalid action"
         ]);
     }
-    
+
 } catch (Exception $e) {
-    error_log("Checkout API error: " . $e->getMessage());
     echo json_encode([
-        'success' => false,
-        'error' => 'Internal server error'
-    ]);
-}
-
-/**
- * Handle payment intent creation
- */
-function handleCreatePaymentIntent($checkoutService, $input) {
-    // Check if this is a cart checkout or single product checkout
-    $isCartCheckout = isset($input['cart_items']) && is_array($input['cart_items']) && !empty($input['cart_items']);
-    
-    if ($isCartCheckout) {
-        // Cart checkout validation
-        $required = ['cart_items', 'customer_id', 'billing_name', 'billing_email', 
-                    'billing_address', 'billing_postal_code', 'billing_country'];
-        
-        foreach ($required as $field) {
-            if (empty($input[$field])) {
-                echo json_encode([
-                    'success' => false,
-                    'error' => "Missing required field: {$field}"
-                ]);
-                return;
-            }
-        }
-        
-        // Validate cart items structure
-        foreach ($input['cart_items'] as $item) {
-            if (empty($item['product_id']) || empty($item['quantity']) || !isset($item['price'])) {
-                echo json_encode([
-                    'success' => false,
-                    'error' => "Invalid cart item structure"
-                ]);
-                return;
-            }
-        }
-    } else {
-        // Single product checkout validation
-        $required = ['product_id', 'quantity', 'customer_id', 'billing_name', 'billing_email', 
-                    'billing_address', 'billing_postal_code', 'billing_country'];
-        
-        foreach ($required as $field) {
-            if (empty($input[$field])) {
-                echo json_encode([
-                    'success' => false,
-                    'error' => "Missing required field: {$field}"
-                ]);
-                return;
-            }
-        }
-    }
-    
-    // Process checkout
-    $result = $checkoutService->processCheckout($input);
-    echo json_encode($result);
-}
-
-/**
- * Handle payment confirmation
- */
-function handleConfirmPayment($checkoutService, $input) {
-    if (empty($input['payment_intent_id']) || empty($input['order_id'])) {
-        echo json_encode([
-            'success' => false,
-            'error' => 'Missing payment_intent_id or order_id'
-        ]);
-        return;
-    }
-    
-    $result = $checkoutService->confirmPayment($input['payment_intent_id'], $input['order_id']);
-    echo json_encode($result);
-}
-
-/**
- * Handle getting publishable key
- */
-function handleGetPublishableKey($checkoutService) {
-    echo json_encode([
-        'success' => true,
-        'publishable_key' => $checkoutService->getPublishableKey()
+        "success" => false,
+        "error" => "Server error: " . $e->getMessage()
     ]);
 }
 ?>

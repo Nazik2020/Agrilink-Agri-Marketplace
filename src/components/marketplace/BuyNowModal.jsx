@@ -133,7 +133,7 @@ const BuyNowModal = ({
       }
 
       const response = await axios.post(
-        "http://localhost/agrilink/backend/get_customer_billing_data.php",
+        "http://localhost:8080/get_customer_billing_data.php",
         {
           customer_id: customerId,
           customer_email: customerEmail,
@@ -316,6 +316,8 @@ const BuyNowModal = ({
           billing_country: formData.billing_country,
         };
 
+        let purchasedProductIds = [];
+
         if (isCartCheckout) {
           // Cart checkout: send all cart items
           orderPayload.cart_items = cartItems.map((item) => ({
@@ -328,6 +330,7 @@ const BuyNowModal = ({
           orderPayload.subtotal = cartSubtotal;
           orderPayload.shipping = cartShipping;
           orderPayload.tax = cartTax;
+          purchasedProductIds = cartItems.map((item) => item.product_id);
         } else {
           // Single product checkout
           orderPayload.product_id = product?.id || product?.product_id;
@@ -335,6 +338,9 @@ const BuyNowModal = ({
           orderPayload.quantity = formData.quantity;
           orderPayload.price = product?.price;
           orderPayload.product_images = product?.images?.[0] || "";
+          if (product?.id || product?.product_id) {
+            purchasedProductIds = [product.id || product.product_id];
+          }
         }
 
         // Send order to backend to record all details
@@ -361,6 +367,20 @@ const BuyNowModal = ({
           setError("Error sending order to backend: " + err.message);
           setLoading(false);
           return;
+        }
+
+        // Dispatch custom event for each purchased product to update ProductDetails page
+        if (purchasedProductIds.length > 0) {
+          purchasedProductIds.forEach((productId) => {
+            console.log(
+              "[BuyNowModal] Dispatching orderPaid event for productId:",
+              productId,
+              typeof productId
+            );
+            window.dispatchEvent(
+              new CustomEvent("orderPaid", { detail: { productId } })
+            );
+          });
         }
 
         if (isCartCheckout) {

@@ -72,7 +72,7 @@ const OrderHistoryPage = () => {
         apiUrl,
         { customer_id: customerId },
         {
-          timeout: 5000, // Reduced timeout to 5 seconds
+          timeout: 15000, // Increased timeout to 15 seconds for large responses
           headers: { "Content-Type": "application/json" },
         }
       );

@@ -62,6 +62,7 @@ try {
             "images" => $product['product_images'],
             "created_at" => $product['created_at'],
             "average_rating" => $average_rating,
+            "stock" => isset($product['stock']) ? intval($product['stock']) : 0,
             "seller" => [
                 "name" => $product['seller_name'],
                 "description" => $product['seller_description'],

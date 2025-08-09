@@ -39,6 +39,24 @@ const fetchProductDetails = async (productId) => {
   }
 };
 
+// Exported React hook for use in checkout/payment flow
+// Usage example in your checkout/payment component:
+//   import { useProductDetailsRefresh } from "./ProductDetails";
+//   const refreshProductDetails = useProductDetailsRefresh(productId, setProduct);
+//   // After successful payment:
+//   refreshProductDetails();
+export function useProductDetailsRefresh(productId, setProduct) {
+  return () => {
+    if (productId) {
+      fetchProductDetails(productId)
+        .then((data) => setProduct(data))
+        .catch((error) =>
+          console.error("Error refreshing product details:", error)
+        );
+    }
+  };
+}
+
 function ProductDetails() {
   const navigate = useNavigate();
   const { id } = useParams(); // Get product ID from URL
@@ -47,7 +65,7 @@ function ProductDetails() {
   // SECTION: State Management
   const [product, setProduct] = useState(null);
   const [mainImg, setMainImg] = useState("");
-  const [quantity, setQuantity] = useState(1);
+  // Removed quantity state; quantity is now managed in the cart only
   const [showCustomize, setShowCustomize] = useState(false);
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
@@ -58,6 +76,32 @@ function ProductDetails() {
   const [editingReviewId, setEditingReviewId] = useState(null);
   const [editReviewText, setEditReviewText] = useState("");
   const [editReviewRating, setEditReviewRating] = useState(5);
+
+  // Listen for a custom event after payment to refresh product details
+  useEffect(() => {
+    function handleOrderPaid(e) {
+      console.log(
+        "[ProductDetails] orderPaid event received:",
+        e.detail,
+        "Current page id:",
+        id,
+        typeof id
+      );
+      // e.detail.productId can be used to filter, but here we always refresh
+      if (id) {
+        fetchProductDetails(id)
+          .then((data) => setProduct(data))
+          .catch((error) =>
+            console.error(
+              "Error refreshing product details after payment:",
+              error
+            )
+          );
+      }
+    }
+    window.addEventListener("orderPaid", handleOrderPaid);
+    return () => window.removeEventListener("orderPaid", handleOrderPaid);
+  }, [id]);
 
   // SECTION: Data Fetching
   useEffect(() => {
@@ -87,20 +131,26 @@ function ProductDetails() {
     }
   }, [id]);
 
+  // Add to Cart logic (unchanged)
   const handleAddToCart = () => {
     if (product) {
-      for (let i = 0; i < quantity; i++) {
-        addToCart({
-          id: product.id,
-          name: product.name,
-          seller: product.seller.name,
-          category: product.category,
-          price: product.price,
-          maxQuantity: 100, // Default max quantity since we don't have this field
-        });
-      }
+      addToCart({
+        id: product.id,
+        name: product.name,
+        seller: product.seller.name,
+        category: product.category,
+        price: product.price,
+        quantity: 1, // Always add 1, user can adjust in cart
+        maxQuantity: 100, // Default max quantity since we don't have this field
+      });
     }
   };
+
+  // To refresh product details (e.g., after payment), use the hook:
+  //   import { useProductDetailsRefresh } from "./ProductDetails";
+  //   const refreshProductDetails = useProductDetailsRefresh(product.id, setProduct);
+  //   // After successful payment:
+  //   refreshProductDetails();
 
   // Fetch reviews from backend
   const fetchReviews = async (productId) => {
@@ -368,6 +418,21 @@ function ProductDetails() {
                 ${parseFloat(product.price).toFixed(2)}
               </span>
             </div>
+            {/* Stock/Quantity Left */}
+            <div className="mb-2">
+              <span className="font-semibold text-gray-800">
+                Quantity Left:{" "}
+              </span>
+              <span
+                className={
+                  product.stock > 0
+                    ? "text-green-700"
+                    : "text-red-600 font-bold"
+                }
+              >
+                {product.stock > 0 ? product.stock : "Out of Stock"}
+              </span>
+            </div>
             <p className="text-gray-700 mb-6 text-lg">{product.description}</p>
 
             {/* SECTION: Product Details */}
@@ -390,25 +455,7 @@ function ProductDetails() {
               </div>
             </div>
 
-            {/* SECTION: Quantity Selector */}
-            <div className="flex items-center gap-3 mb-6">
-              <span className="font-semibold text-lg">Quantity:</span>
-              <button
-                className="border px-3 py-1 rounded text-xl cursor-pointer hover:bg-gray-100"
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              >
-                -
-              </button>
-              <span className="text-lg min-w-[50px] text-center">
-                {quantity}
-              </span>
-              <button
-                className="border px-3 py-1 rounded text-xl cursor-pointer hover:bg-gray-100"
-                onClick={() => setQuantity((q) => q + 1)}
-              >
-                +
-              </button>
-            </div>
+            {/* Quantity selector removed; adjust quantity in cart */}
 
             {/* SECTION: Seller Information */}
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
@@ -458,6 +505,8 @@ function ProductDetails() {
               </button>
               <SimpleWishlistButton productId={product.id} />
             </div>
+            {/* IMPORTANT: After payment in your checkout flow, call refreshProductDetails() here if user is on this page */}
+            {/* IMPORTANT: After payment in your checkout flow, call refreshProductDetails() here if user is on this page */}
             {/* Only show customization button for logged-in customers */}
             {currentUser && currentUser.role === "customer" ? (
               <button

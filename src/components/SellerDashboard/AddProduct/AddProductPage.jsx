@@ -8,6 +8,8 @@ const AddProductPage = () => {
     productDescription: "",
     price: "",
     specialOffer: "",
+    stock: 1, // Default to 1 so stock is never undefined
+    category: ""
   });
 
   const handleProductChange = (updatedProduct) => {

@@ -40,6 +40,7 @@ const Products = ({ displayCount = 8 }) => {
       id: product.id,
       name: product.product_name,
       seller: product.seller_name,
+      seller_id: product.seller_id, // Ensure seller_id is included
       category: product.category,
       price: parseFloat(product.price),
       maxQuantity: 10,
@@ -118,7 +119,7 @@ const Products = ({ displayCount = 8 }) => {
             <img
               src={
                 product.product_images && product.product_images.length > 0
-                  ? `http://localhost/backend/${product.product_images[0]}`
+                  ? `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
                   : "https://via.placeholder.com/300x200?text=No+Image"
               }
               alt={product.product_name}

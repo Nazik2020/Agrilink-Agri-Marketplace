@@ -19,11 +19,12 @@ const AnalyticsPage = () => {
             </p>
           </div>
 
+
           {/* Today's Metrics */}
           <div className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-500 mb-4">Today</h2>
-            {/* Replace 1 with actual sellerId from context, props, or auth */}
-            <MetricsGrid sellerId={2} />
+            {/* Get sellerId from localStorage or context */}
+            <MetricsGrid sellerId={window.localStorage.getItem("seller_id") || 1} />
           </div>
 
           {/* Charts Section */}

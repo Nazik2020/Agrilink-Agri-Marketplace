@@ -29,7 +29,7 @@ const Marketplace = () => {
   useEffect(() => {
     const fetchProductCount = async () => {
       try {
-        const response = await axios.get("http://localhost/backend/get_products.php");
+  const response = await axios.get("http://localhost/Agrilink-Agri-Marketplace/backend/get_products.php");
         if (response.data.success) {
           const count = response.data.products.length;
           setProductCount(count);

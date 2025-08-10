@@ -5,7 +5,10 @@ import {
   TrendingUp,
   TrendingDown,
 } from "lucide-react";
+
+
 import axios from "axios";
+import { API_CONFIG } from "../../../config/api";
 
 const MetricsGrid = ({ sellerId }) => {
   const [metrics, setMetrics] = useState(null);
@@ -16,7 +19,7 @@ const MetricsGrid = ({ sellerId }) => {
     if (!sellerId) return;
     setLoading(true);
     axios
-      .post("http://localhost:8080/seller_analytics/get_seller_analytics.php", {
+      .post(`${API_CONFIG.BASE_URL}/seller_analytics/get_seller_analytics.php`, {
         seller_id: sellerId,
       })
       .then((res) => {

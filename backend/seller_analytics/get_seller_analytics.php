@@ -1,4 +1,6 @@
 <?php
+// Set timezone for analytics API
+date_default_timezone_set('Asia/Colombo');
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');

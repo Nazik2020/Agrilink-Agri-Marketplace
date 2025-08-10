@@ -30,7 +30,7 @@ const ProductShowcase = () => {
                   product.product_images && product.product_images[0]
                     ? product.product_images[0].startsWith("http")
                       ? product.product_images[0]
-                      : `http://localhost/backend/${product.product_images[0]}`
+                      : `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
                     : "/no-image.png"
                 }
                 alt={product.name}

@@ -28,8 +28,8 @@ const OrderHistoryPage = () => {
   // Test server connection
   const testServerConnection = async () => {
     const testUrls = [
-      "http://localhost:8080/test_server.php", // Try localhost first (most likely to work)
       "http://localhost/Agrilink-Agri-Marketplace/backend/test_server.php",
+      "http://localhost:8080/backend/test_server.php",
       "http://127.0.0.1:8080/backend/test_server.php", // 127.0.0.1 as fallback
     ];
 
@@ -65,7 +65,8 @@ const OrderHistoryPage = () => {
       }
 
       // Use the fast, working API endpoint
-      const apiUrl = "http://localhost:8080/order_history/orders.php";
+      const apiUrl =
+        "http://localhost/Agrilink-Agri-Marketplace/backend/order_history/orders.php";
       console.log("📡 Fetching orders from:", apiUrl);
 
       const response = await axios.post(

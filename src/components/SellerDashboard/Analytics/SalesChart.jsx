@@ -9,6 +9,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
+import { API_CONFIG } from "../../../config/api";
 
 ChartJS.register(
   CategoryScale,
@@ -43,11 +44,12 @@ const SalesChart = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Use sellerId=1 for now; replace with prop/context if needed
-    fetch("http://localhost:8080/seller_analytics/get_seller_analytics.php", {
+    // Get sellerId from props/context (default to 1 if not provided)
+    const sellerId = window.localStorage.getItem("seller_id") || 1;
+    fetch(`${API_CONFIG.BASE_URL}/seller_analytics/get_seller_analytics.php`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ seller_id: 2 }),
+      body: JSON.stringify({ seller_id: sellerId }),
     })
       .then((res) => res.json())
       .then((data) => {

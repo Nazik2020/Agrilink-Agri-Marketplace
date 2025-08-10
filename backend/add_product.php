@@ -1,6 +1,8 @@
-// DEBUG: Log all POST data and stock value
-file_put_contents(__DIR__ . '/add_product_debug.log', "POST: " . var_export($_POST, true) . "\n", FILE_APPEND);
 <?php
+// DEBUG: Log all POST data and stock value (do not output to browser)
+if (isset($_POST)) {
+    file_put_contents(__DIR__ . '/add_product_debug.log', "POST: " . var_export($_POST, true) . "\n", FILE_APPEND);
+}
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST");
 header("Content-Type: application/json; charset=UTF-8");

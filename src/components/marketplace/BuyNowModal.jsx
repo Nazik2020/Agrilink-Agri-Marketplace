@@ -326,6 +326,7 @@ const BuyNowModal = ({
             quantity: item.quantity,
             price: item.price,
             product_images: item.product_images,
+            seller_id: item.seller_id || item.sellerId || null,
           }));
           orderPayload.subtotal = cartSubtotal;
           orderPayload.shipping = cartShipping;
@@ -338,6 +339,7 @@ const BuyNowModal = ({
           orderPayload.quantity = formData.quantity;
           orderPayload.price = product?.price;
           orderPayload.product_images = product?.images?.[0] || "";
+          orderPayload.seller_id = product?.seller_id || product?.sellerId || null;
           if (product?.id || product?.product_id) {
             purchasedProductIds = [product.id || product.product_id];
           }
@@ -349,7 +351,7 @@ const BuyNowModal = ({
 
           // Real POST request to backend
           const response = await axios.post(
-            "http://localhost/backend/add_order_simple.php",
+            "http://localhost/Agrilink-Agri-Marketplace/backend/add_order_simple.php",
             orderPayload
           );
 

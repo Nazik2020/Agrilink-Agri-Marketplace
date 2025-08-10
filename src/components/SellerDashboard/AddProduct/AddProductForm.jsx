@@ -93,17 +93,18 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
 
       try {
         const res = await axios.post(
-          "http://localhost/backend/add_product.php",
+          "http://localhost/Agrilink-Agri-Marketplace/backend/add_product.php",
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },
           }
         );
 
-        if (res.data.success) {
+        console.log("Add Product API Response:", res.data);
+        if (res.data.success === true) {
           alert("Product Listed Successfully!");
         } else {
-          alert("Product listing failed!");
+          alert("Product listing failed! " + (res.data.error || JSON.stringify(res.data)));
         }
       } catch (err) {
         alert("Error adding product");
@@ -162,7 +163,7 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
               label="Quantity"
               name="stock"
               type="number"
-              value={product.stock}
+              value={product.stock === 0 ? "" : product.stock || ""}
               onChange={handleInputChange}
               error={errors.stock}
               min={0}

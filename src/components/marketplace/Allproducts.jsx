@@ -4,7 +4,10 @@ import { FaShoppingCart, FaHeart } from "react-icons/fa";
 import axios from "axios";
 import { useCart } from "../cart/CartContext";
 import SimpleWishlistButton from "../wishlist/SimpleWishlistButton";
+<<<<<<< HEAD
+=======
 import StarRating from "./StarRating";
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
 
 const Allproducts = ({ displayCount = 8 }) => {
   const { addToCart } = useCart();
@@ -17,7 +20,11 @@ const Allproducts = ({ displayCount = 8 }) => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(
+<<<<<<< HEAD
+          "http://localhost/backend/get_products.php"
+=======
           "http://localhost:8080/get_products.php"
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
         );
         if (response.data.success) {
           setProducts(response.data.products);
@@ -54,6 +61,13 @@ const Allproducts = ({ displayCount = 8 }) => {
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-200 border-t-green-600"></div>
           <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-green-400 animate-ping"></div>
         </div>
+<<<<<<< HEAD
+        <p className="mt-6 text-gray-600 text-lg font-medium">Loading amazing products...</p>
+        <div className="flex space-x-2 mt-4">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce"></div>
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+=======
         <p className="mt-6 text-gray-600 text-lg font-medium">
           Loading amazing products...
         </p>
@@ -67,6 +81,7 @@ const Allproducts = ({ displayCount = 8 }) => {
             className="w-2 h-2 bg-green-500 rounded-full animate-bounce"
             style={{ animationDelay: "0.2s" }}
           ></div>
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
         </div>
       </div>
     );
@@ -78,9 +93,13 @@ const Allproducts = ({ displayCount = 8 }) => {
       <div className="text-center py-12">
         <div className="max-w-md mx-auto">
           <div className="text-6xl mb-6">⚠️</div>
+<<<<<<< HEAD
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">Oops! Something went wrong</h3>
+=======
           <h3 className="text-2xl font-bold text-gray-800 mb-4">
             Oops! Something went wrong
           </h3>
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
           <p className="text-gray-600 text-lg mb-6">{error}</p>
           <button
             onClick={() => window.location.reload()}
@@ -155,7 +174,11 @@ const Allproducts = ({ displayCount = 8 }) => {
             <img
               src={
                 product.product_images && product.product_images.length > 0
+<<<<<<< HEAD
+                  ? `http://localhost/backend/${product.product_images[0]}`
+=======
                   ? `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                   : "https://via.placeholder.com/300x200?text=No+Image"
               }
               alt={product.product_name}
@@ -176,6 +199,11 @@ const Allproducts = ({ displayCount = 8 }) => {
                 by {product.seller_name || "Unknown"}
               </span>
             </div>
+<<<<<<< HEAD
+
+            <Link to={`/product/${product.id}`}>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700">
+=======
             <div className="flex items-center mb-1">
               {product.stock > 0 ? (
                 <span className="text-green-600 font-semibold text-xs">
@@ -202,15 +230,24 @@ const Allproducts = ({ displayCount = 8 }) => {
                   width: "100%",
                 }}
               >
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                 {product.product_name}
               </h3>
             </Link>
+
             <p className="text-gray-600 text-sm line-clamp-2 mb-3">
+<<<<<<< HEAD
+              {product.product_description.length > 80
+                ? product.product_description.substring(0, 80) + "..."
+                : product.product_description}
+=======
               {product.product_description &&
               product.product_description.length > 80
                 ? product.product_description.substring(0, 80) + "..."
                 : product.product_description || ""}
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
             </p>
+
             <div className="flex items-end justify-between mt-auto">
               <div>
                 <span className="text-green-700 font-bold text-lg">

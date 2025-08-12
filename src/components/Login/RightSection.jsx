@@ -74,7 +74,11 @@ export default function RightSection() {
           res.data.user.role === "seller" &&
           res.data.user.id
         ) {
+<<<<<<< HEAD
+          sessionStorage.setItem("seller_id", res.data.user.id);
+=======
           window.localStorage.setItem("seller_id", res.data.user.id);
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
         }
 
         // Sync guest wishlist if user is a customer
@@ -93,7 +97,14 @@ export default function RightSection() {
           }
         }, 2000);
       } else {
-        setMessage(res.data.message);
+        // Handle different types of errors
+        if (res.data.error_type === 'account_banned') {
+          setMessage(res.data.message);
+        } else if (res.data.error_type === 'database_error') {
+          setMessage("⚠️ System temporarily unavailable. Please try again later.");
+        } else {
+          setMessage(res.data.message);
+        }
       }
     } catch (error) {
       setMessage("Network error. Please try again.");
@@ -121,7 +132,11 @@ export default function RightSection() {
 
         // Sync to backend
         const syncRes = await axios.post(
+<<<<<<< HEAD
+          "http://localhost/backend/sync_guest_wishlist.php",
+=======
           "http://localhost/Agrilink-Agri-Marketplace/backend/sync_guest_wishlist.php",
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
           {
             customerId: customerId,
             productIds: guestWishlist,

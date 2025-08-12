@@ -7,26 +7,27 @@ class Product {
         $this->conn = $db;
     }
 
-    public function getByCategory($category_id) {
-        $sql = "SELECT * FROM {$this->table} WHERE category_id = ?";
+    public function getByCategory($category) {
+        $sql = "SELECT * FROM {$this->table} WHERE category = :category";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bind_param("i", $category_id);
+        $stmt->bindParam(':category', $category, PDO::PARAM_STR);
         $stmt->execute();
-
-        $result = $stmt->get_result();
-        $products = [];
-
-        while ($row = $result->fetch_assoc()) {
-            $products[] = $row;
-        }
-
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $products;
     }
 
-    public function addProduct($seller_id, $product_name, $product_description, $price, $special_offer, $product_image, $category) {
-        $sql = "INSERT INTO {$this->table} (seller_id, product_name, product_description, price, special_offer, product_image, category) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    public function addProduct($seller_id, $product_name, $product_description, $price, $special_offer, $product_images, $category) {
+        $sql = "INSERT INTO {$this->table} (seller_id, product_name, product_description, price, special_offer, product_images, category) VALUES (:seller_id, :product_name, :product_description, :price, :special_offer, :product_images, :category)";
         $stmt = $this->conn->prepare($sql);
-        return $stmt->execute([$seller_id, $product_name, $product_description, $price, $special_offer, $product_image, $category]);
+        return $stmt->execute([
+            ':seller_id' => $seller_id,
+            ':product_name' => $product_name,
+            ':product_description' => $product_description,
+            ':price' => $price,
+            ':special_offer' => $special_offer,
+            ':product_images' => $product_images,
+            ':category' => $category
+        ]);
     }
 }
 ?>

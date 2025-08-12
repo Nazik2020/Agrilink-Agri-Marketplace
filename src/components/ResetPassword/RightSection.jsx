@@ -22,16 +22,31 @@ export default function RightSection() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Extract token and type from URL parameters
+  // Extract token and type from URL parameters and validate
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const token = urlParams.get("token");
-    const type = urlParams.get("userType");
+    const userType = urlParams.get("userType");
 
-    if (token && type) {
-      setTokenData({ token, userType: type });
-      // You can add token validation here by calling backend
-      setIsValidToken(true);
+    if (token && userType) {
+      const validateToken = async () => {
+        try {
+          const res = await axios.get(
+            `http://localhost/backend/validate_token.php?token=${token}&userType=${userType}`
+          );
+          if (res.data.valid) {
+            setTokenData({ token, userType });
+            setIsValidToken(true);
+          } else {
+            setMessage(res.data.message || "Invalid or expired token.");
+            setIsValidToken(false);
+          }
+        } catch (error) {
+          setMessage("Error validating token. Please try again.");
+          setIsValidToken(false);
+        }
+      };
+      validateToken();
     } else {
       setMessage("Invalid or missing reset link. Please request a new one.");
       setIsValidToken(false);
@@ -90,7 +105,6 @@ export default function RightSection() {
 
       setMessage(res.data.message);
 
-      // If successful, redirect to login after 3 seconds
       if (res.data.success) {
         setTimeout(() => {
           navigate("/Login");
@@ -103,7 +117,6 @@ export default function RightSection() {
     }
   };
 
-  // If token is invalid, show error message
   if (!isValidToken && tokenData.token === "" && tokenData.userType === "") {
     return (
       <div className="w-full md:w-1/2 bg-white p-4 md:p-8 flex flex-col justify-center items-center min-h-screen">
@@ -238,7 +251,7 @@ export default function RightSection() {
               onClick={() => navigate("/Login")}
               className="text-green-600 hover:text-green-700 text-sm underline"
             >
-              Back to Login
+              {/* Back to Login */}
             </button>
           </div>
         </div>

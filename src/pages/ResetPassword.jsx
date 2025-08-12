@@ -20,9 +20,11 @@ const ResetPassword = () => {
 
   useEffect(() => {
     if (!token || !userType) {
-      setMessage("Invalid reset link. Please request a new password reset.");
+      navigate("/forgot-password", {
+        state: { message: "Invalid or expired reset link." },
+      });
     }
-  }, [token, userType]);
+  }, [token, userType, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

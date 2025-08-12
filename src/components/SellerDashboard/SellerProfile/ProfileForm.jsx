@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import ProfileFormField from "./ProfileFormField";
 import CountryDropdown from "./CountryDropdown";
@@ -7,6 +7,14 @@ import FileUploader from "../AddProduct/FileUploader";
 const ProfileForm = ({ profile, onChange, onUpload }) => {
   const [errors, setErrors] = useState({});
   const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+
+  // Set logo preview when profile loads with existing logo
+  useEffect(() => {
+    if (profile.business_logo) {
+      setLogoPreview(`http://localhost/backend/${profile.business_logo}`);
+    }
+  }, [profile.business_logo]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -21,6 +29,11 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
 
   const handleLogoUpload = (file) => {
     setLogoFile(file);
+    // Create preview URL for the selected file
+    if (file) {
+      const previewUrl = URL.createObjectURL(file);
+      setLogoPreview(previewUrl);
+    }
     if (onUpload) onUpload(file);
   };
 
@@ -32,9 +45,8 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
       "businessDescription",
       "country",
       "contactNumber",
-      "email",
       "address",
-    ];
+    ]; // Removed email from required fields
 
     requiredFields.forEach((field) => {
       if (!profile[field] || profile[field].trim() === "") {
@@ -42,9 +54,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
       }
     });
 
-    if (profile.email && !/\S+@\S+\.\S+/.test(profile.email)) {
-      newErrors.email = "Please enter a valid email address.";
-    }
+    // Email validation removed since it's read-only
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -52,12 +62,23 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
 
   const handleSubmit = async () => {
     if (validateForm()) {
+      // Get seller_id from sessionStorage
+      const sellerId = sessionStorage.getItem("seller_id") || profile.id;
+
+      if (!sellerId) {
+        alert("Seller ID not found. Please login again.");
+        return;
+      }
+
       const formData = new FormData();
-      formData.append("seller_id", profile.id || profile.seller_id);
+      formData.append("seller_id", sellerId);
+      formData.append("username", profile.contactName);
       formData.append("business_name", profile.businessName);
       formData.append("business_description", profile.businessDescription);
       formData.append("country", profile.country);
-      formData.append("email", profile.email);
+      formData.append("contact_number", profile.contactNumber);
+      // Email field removed since it cannot be changed
+      formData.append("address", profile.address);
       if (logoFile) formData.append("business_logo", logoFile);
 
       try {
@@ -70,6 +91,24 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
         );
         if (res.data.success) {
           alert("Profile Saved Successfully!");
+          // Always update sessionStorage seller object for sidebar (even if logo not changed)
+          try {
+            const seller = JSON.parse(sessionStorage.getItem("seller")) || {};
+            seller.username = profile.contactName;
+            seller.business_name = profile.businessName;
+            seller.business_description = profile.businessDescription;
+            seller.country = profile.country;
+            seller.contact_number = profile.contactNumber;
+            seller.address = profile.address;
+            // Update logo if changed
+            if (res.data.logo_path) {
+              seller.business_logo = res.data.logo_path;
+              onChange({ ...profile, business_logo: res.data.logo_path });
+              setLogoPreview(`http://localhost/backend/${res.data.logo_path}`);
+            }
+            sessionStorage.setItem("seller", JSON.stringify(seller));
+            window.dispatchEvent(new Event("storage"));
+          } catch (e) {}
         } else {
           alert("Profile update failed! " + (res.data.message || ""));
           console.log(res.data);
@@ -146,15 +185,41 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
               required
             />
 
-            <ProfileFormField
-              label="Email"
-              name="email"
-              type="email"
-              value={profile.email}
-              onChange={handleInputChange}
-              error={errors.email}
-              required
-            />
+            <div className="space-y-2">
+              <label className="block text-base font-semibold text-gray-500 flex items-center">
+                Email
+                <span className="ml-2 px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded-full">
+                  Read Only
+                </span>
+              </label>
+              <input
+                type="email"
+                name="email"
+                value={profile.email}
+                onChange={handleInputChange}
+                placeholder="Enter your email"
+                className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-xl focus:outline-none transition-all duration-300 cursor-not-allowed"
+                readOnly
+                disabled
+              />
+              <p className="text-sm text-gray-500 mt-1 flex items-center">
+                <svg
+                  className="w-4 h-4 mr-1 text-blue-500"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Email address cannot be changed for security reasons
+              </p>
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+              )}
+            </div>
 
             <ProfileFormField
               label="Address"
@@ -169,6 +234,26 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
 
         {/* File Uploader */}
         <div className="mt-8">
+          <label className="block text-base font-semibold text-gray-500 mb-4">
+            Business Logo
+          </label>
+
+          {/* Logo Preview */}
+          {logoPreview && (
+            <div className="mb-4 flex justify-center">
+              <div className="relative">
+                <img
+                  src={logoPreview}
+                  alt="Business Logo"
+                  className="w-32 h-32 object-cover rounded-lg border-2 border-green-200 shadow-md"
+                />
+                <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm">
+                  ✓
+                </div>
+              </div>
+            </div>
+          )}
+
           <FileUploader onUpload={handleLogoUpload} />
         </div>
 

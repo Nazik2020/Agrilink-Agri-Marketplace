@@ -1,20 +1,74 @@
 <?php
+
+// CORS headers for React frontend compatibility
 header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
 
-require_once "../config/Database.php";
-require_once "../models/Product.php";
+require_once 'db.php';
 
-// Get category ID from query
-$category_id = isset($_GET['category_id']) ? intval($_GET['category_id']) : 0;
+try {
+    // Get category filter if provided
+    $category = isset($_GET['category']) ? $_GET['category'] : null;
+    
+    // Build SQL query with average_rating and review_count, sorted by average_rating DESC, review_count DESC
+    if ($category && $category !== 'all') {
+        $sql = "SELECT p.*, s.business_name as seller_name, 
+                       COALESCE(AVG(r.rating), 0) AS average_rating, 
+                       COUNT(r.id) AS review_count
+                FROM products p 
+                LEFT JOIN sellers s ON p.seller_id = s.id 
+                LEFT JOIN reviews r ON p.id = r.product_id
+                WHERE p.category = ?
+                GROUP BY p.id
+                ORDER BY average_rating DESC, review_count DESC";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$category]);
+    } else {
+        $sql = "SELECT p.*, s.business_name as seller_name, 
+                       COALESCE(AVG(r.rating), 0) AS average_rating, 
+                       COUNT(r.id) AS review_count
+                FROM products p 
+                LEFT JOIN sellers s ON p.seller_id = s.id 
+                LEFT JOIN reviews r ON p.id = r.product_id
+                GROUP BY p.id
+                ORDER BY average_rating DESC, review_count DESC";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
+    }
+    
+    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Initialize DB and Product
-$database = new Database();
-$db = $database->connect();
+    // Process product images from JSON and cast average_rating to float
+    foreach ($products as &$product) {
+        if ($product['product_images']) {
+            $image_paths = json_decode($product['product_images'], true);
+            if (is_array($image_paths)) {
+                $product['product_images'] = array_map(function($image_path) {
+                    return "http://localhost/backend/get_image.php?path=" . urlencode($image_path);
+                }, $image_paths);
+            } else {
+                $product['product_images'] = [];
+            }
+        } else {
+            $product['product_images'] = [];
+        }
+        
+        // Ensure correct data types
+        $product['average_rating'] = isset($product['average_rating']) ? round((float)$product['average_rating'], 2) : null;
+        $product['review_count'] = isset($product['review_count']) ? (int)$product['review_count'] : 0;
+    }
+    
+    echo json_encode([
+        "success" => true,
+        "products" => $products
+    ]);
 
-$product = new Product($db);
-$products = $product->getByCategory($category_id);
-
-// Return JSON
-echo json_encode($products);
+} catch (PDOException $e) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Database error: " . $e->getMessage()
+    ]);
+}
 ?>

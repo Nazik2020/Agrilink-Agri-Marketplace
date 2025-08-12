@@ -1,12 +1,16 @@
 import React, { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import axios from "axios";
 import ProfileFormField from "../SellerProfile/ProfileFormField";
 import SpecialOfferDropdown from "./SpecialOfferDropdown";
 import ProductImageUploader from "./ProductImageUploader";
 
+const categories = ["Products", "Seeds", "Offers", "Fertilizer"];
+
 const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
   const [errors, setErrors] = useState({});
-  const [imageFile, setImageFile] = useState(null);
+  const [imageFiles, setImageFiles] = useState([]);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -14,19 +18,29 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+  const handleCategoryChange = (e) => {
+    onChange({ ...product, category: e.target.value });
+    setErrors((prev) => ({ ...prev, category: "" }));
+  };
+
   const handleSpecialOfferChange = (offer) => {
     onChange({ ...product, specialOffer: offer });
     setErrors((prev) => ({ ...prev, specialOffer: "" }));
   };
 
-  const handleImageUpload = (file) => {
-    setImageFile(file);
-    if (onUpload) onUpload(file);
+  const handleImageUpload = (files) => {
+    setImageFiles(files);
+    if (onUpload) onUpload(files);
   };
 
   const validateForm = () => {
     const newErrors = {};
-    const requiredFields = ["productName", "productDescription", "price"];
+    const requiredFields = [
+      "productName",
+      "productDescription",
+      "price",
+      "category",
+    ];
 
     requiredFields.forEach((field) => {
       if (!product[field] || product[field].trim() === "") {
@@ -51,12 +65,19 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
       formData.append("price", product.price);
       formData.append("special_offer", product.specialOffer);
       formData.append("category", product.category);
-      if (imageFile) formData.append("product_image", imageFile);
+
+      imageFiles.forEach((file) => {
+        formData.append("product_images[]", file);
+      });
 
       try {
-        const res = await axios.post("/backend/add_product.php", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        const res = await axios.post(
+          "http://localhost/backend/add_product.php",
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
 
         if (res.data.success) {
           alert("Product Listed Successfully!");
@@ -116,6 +137,58 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
               required
             />
 
+            {/* Category Dropdown (Nazik's version) */}
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">
+                Category *
+              </label>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowCategoryDropdown((prev) => !prev)}
+                  className={`w-full px-4 py-2 border rounded-xl text-left transition-all duration-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 hover:border-green-400 hover:shadow-md flex items-center justify-between ${
+                    errors.category ? "border-red-500" : "border-gray-300"
+                  }`}
+                >
+                  <span
+                    className={
+                      product.category ? "text-gray-900" : "text-gray-500"
+                    }
+                  >
+                    {product.category || "Select a Category"}
+                  </span>
+                  <ChevronDown
+                    size={20}
+                    className={`transition-transform duration-300 ${
+                      showCategoryDropdown ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {showCategoryDropdown && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => {
+                          handleCategoryChange({
+                            target: { value: cat, name: "category" },
+                          });
+                          setShowCategoryDropdown(false);
+                        }}
+                        className="w-full px-4 py-3 text-left hover:bg-green-50 hover:text-green-600 transition-colors duration-200 first:rounded-t-xl last:rounded-b-xl"
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {errors.category && (
+                <p className="text-red-500 text-sm mt-1">{errors.category}</p>
+              )}
+            </div>
+
             <SpecialOfferDropdown
               value={product.specialOffer}
               onChange={handleSpecialOfferChange}
@@ -123,7 +196,11 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
             />
 
             <div className="mt-8">
-              <ProductImageUploader onUpload={handleImageUpload} />
+              <ProductImageUploader
+                onUpload={handleImageUpload}
+                imageFiles={imageFiles}
+                maxImages={5}
+              />
             </div>
           </div>
         </div>

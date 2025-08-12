@@ -63,7 +63,7 @@ const TestimonialSection = () => {
 
         {/* Right Testimonial */}
         <div className="w-full lg:w-1/2 relative bg-white p-6 sm:p-8 lg:p-10 rounded-2xl shadow-lg border border-green-100">
-          <h3 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-green-700 mb-4 sm:mb-6 flex items-center gap-2">
+          <h3 className="text-2xl sm:text-3xl lg:text-4xl text-green-700 mb-4 sm:mb-6 flex items-center gap-2">
             <svg
               className="w-6 sm:w-7 lg:w-8 h-6 sm:h-7 lg:h-8 text-green-600"
               fill="currentColor"

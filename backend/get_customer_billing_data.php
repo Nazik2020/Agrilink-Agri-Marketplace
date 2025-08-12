@@ -1,7 +1,11 @@
 <?php
+// filepath: d:\Documents\GitHub\Agrilink-Agri-Marketplace\backend\get_customer_billing_data.php
+
+// CORS headers - MUST BE FIRST
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json; charset=UTF-8");
 
 // Handle preflight OPTIONS request
@@ -10,99 +14,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-require_once 'db.php';
-require_once 'CustomerDataManager.php';
-
 try {
     // Get customer ID from request
     $input = json_decode(file_get_contents('php://input'), true);
-    $customerId = $input['customer_id'] ?? null;
+    $customerId = $input['customer_id'] ?? $_GET['customer_id'] ?? 1;
+    $customerEmail = $input['customer_email'] ?? $_GET['customer_email'] ?? null;
+    error_log("[DEBUG] Received customer_id: " . var_export($customerId, true));
+    error_log("[DEBUG] Received customer_email: " . var_export($customerEmail, true));
 
-    if (!$customerId) {
-        echo json_encode([
-            "success" => false,
-            "message" => "Customer ID is required"
-        ]);
-        exit;
+    // Use correct DB connection
+    require_once __DIR__ . '/db.php';
+    
+    // PRIORITY: Always try to find by email first (logged-in user's email)
+    $customer = null;
+    if ($customerEmail) {
+        $queryEmail = "SELECT 
+                        id,
+                        full_name,
+                        username,
+                        email,
+                        address,
+                        contactno,
+                        country,
+                        postal_code
+                      FROM customers 
+                      WHERE email = ? 
+                      LIMIT 1";
+        $stmtEmail = $conn->prepare($queryEmail);
+        $stmtEmail->execute([$customerEmail]);
+        $customer = $stmtEmail->fetch(PDO::FETCH_ASSOC);
+        error_log("[DEBUG] DB query result by email: " . var_export($customer, true));
+    }
+    
+    // If not found by email, try by ID as fallback
+    if (!$customer) {
+        $query = "SELECT 
+                    id,
+                    full_name,
+                    username,
+                    email,
+                    address,
+                    contactno,
+                    country,
+                    postal_code
+                  FROM customers 
+                  WHERE id = ? 
+                  LIMIT 1";
+        $stmt = $conn->prepare($query);
+        $stmt->execute([$customerId]);
+        $customer = $stmt->fetch(PDO::FETCH_ASSOC);
+        error_log("[DEBUG] DB query result by id: " . var_export($customer, true));
     }
 
-    // Create CustomerDataManager instance
-    $customerManager = CustomerDataManager::createFromCustomerId($conn, $customerId);
-
-    if (!$customerManager) {
-        echo json_encode([
-            "success" => false,
-            "message" => "Customer not found"
-        ]);
-        exit;
-    }
-
-    // Validate customer data completeness
-    $validation = $customerManager->validateCustomerData();
-
-    // Always return data, even if incomplete - let frontend handle validation
-    $billingInfo = $customerManager->getBillingData();
-
-    if (!$validation['isValid']) {
-        // Return partial data with warning
-        echo json_encode([
-            "success" => false,
-            "message" => $validation['message'],
-            "missingFields" => $validation['missingFields'],
-            "billingData" => $billingInfo['billingData'], // Extract the actual billing data
-            "customerInfo" => [
-                "id" => $customerManager->getCustomerId(),
-                "name" => $customerManager->getCustomerName(),
-                "email" => $customerManager->getCustomerEmail(),
-                "address" => $customerManager->getCustomerAddress(),
-                "contact" => $customerManager->getCustomerContact(),
-                "country" => $customerManager->getCustomerCountry(),
-                "postal_code" => $customerManager->getCustomerPostalCode()
-            ]
-        ]);
-        exit;
-    }
-
-    // Get billing data
-    $billingInfo = $customerManager->getBillingData();
-
-    if ($billingInfo['hasCompleteProfile']) {
+    if ($customer) {
+        // return real customer data
         echo json_encode([
             "success" => true,
-            "message" => "All billing information auto-filled from your profile!",
-            "billingData" => $billingInfo['billingData'],
             "customerInfo" => [
-                "id" => $customerManager->getCustomerId(),
-                "name" => $customerManager->getCustomerName(),
-                "email" => $customerManager->getCustomerEmail(),
-                "address" => $customerManager->getCustomerAddress(),
-                "contact" => $customerManager->getCustomerContact(),
-                "country" => $customerManager->getCustomerCountry(),
-                "postal_code" => $customerManager->getCustomerPostalCode()
+                "id" => $customer['id'],
+                "name" => $customer['full_name'] ?: $customer['username'] ?: '',
+                "full_name" => $customer['full_name'] ?: $customer['username'] ?: '',
+                "email" => $customer['email'] ?: '',
+                "address" => $customer['address'] ?: '',
+                "contact" => $customer['contactno'] ?: '',
+                "country" => $customer['country'] ?: 'Sri Lanka',
+                "postal_code" => $customer['postal_code'] ?: ''
             ]
         ]);
     } else {
+        // customer not found - return error, don't auto-create
+        error_log("[DEBUG] No customer found for email: $customerEmail or id: $customerId");
         echo json_encode([
-            "success" => true,
-            "message" => "Some billing info auto-filled. Please complete: " . implode(', ', $billingInfo['missingFields']),
-            "billingData" => $billingInfo['billingData'],
-            "customerInfo" => [
-                "id" => $customerManager->getCustomerId(),
-                "name" => $customerManager->getCustomerName(),
-                "email" => $customerManager->getCustomerEmail(),
-                "address" => $customerManager->getCustomerAddress(),
-                "contact" => $customerManager->getCustomerContact(),
-                "country" => $customerManager->getCustomerCountry(),
-                "postal_code" => $customerManager->getCustomerPostalCode()
-            ]
+            "success" => false,
+            "message" => "Customer profile not found. Please complete your signup and profile.",
+            "customerInfo" => null
         ]);
     }
-
 } catch (Exception $e) {
-    error_log("Error in get_customer_billing_data.php: " . $e->getMessage());
+    // error
     echo json_encode([
         "success" => false,
-        "message" => "Internal server error"
+        "message" => $e->getMessage(),
+        "customerInfo" => null
     ]);
 }
-?> 
+?>

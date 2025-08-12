@@ -28,8 +28,23 @@ class StripePaymentService {
         // TODO: Install Stripe PHP SDK with: composer require stripe/stripe-php
         // \Stripe\Stripe::setApiKey($this->secretKey);
         
-        // For demo purposes, we'll create a mock Stripe object
+        // Enhanced mock Stripe object with proper card validation
         $this->stripe = new class {
+            // Stripe test card numbers
+            private $validTestCards = [
+                '4242424242424242' => ['brand' => 'visa', 'last4' => '4242', 'status' => 'succeeded'],
+                '5555555555554444' => ['brand' => 'mastercard', 'last4' => '4444', 'status' => 'succeeded'],
+                '378282246310005'  => ['brand' => 'amex', 'last4' => '0005', 'status' => 'succeeded'],
+            ];
+            
+            private $declineTestCards = [
+                '4000000000000002' => ['brand' => 'visa', 'last4' => '0002', 'error' => 'generic_decline'],
+                '4000000000009995' => ['brand' => 'visa', 'last4' => '9995', 'error' => 'insufficient_funds'],
+                '4000000000009987' => ['brand' => 'visa', 'last4' => '9987', 'error' => 'lost_card'],
+            ];
+            
+            private $currentCardNumber = null;
+            
             public function createPaymentIntent($params) {
                 // Simulate Stripe PaymentIntent creation
                 return (object) [
@@ -41,18 +56,56 @@ class StripePaymentService {
                 ];
             }
             
-            public function confirmPayment($paymentIntentId) {
-                // Simulate payment confirmation
-                return (object) [
-                    'id' => $paymentIntentId,
-                    'status' => 'succeeded',
-                    'payment_method' => (object) [
-                        'card' => (object) [
-                            'last4' => '4242',
-                            'brand' => 'visa'
+            public function confirmPayment($paymentIntentId, $cardNumber = null) {
+                // Store card number for validation
+                if ($cardNumber) {
+                    $this->currentCardNumber = $cardNumber;
+                }
+                
+                // If no card number provided, default to success (for existing flow)
+                if (!$this->currentCardNumber) {
+                    return (object) [
+                        'id' => $paymentIntentId,
+                        'status' => 'succeeded',
+                        'payment_method' => (object) [
+                            'card' => (object) [
+                                'last4' => '4242',
+                                'brand' => 'visa'
+                            ]
                         ]
-                    ]
-                ];
+                    ];
+                }
+                
+                // Clean card number (remove spaces)
+                $cleanCardNumber = str_replace(' ', '', $this->currentCardNumber);
+                
+                // Check if it's a valid success card
+                if (isset($this->validTestCards[$cleanCardNumber])) {
+                    $cardInfo = $this->validTestCards[$cleanCardNumber];
+                    return (object) [
+                        'id' => $paymentIntentId,
+                        'status' => 'succeeded',
+                        'payment_method' => (object) [
+                            'card' => (object) [
+                                'last4' => $cardInfo['last4'],
+                                'brand' => $cardInfo['brand']
+                            ]
+                        ]
+                    ];
+                }
+                
+                // Check if it's a decline card
+                if (isset($this->declineTestCards[$cleanCardNumber])) {
+                    $cardInfo = $this->declineTestCards[$cleanCardNumber];
+                    throw new Exception("Payment failed: " . $cardInfo['error']);
+                }
+                
+                // Invalid card number (not a recognized Stripe test card)
+                throw new Exception("Payment failed: invalid_card_number");
+            }
+            
+            public function setCardNumber($cardNumber) {
+                $this->currentCardNumber = $cardNumber;
             }
         };
     }
@@ -97,11 +150,23 @@ class StripePaymentService {
     }
     
     /**
+     * Set card number for payment validation
+     */
+    public function setCardNumber($cardNumber) {
+        $this->stripe->setCardNumber($cardNumber);
+    }
+    
+    /**
      * Confirm payment and get payment details
      */
-    public function confirmPayment($paymentIntentId) {
+    public function confirmPayment($paymentIntentId, $cardNumber = null) {
         try {
-            $paymentIntent = $this->stripe->confirmPayment($paymentIntentId);
+            // Set card number if provided
+            if ($cardNumber) {
+                $this->setCardNumber($cardNumber);
+            }
+            
+            $paymentIntent = $this->stripe->confirmPayment($paymentIntentId, $cardNumber);
             
             if ($paymentIntent->status === 'succeeded') {
                 return [
@@ -122,10 +187,35 @@ class StripePaymentService {
             
         } catch (Exception $e) {
             error_log("Stripe payment confirmation error: " . $e->getMessage());
-            return [
-                'success' => false,
-                'error' => 'Payment confirmation failed'
-            ];
+            
+            // Return specific error messages for different decline reasons
+            $errorMessage = $e->getMessage();
+            if (strpos($errorMessage, 'generic_decline') !== false) {
+                return [
+                    'success' => false,
+                    'error' => 'Your card was declined. Please try a different payment method.'
+                ];
+            } elseif (strpos($errorMessage, 'insufficient_funds') !== false) {
+                return [
+                    'success' => false,
+                    'error' => 'Your card has insufficient funds. Please try a different card.'
+                ];
+            } elseif (strpos($errorMessage, 'lost_card') !== false) {
+                return [
+                    'success' => false,
+                    'error' => 'Your card has been reported as lost or stolen.'
+                ];
+            } elseif (strpos($errorMessage, 'invalid_card_number') !== false) {
+                return [
+                    'success' => false,
+                    'error' => 'Invalid card number. Please use a valid test card number.'
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'error' => 'Payment confirmation failed'
+                ];
+            }
         }
     }
     

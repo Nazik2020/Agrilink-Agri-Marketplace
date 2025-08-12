@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+<<<<<<< HEAD
 import { CreditCard, Lock, CheckCircle, X, User, Mail, MapPin, Phone, Globe } from "lucide-react";
 import axios from "axios";
 import { useCart } from "../cart/CartContext";
@@ -8,6 +9,40 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
   const { items: cartItems, total: cartTotal, subtotal: cartSubtotal, shipping: cartShipping, tax: cartTax, clearCart, customerId } = useCart();
   
   // State management
+=======
+import {
+  CreditCard,
+  Lock,
+  CheckCircle,
+  Mail,
+  MapPin,
+  Phone,
+  Globe,
+  X,
+  User,
+} from "lucide-react";
+import axios from "axios";
+import { useCart } from "../cart/CartContext";
+
+const BuyNowModal = ({
+  isOpen,
+  onClose,
+  product,
+  quantity = 1,
+  isCartCheckout = false,
+}) => {
+  const {
+    items: cartItems,
+    total: cartTotal,
+    subtotal: cartSubtotal,
+    shipping: cartShipping,
+    tax: cartTax,
+    clearCart,
+    customerId,
+  } = useCart();
+
+  // State management - ALL HOOKS MUST BE AT THE TOP
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
   const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Success
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -38,12 +73,21 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
   // Order summary - handle both single product and cart checkout
   const unitPrice = parseFloat(product?.price || 0);
   const singleProductTotal = unitPrice * formData.quantity;
+<<<<<<< HEAD
   
   // Use cart totals if this is a cart checkout, otherwise use single product totals
   const totalAmount = isCartCheckout ? cartTotal : singleProductTotal;
   const subtotal = isCartCheckout ? cartSubtotal : singleProductTotal;
   const shipping = isCartCheckout ? cartShipping : 0;
   const tax = isCartCheckout ? cartTax : 0;
+=======
+
+  // Use cart totals if this is a cart checkout, otherwise use single product totals
+  const totalAmount = isCartCheckout ? cartTotal || 0 : singleProductTotal;
+  const shipping = isCartCheckout ? cartShipping || 0 : 0;
+  const tax = isCartCheckout ? cartTax || 0 : 0;
+  const subtotalValue = isCartCheckout ? cartSubtotal || 0 : singleProductTotal;
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
 
   // Load customer data when modal opens
   useEffect(() => {
@@ -53,6 +97,7 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
   }, [isOpen, customerId]);
 
   // Load customer data from database
+<<<<<<< HEAD
   const loadCustomerData = async () => {
     if (!customerId) {
       console.log("No customer ID available");
@@ -127,6 +172,8 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
   };
 
   // Load customer data from database
+=======
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
   useEffect(() => {
     if (isOpen) {
       loadStripeConfig();
@@ -147,6 +194,98 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
     };
   }, [isOpen]);
 
+<<<<<<< HEAD
+=======
+  // Early returns AFTER all hooks are defined
+  if (!isOpen) return null;
+
+  // Add safety checks for props
+  if (!onClose || typeof onClose !== "function") {
+    console.error(
+      "BuyNowModal: onClose prop is required and must be a function"
+    );
+    return null;
+  }
+
+  // Load customer data from database - GET REAL SIGNUP DATA
+  const loadCustomerData = async () => {
+    if (!customerId) {
+      console.log("No customer ID available");
+      return;
+    }
+
+    console.log("Loading REAL customer signup data for ID:", customerId);
+    setCustomerDataLoading(true);
+
+    try {
+      // Call backend API to get REAL customer signup data
+      // Get customer email from session storage for fallback
+      const userString = sessionStorage.getItem("user");
+      let customerEmail = null;
+      if (userString) {
+        try {
+          const user = JSON.parse(userString);
+          customerEmail = user.email;
+        } catch (e) {
+          console.error("Error parsing user from session:", e);
+        }
+      }
+
+      const response = await axios.post(
+        "http://localhost:8080/get_customer_billing_data.php",
+        {
+          customer_id: customerId,
+          customer_email: customerEmail,
+        }
+      );
+
+      console.log("Backend response:", response.data);
+
+      console.log("Backend response:", response.data);
+
+      if (
+        response.data &&
+        response.data.success &&
+        response.data.customerInfo
+      ) {
+        // Use REAL customer data from their signup/profile
+        const customerInfo = response.data.customerInfo;
+        setCustomerData(customerInfo);
+
+        // Auto-populate form with REAL signup data
+        setFormData((prev) => ({
+          ...prev,
+          billing_name: customerInfo.name || customerInfo.full_name || "",
+          billing_email: customerInfo.email || "",
+          billing_address: customerInfo.address || "",
+          billing_postal_code: customerInfo.postal_code || "",
+          billing_country: customerInfo.country || "Sri Lanka",
+          customer_id: customerId,
+        }));
+
+        setError("");
+        console.log("✅ Successfully loaded real customer data:", customerInfo);
+      } else {
+        // Backend returned success:false - show error and block checkout
+        setError(
+          "Unable to load your profile information. Please complete your profile before checkout."
+        );
+        setCustomerData(null);
+      }
+    } catch (error) {
+      console.error("❌ Error loading customer data:", error);
+
+      // Show error and prevent checkout if no profile found
+      setError(
+        "Unable to load your profile information. Please complete your profile before checkout."
+      );
+      setCustomerData(null);
+    } finally {
+      setCustomerDataLoading(false);
+    }
+  };
+
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
   // Handle backdrop click to close modal
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -155,6 +294,7 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
   };
 
   const loadStripeConfig = async () => {
+<<<<<<< HEAD
     try {
       const response = await axios.get(
         "http://localhost/backend/get_stripe_config.php"
@@ -166,6 +306,11 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
       console.error("Error loading Stripe config:", error);
       setError("Payment system unavailable");
     }
+=======
+    // Skip backend call - use mock key directly
+    setStripeKey("pk_test_mock_key_for_development");
+    console.log("Using mock Stripe key - payment will work");
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
   };
 
   // Handle form input changes
@@ -229,11 +374,16 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
     return errors;
   };
 
+<<<<<<< HEAD
   // Handle payment processing
+=======
+  // Handle payment processing - ONLY SPECIFIC CARDS ALLOWED
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
   const handlePayment = async () => {
     setError("");
     setLoading(true);
 
+<<<<<<< HEAD
     console.log("=== Payment Debug Info ===");
     console.log("Customer ID:", customerId);
     console.log("Customer Data:", customerData);
@@ -247,12 +397,18 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
       const validationErrors = validateForm();
       console.log("Validation Errors:", validationErrors);
       
+=======
+    try {
+      // Validate form first
+      const validationErrors = validateForm();
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
       if (validationErrors.length > 0) {
         setError(validationErrors.join(", "));
         setLoading(false);
         return;
       }
 
+<<<<<<< HEAD
       // Prepare checkout data
       const checkoutData = {
         action: "create_payment_intent",
@@ -295,12 +451,138 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
         }, 2000);
       } else {
         setError(response.data.error || "Payment failed");
+=======
+      // Get card number without spaces
+      const cardNumber = formData.card_number.replace(/\s/g, "");
+
+      // ONLY THESE CARDS ARE ALLOWED - NO RANDOM NUMBERS
+      const allowedCards = {
+        4242424242424242: "success", // ✅ Visa
+        5555555555554444: "success", // ✅ Mastercard
+        378282246310005: "success", // ✅ American Express
+        4000000000000002: "Your card was declined.", // ❌ Generic decline
+        4000000000009995: "Your card has insufficient funds.", // ❌ Insufficient funds
+        4000000000009987: "Your card was reported lost or stolen.", // ❌ Lost card
+      };
+
+      // Check if card number is in allowed list
+      if (!allowedCards.hasOwnProperty(cardNumber)) {
+        setError(
+          "Invalid card number. Please enter a valid Stripe test card number."
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Simulate processing time (2 seconds)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Check card result
+      if (allowedCards[cardNumber] === "success") {
+        // SUCCESS - Payment approved
+        console.log("Payment successful!");
+
+        // Build order payload with full product/order details
+        let orderPayload = {
+          customer_id: formData.customer_id,
+          card_number: cardNumber,
+          order_total: totalAmount,
+          billing_name: formData.billing_name,
+          billing_email: formData.billing_email,
+          billing_address: formData.billing_address,
+          billing_postal_code: formData.billing_postal_code,
+          billing_country: formData.billing_country,
+        };
+
+        let purchasedProductIds = [];
+
+        if (isCartCheckout) {
+          // Cart checkout: send all cart items
+          orderPayload.cart_items = cartItems.map((item) => ({
+            product_id: item.product_id,
+            product_name: item.product_name,
+            quantity: item.quantity,
+            price: item.price,
+            product_images: item.product_images,
+            seller_id: item.seller_id || item.sellerId || null,
+          }));
+          orderPayload.subtotal = cartSubtotal;
+          orderPayload.shipping = cartShipping;
+          orderPayload.tax = cartTax;
+          purchasedProductIds = cartItems.map((item) => item.product_id);
+        } else {
+          // Single product checkout
+          orderPayload.product_id = product?.id || product?.product_id;
+          orderPayload.product_name = product?.name;
+          orderPayload.quantity = formData.quantity;
+          orderPayload.price = product?.price;
+          orderPayload.product_images = product?.images?.[0] || "";
+          orderPayload.seller_id = product?.seller_id || product?.sellerId || null;
+          if (product?.id || product?.product_id) {
+            purchasedProductIds = [product.id || product.product_id];
+          }
+        }
+
+        // Send order to backend to record all details
+        try {
+          console.log("Order payload sent to backend:", orderPayload);
+
+          // Real POST request to backend
+          const response = await axios.post(
+            "http://localhost/Agrilink-Agri-Marketplace/backend/add_order_simple.php",
+            orderPayload
+          );
+
+          console.log("Backend response:", response.data);
+
+          if (!response.data.success) {
+            setError(
+              "Order failed: " + (response.data.message || "Unknown error")
+            );
+            setLoading(false);
+            return;
+          }
+        } catch (err) {
+          console.error("Error sending order to backend:", err);
+          setError("Error sending order to backend: " + err.message);
+          setLoading(false);
+          return;
+        }
+
+        // Dispatch custom event for each purchased product to update ProductDetails page
+        if (purchasedProductIds.length > 0) {
+          purchasedProductIds.forEach((productId) => {
+            console.log(
+              "[BuyNowModal] Dispatching orderPaid event for productId:",
+              productId,
+              typeof productId
+            );
+            window.dispatchEvent(
+              new CustomEvent("orderPaid", { detail: { productId } })
+            );
+          });
+        }
+
+        if (isCartCheckout) {
+          clearCart(); // Clear cart on successful payment
+        }
+
+        setStep(3); // Go to success page
+        setLoading(false);
+      } else {
+        // DECLINED - Show specific error message
+        setError(allowedCards[cardNumber]);
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
         setLoading(false);
       }
     } catch (error) {
       console.error("Payment error:", error);
+<<<<<<< HEAD
       console.error("Error response:", error.response?.data);
       setError("Payment processing failed");
+=======
+      setError("Payment processing failed. Please try again.");
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
       setLoading(false);
     }
   };
@@ -325,17 +607,28 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
       quantity: quantity,
       customer_id: customerId || 1,
     });
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
     // Clear cart if this was a cart checkout and payment was successful
     if (isCartCheckout && step === 3) {
       clearCart();
     }
+<<<<<<< HEAD
     
     onClose();
   };
 
   if (!isOpen) return null;
 
+=======
+
+    onClose();
+  };
+
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
   const modalContent = (
     <div
       className="fixed inset-0 flex items-center justify-center p-4"
@@ -452,6 +745,7 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
                 <h3 className="font-bold text-lg mb-3 text-gray-800">
                   Order Summary
                 </h3>
+<<<<<<< HEAD
                 
                 {isCartCheckout ? (
                   // Cart checkout - show all cart items
@@ -460,6 +754,25 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
                       <div key={index} className="flex items-center space-x-4">
                         <img
                           src={item.product_images ? `http://localhost/backend/${item.product_images.split(',')[0]}` : "/placeholder.svg"}
+=======
+
+                {isCartCheckout ? (
+                  // Cart checkout - show all cart items
+                  <div className="space-y-3">
+                    {cartItems.map((item) => (
+                      <div
+                        key={item.product_id}
+                        className="flex items-center space-x-4"
+                      >
+                        <img
+                          src={
+                            item.product_images
+                              ? `http://localhost/backend/${
+                                  item.product_images.split(",")[0]
+                                }`
+                              : "/placeholder.svg"
+                          }
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                           alt={item.product_name}
                           className="w-16 h-16 object-cover rounded-lg border border-green-200"
                         />
@@ -472,18 +785,34 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
                           </p>
                         </div>
                         <div className="text-right">
+<<<<<<< HEAD
                           <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
                           <div className="font-semibold text-gray-800">
                             ${(parseFloat(item.price) * item.quantity).toFixed(2)}
+=======
+                          <span className="text-sm text-gray-600">
+                            Qty: {item.quantity}
+                          </span>
+                          <div className="font-semibold text-gray-800">
+                            $
+                            {(parseFloat(item.price) * item.quantity).toFixed(
+                              2
+                            )}
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                           </div>
                         </div>
                       </div>
                     ))}
+<<<<<<< HEAD
                     
+=======
+
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                     {/* Cart totals */}
                     <div className="border-t border-green-200 mt-4 pt-4 space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Subtotal:</span>
+<<<<<<< HEAD
                         <span className="font-semibold">${subtotal.toFixed(2)}</span>
                       </div>
                       {shipping > 0 && (
@@ -496,12 +825,36 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
                         <div className="flex justify-between items-center">
                           <span className="text-gray-600">Tax:</span>
                           <span className="font-semibold">${tax.toFixed(2)}</span>
+=======
+                        <span className="font-semibold">
+                          ${(cartSubtotal || 0).toFixed(2)}
+                        </span>
+                      </div>
+                      {(cartShipping || 0) > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Shipping:</span>
+                          <span className="font-semibold">
+                            ${(cartShipping || 0).toFixed(2)}
+                          </span>
+                        </div>
+                      )}
+                      {(cartTax || 0) > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">Tax:</span>
+                          <span className="font-semibold">
+                            ${(cartTax || 0).toFixed(2)}
+                          </span>
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                         </div>
                       )}
                       <div className="flex justify-between items-center text-lg">
                         <span className="font-bold text-gray-800">Total:</span>
                         <span className="font-bold text-xl text-green-600">
+<<<<<<< HEAD
                           ${totalAmount.toFixed(2)}
+=======
+                          ${(totalAmount || 0).toFixed(2)}
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                         </span>
                       </div>
                     </div>
@@ -542,7 +895,11 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
                     </div>
                   </div>
                 )}
+<<<<<<< HEAD
                 
+=======
+
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                 {!isCartCheckout && (
                   <div className="border-t border-green-200 mt-4 pt-4 flex justify-between items-center">
                     <span className="font-bold text-lg text-gray-800">
@@ -570,7 +927,13 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
                 {customerDataLoading ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto mb-4"></div>
+<<<<<<< HEAD
                     <p className="text-gray-600">Loading your billing information...</p>
+=======
+                    <p className="text-gray-600">
+                      Loading your billing information...
+                    </p>
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                   </div>
                 ) : customerData ? (
                   <div className="space-y-4">
@@ -662,18 +1025,40 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
                     {/* Information Message */}
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                       <p className="text-sm text-blue-700 flex items-center">
+<<<<<<< HEAD
                         <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                         </svg>
                         Billing information is automatically filled from your profile and cannot be changed here. 
                         To update your information, please visit your profile page.
+=======
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        Billing information is automatically filled from your
+                        profile and cannot be changed here. To update your
+                        information, please visit your profile page.
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                       </p>
                     </div>
                   </div>
                 ) : (
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                     <p className="text-red-700 text-sm">
+<<<<<<< HEAD
                       Unable to load your billing information. Please ensure your profile is complete.
+=======
+                      Unable to load your billing information. Please ensure
+                      your profile is complete.
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                     </p>
                   </div>
                 )}
@@ -764,10 +1149,27 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
                       </span>
                     </div>
                     <div className="text-sm text-gray-600">
+<<<<<<< HEAD
                       {cartItems.map((item, index) => (
                         <div key={index} className="flex justify-between">
                           <span>{item.product_name} × {item.quantity}</span>
                           <span>${(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
+=======
+                      {cartItems.map((item) => (
+                        <div
+                          key={item.product_id}
+                          className="flex justify-between"
+                        >
+                          <span>
+                            {item.product_name} × {item.quantity}
+                          </span>
+                          <span>
+                            $
+                            {(parseFloat(item.price) * item.quantity).toFixed(
+                              2
+                            )}
+                          </span>
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                         </div>
                       ))}
                     </div>
@@ -834,6 +1236,7 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
                 </p>
                 {isCartCheckout ? (
                   <div className="space-y-2">
+<<<<<<< HEAD
                     {cartItems.map((item, index) => (
                       <p key={index} className="text-gray-700">
                         {item.product_name} × {item.quantity}
@@ -841,6 +1244,16 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
                     ))}
                     <p className="font-bold text-xl text-green-600">
                       Total: ${totalAmount.toFixed(2)}
+=======
+                    {cartItems.map((item) => (
+                      <p key={item.product_id} className="text-gray-700">
+                        {item.product_name} × {item.quantity}
+                      </p>
+                    ))}
+                    {/* Force display of actual cart total */}
+                    <p className="font-bold text-xl text-green-600">
+                      Total: ${Number(cartTotal || totalAmount).toFixed(2)}
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                     </p>
                   </div>
                 ) : (
@@ -848,8 +1261,15 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
                     <p className="text-gray-700 mb-1">
                       {product?.name} × {formData.quantity}
                     </p>
+<<<<<<< HEAD
                     <p className="font-bold text-xl text-green-600">
                       Total: ${totalAmount.toFixed(2)}
+=======
+                    {/* Ensure product price is correctly displayed */}
+                    <p className="font-bold text-xl text-green-600">
+                      Total: $
+                      {(Number(product?.price) * formData.quantity).toFixed(2)}
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                     </p>
                   </>
                 )}
@@ -868,7 +1288,16 @@ const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = 
   );
 
   // Use createPortal to render the modal at the root level
+<<<<<<< HEAD
   return createPortal(modalContent, document.body);
+=======
+  try {
+    return createPortal(modalContent, document.body);
+  } catch (error) {
+    console.error("BuyNowModal render error:", error);
+    return null;
+  }
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
 };
 
 export default BuyNowModal;

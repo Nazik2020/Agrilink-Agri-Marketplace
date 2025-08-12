@@ -124,6 +124,7 @@ class Cart {
                     p.product_description,
                     p.product_images,
                     p.category,
+                    p.seller_id as seller_id,
                     s.business_name as seller_name
                 FROM cart c
                 JOIN cart_items ci ON c.cart_id = ci.cart_id

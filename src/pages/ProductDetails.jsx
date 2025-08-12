@@ -15,6 +15,7 @@ import { FaStar, FaArrowLeft, FaShoppingCart } from "react-icons/fa";
 import Footer from "../components/common/Footer";
 import CustomizationModal from "../components/marketplace/CustomizationModal";
 import { useCart } from "../components/cart/CartContext";
+import StarRating from "../components/marketplace/StarRating";
 import SimpleWishlistButton from "../components/wishlist/SimpleWishlistButton";
 import { FlagButton } from "../components/Flag";
 import axios from "axios";
@@ -22,36 +23,39 @@ import axios from "axios";
 // Function to fetch product details from backend
 const fetchProductDetails = async (productId) => {
   try {
-    // Try different possible backend URLs
-    const possibleUrls = [
-      `http://localhost/backend/get_product_details.php?id=${productId}`,
-      `http://localhost:8000/get_product_details.php?id=${productId}`,
-      `http://localhost:80/backend/get_product_details.php?id=${productId}`,
-    ];
-
-    let response;
-    let lastError;
-
-    for (const url of possibleUrls) {
-      try {
-        response = await axios.get(url);
-        if (response.data.success) {
-          return response.data.product;
-        }
-      } catch (error) {
-        lastError = error;
-        continue;
-      }
+    // Always use the correct backend port for product details
+    const url = `http://localhost:8080/get_product_details.php?id=${productId}`;
+    const response = await axios.get(url);
+    if (response.data.success) {
+      return response.data.product;
+    } else {
+      throw new Error(
+        response.data.message || "Failed to fetch product details"
+      );
     }
-
-    throw (
-      lastError || new Error("Failed to fetch product details from any URL")
-    );
   } catch (error) {
     console.error("Error fetching product details:", error);
     throw error;
   }
 };
+
+// Exported React hook for use in checkout/payment flow
+// Usage example in your checkout/payment component:
+//   import { useProductDetailsRefresh } from "./ProductDetails";
+//   const refreshProductDetails = useProductDetailsRefresh(productId, setProduct);
+//   // After successful payment:
+//   refreshProductDetails();
+export function useProductDetailsRefresh(productId, setProduct) {
+  return () => {
+    if (productId) {
+      fetchProductDetails(productId)
+        .then((data) => setProduct(data))
+        .catch((error) =>
+          console.error("Error refreshing product details:", error)
+        );
+    }
+  };
+}
 
 function ProductDetails() {
   const navigate = useNavigate();
@@ -61,7 +65,7 @@ function ProductDetails() {
   // SECTION: State Management
   const [product, setProduct] = useState(null);
   const [mainImg, setMainImg] = useState("");
-  const [quantity, setQuantity] = useState(1);
+  // Removed quantity state; quantity is now managed in the cart only
   const [showCustomize, setShowCustomize] = useState(false);
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
@@ -72,6 +76,32 @@ function ProductDetails() {
   const [editingReviewId, setEditingReviewId] = useState(null);
   const [editReviewText, setEditReviewText] = useState("");
   const [editReviewRating, setEditReviewRating] = useState(5);
+
+  // Listen for a custom event after payment to refresh product details
+  useEffect(() => {
+    function handleOrderPaid(e) {
+      console.log(
+        "[ProductDetails] orderPaid event received:",
+        e.detail,
+        "Current page id:",
+        id,
+        typeof id
+      );
+      // e.detail.productId can be used to filter, but here we always refresh
+      if (id) {
+        fetchProductDetails(id)
+          .then((data) => setProduct(data))
+          .catch((error) =>
+            console.error(
+              "Error refreshing product details after payment:",
+              error
+            )
+          );
+      }
+    }
+    window.addEventListener("orderPaid", handleOrderPaid);
+    return () => window.removeEventListener("orderPaid", handleOrderPaid);
+  }, [id]);
 
   // SECTION: Data Fetching
   useEffect(() => {
@@ -101,29 +131,35 @@ function ProductDetails() {
     }
   }, [id]);
 
+  // Add to Cart logic (unchanged)
   const handleAddToCart = () => {
     if (product) {
-      for (let i = 0; i < quantity; i++) {
-        addToCart({
-          id: product.id,
-          name: product.name,
-          seller: product.seller.name,
-          category: product.category,
-          price: product.price,
-          maxQuantity: 100, // Default max quantity since we don't have this field
-        });
-      }
+      addToCart({
+        id: product.id,
+        name: product.name,
+        seller: product.seller.name,
+        category: product.category,
+        price: product.price,
+        quantity: 1, // Always add 1, user can adjust in cart
+        maxQuantity: 100, // Default max quantity since we don't have this field
+      });
     }
   };
+
+  // To refresh product details (e.g., after payment), use the hook:
+  //   import { useProductDetailsRefresh } from "./ProductDetails";
+  //   const refreshProductDetails = useProductDetailsRefresh(product.id, setProduct);
+  //   // After successful payment:
+  //   refreshProductDetails();
 
   // Fetch reviews from backend
   const fetchReviews = async (productId) => {
     try {
       const response = await axios.get(
-        `http://localhost/backend/get_reviews.php?product_id=${productId}`
+        `http://localhost:8080/review_and_ratings/get_reviews.php?product_id=${productId}`
       );
-      console.log("Raw get_reviews.php response:", response.data);
       if (response.data && response.data.reviews) {
+        // No filtering: show all reviews, including multiple from same user
         const mappedReviews = response.data.reviews.map((r) => ({
           id: r.id,
           customer_id: r.customer_id,
@@ -131,7 +167,6 @@ function ProductDetails() {
           rating: r.rating,
           text: r.review_text,
         }));
-        console.log("Fetched reviews:", mappedReviews);
         setReviews(mappedReviews);
       } else {
         setReviews([]);
@@ -162,7 +197,7 @@ function ProductDetails() {
     if (reviewText.trim()) {
       try {
         const response = await axios.post(
-          "http://localhost/backend/add_review.php",
+          "http://localhost:8080/review_and_ratings/add_review.php",
           {
             product_id: id,
             customer_id: customerId,
@@ -175,6 +210,8 @@ function ProductDetails() {
           setReviewRating(5);
           setReviewSuccess(true);
           fetchReviews(id); // Refresh reviews from backend
+          // Refresh product details to update average rating
+          fetchProductDetails(id).then((data) => setProduct(data));
           setTimeout(() => setReviewSuccess(false), 3000);
         } else {
           alert(response.data.message || "Failed to add review.");
@@ -185,7 +222,7 @@ function ProductDetails() {
     }
   };
 
-  // Edit review handlers
+  // Edit review handlers (allow editing any review by current user)
   const handleEditClick = (review) => {
     setEditingReviewId(review.id);
     setEditReviewText(review.text);
@@ -204,8 +241,9 @@ function ProductDetails() {
       return;
     }
     try {
+      // To edit, you may want to call a dedicated edit_review.php, but for now, just add a new review (as per backend logic)
       const response = await axios.post(
-        "http://localhost/backend/add_review.php",
+        "http://localhost:8080/review_and_ratings/add_review.php",
         {
           product_id: id,
           customer_id: customerId,
@@ -218,6 +256,8 @@ function ProductDetails() {
         setEditReviewText("");
         setEditReviewRating(5);
         fetchReviews(id);
+        // Refresh product details to update average rating
+        fetchProductDetails(id).then((data) => setProduct(data));
       } else {
         alert(response.data.message || "Failed to update review.");
       }
@@ -233,7 +273,7 @@ function ProductDetails() {
     }
     try {
       const response = await axios.post(
-        "http://localhost/backend/delete_review.php",
+        "http://localhost:8080/review_and_ratings/delete_review.php",
         {
           review_id: reviewId,
           customer_id: customerId,
@@ -241,6 +281,8 @@ function ProductDetails() {
       );
       if (response.data.success) {
         fetchReviews(id); // Refresh reviews from backend
+        // Refresh product details to update average rating
+        fetchProductDetails(id).then((data) => setProduct(data));
       } else {
         alert(response.data.message || "Failed to delete review.");
       }
@@ -362,6 +404,10 @@ function ProductDetails() {
               {product.category}
             </div>
             <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+            {/* Average Rating */}
+            <div className="mb-2">
+              <StarRating rating={product.average_rating} />
+            </div>
             <div className="flex items-center gap-2 mb-2">
               <span className="text-gray-600 text-base">
                 by {product.seller.name}
@@ -370,6 +416,21 @@ function ProductDetails() {
             <div className="flex items-center gap-3 mb-2">
               <span className="text-green-600 text-3xl font-bold">
                 ${parseFloat(product.price).toFixed(2)}
+              </span>
+            </div>
+            {/* Stock/Quantity Left */}
+            <div className="mb-2">
+              <span className="font-semibold text-gray-800">
+                Quantity Left:{" "}
+              </span>
+              <span
+                className={
+                  product.stock > 0
+                    ? "text-green-700"
+                    : "text-red-600 font-bold"
+                }
+              >
+                {product.stock > 0 ? product.stock : "Out of Stock"}
               </span>
             </div>
             <p className="text-gray-700 mb-6 text-lg">{product.description}</p>
@@ -394,25 +455,7 @@ function ProductDetails() {
               </div>
             </div>
 
-            {/* SECTION: Quantity Selector */}
-            <div className="flex items-center gap-3 mb-6">
-              <span className="font-semibold text-lg">Quantity:</span>
-              <button
-                className="border px-3 py-1 rounded text-xl cursor-pointer hover:bg-gray-100"
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              >
-                -
-              </button>
-              <span className="text-lg min-w-[50px] text-center">
-                {quantity}
-              </span>
-              <button
-                className="border px-3 py-1 rounded text-xl cursor-pointer hover:bg-gray-100"
-                onClick={() => setQuantity((q) => q + 1)}
-              >
-                +
-              </button>
-            </div>
+            {/* Quantity selector removed; adjust quantity in cart */}
 
             {/* SECTION: Seller Information */}
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
@@ -462,6 +505,8 @@ function ProductDetails() {
               </button>
               <SimpleWishlistButton productId={product.id} />
             </div>
+            {/* IMPORTANT: After payment in your checkout flow, call refreshProductDetails() here if user is on this page */}
+            {/* IMPORTANT: After payment in your checkout flow, call refreshProductDetails() here if user is on this page */}
             {/* Only show customization button for logged-in customers */}
             {currentUser && currentUser.role === "customer" ? (
               <button
@@ -545,9 +590,9 @@ function ProductDetails() {
               {reviews.length === 0 && (
                 <div className="text-gray-500">No reviews yet.</div>
               )}
-              {reviews.map((review, idx) => (
+              {reviews.map((review) => (
                 <div
-                  key={idx}
+                  key={review.id}
                   className="bg-white rounded-xl shadow p-4 flex flex-col gap-1"
                 >
                   <div className="flex items-center gap-2">

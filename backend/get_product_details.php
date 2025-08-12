@@ -43,6 +43,12 @@ try {
         $product['product_images'] = [];
     }
     
+    // Calculate average rating for this product
+    $avgStmt = $conn->prepare("SELECT AVG(rating) as avg_rating FROM reviews WHERE product_id = ?");
+    $avgStmt->execute([$product_id]);
+    $avg = $avgStmt->fetch(PDO::FETCH_ASSOC);
+    $average_rating = $avg && $avg['avg_rating'] !== null ? round($avg['avg_rating'], 2) : null;
+
     // Format the response
     $response = [
         "success" => true,
@@ -55,8 +61,9 @@ try {
             "special_offer" => $product['special_offer'],
             "images" => $product['product_images'],
             "created_at" => $product['created_at'],
+            "average_rating" => $average_rating,
+            "stock" => isset($product['stock']) ? intval($product['stock']) : 0,
             "seller" => [
-                "id" => isset($product['seller_id']) ? (int)$product['seller_id'] : null,
                 "name" => $product['seller_name'],
                 "description" => $product['seller_description'],
                 "contact" => $product['seller_contact'],
@@ -66,7 +73,7 @@ try {
             ]
         ]
     ];
-    
+
     echo json_encode($response);
 
 } catch (PDOException $e) {

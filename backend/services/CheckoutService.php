@@ -19,6 +19,10 @@ class CheckoutService {
         $this->conn = $database;
         $this->orderModel = new Order($database);
         $this->paymentService = new StripePaymentService();
+        
+        // Set up error logging to file
+        ini_set('log_errors', 1);
+        ini_set('error_log', __DIR__ . '/../debug.log');
     }
     
     /**
@@ -28,10 +32,12 @@ class CheckoutService {
         try {
             // Step 1: Validate checkout data
             $validation = $this->validateCheckoutData($checkoutData);
+            
             if (!$validation['valid']) {
+                // Return detailed validation errors for debugging
                 return [
                     'success' => false,
-                    'error' => 'Validation failed',
+                    'error' => 'Validation failed: ' . implode(', ', $validation['errors']),
                     'details' => $validation['errors']
                 ];
             }
@@ -49,7 +55,7 @@ class CheckoutService {
             error_log("CheckoutService error: " . $e->getMessage());
             return [
                 'success' => false,
-                'error' => 'Checkout processing failed'
+                'error' => 'Checkout processing failed: ' . $e->getMessage()
             ];
         }
     }
@@ -235,25 +241,54 @@ class CheckoutService {
     }
     
     /**
-     * Confirm payment and update order
+     * Confirm payment and update order status
      */
-    public function confirmPayment($paymentIntentId, $orderId) {
+    public function confirmPayment($paymentIntentId, $orderIds, $cardNumber = null) {
         try {
-            // Confirm payment with Stripe
-            $paymentResult = $this->paymentService->confirmPayment($paymentIntentId);
+            error_log("confirmPayment called with paymentIntentId: " . $paymentIntentId);
+            error_log("confirmPayment called with orderIds: " . json_encode($orderIds));
+            error_log("confirmPayment called with cardNumber: " . ($cardNumber ? substr($cardNumber, 0, 4) . '****' : 'null'));
+            
+            // Confirm payment with Stripe, including card number for validation
+            $paymentResult = $this->paymentService->confirmPayment($paymentIntentId, $cardNumber);
+            error_log("Payment result: " . json_encode($paymentResult));
             
             if ($paymentResult['success']) {
-                // Update order status
-                $this->orderModel->updateStatus($orderId, 'processing', 'completed');
+                // Handle both single order and multiple orders (cart checkout)
+                $orderIdsArray = is_array($orderIds) ? $orderIds : [$orderIds];
+                error_log("Order IDs array: " . json_encode($orderIdsArray));
                 
-                return [
-                    'success' => true,
-                    'message' => 'Payment confirmed successfully',
-                    'payment' => $paymentResult['payment']
-                ];
+                $updatedCount = 0;
+                foreach ($orderIdsArray as $orderId) {
+                    error_log("Updating order ID: " . $orderId);
+                    $updateResult = $this->orderModel->updateStatus($orderId, 'processing', 'completed');
+                    error_log("Update result for order " . $orderId . ": " . ($updateResult ? 'success' : 'failed'));
+                    if ($updateResult) {
+                        $updatedCount++;
+                    }
+                }
+                
+                error_log("Total updated orders: " . $updatedCount);
+                
+                if ($updatedCount > 0) {
+                    return [
+                        'success' => true,
+                        'message' => "Payment confirmed successfully. {$updatedCount} order(s) updated.",
+                        'payment' => $paymentResult['payment'],
+                        'updated_orders' => $updatedCount
+                    ];
+                } else {
+                    return [
+                        'success' => false,
+                        'error' => 'Payment confirmed but order status update failed'
+                    ];
+                }
             } else {
-                // Update order with failed status
-                $this->orderModel->updateStatus($orderId, 'cancelled', 'failed');
+                // Update order(s) with failed status
+                $orderIdsArray = is_array($orderIds) ? $orderIds : [$orderIds];
+                foreach ($orderIdsArray as $orderId) {
+                    $this->orderModel->updateStatus($orderId, 'cancelled', 'failed');
+                }
                 
                 return [
                     'success' => false,
@@ -276,20 +311,30 @@ class CheckoutService {
     private function validateCheckoutData($data) {
         $errors = [];
         
+        // Debug log what we're validating
+        error_log("Validating checkout data: " . json_encode($data));
+        
         // Check if this is a cart checkout or single product checkout
         $isCartCheckout = isset($data['cart_items']) && is_array($data['cart_items']) && !empty($data['cart_items']);
+        
+        error_log("Is cart checkout: " . ($isCartCheckout ? 'yes' : 'no'));
         
         if ($isCartCheckout) {
             // Cart checkout validation
             $required = [
                 'customer_id', 'billing_name', 'billing_email', 'billing_address', 
-                'billing_postal_code', 'billing_country', 'cart_items', 'total_amount'
+                'billing_postal_code', 'billing_country', 'cart_items'
             ];
             
             foreach ($required as $field) {
                 if (empty($data[$field])) {
                     $errors[] = "Missing required field: {$field}";
                 }
+            }
+            
+            // Validate total_amount separately (allow 0 but not empty/null)
+            if (!isset($data['total_amount']) || !is_numeric($data['total_amount']) || floatval($data['total_amount']) < 0) {
+                $errors[] = "Missing or invalid total_amount";
             }
             
             // Validate cart items structure
@@ -301,7 +346,7 @@ class CheckoutService {
                     if (empty($item['quantity']) || $item['quantity'] <= 0) {
                         $errors[] = "Cart item {$index}: Invalid quantity";
                     }
-                    if (!isset($item['price']) || $item['price'] <= 0) {
+                    if (!isset($item['price']) || !is_numeric($item['price']) || floatval($item['price']) < 0) {
                         $errors[] = "Cart item {$index}: Invalid price";
                     }
                 }
@@ -329,6 +374,8 @@ class CheckoutService {
         if (isset($data['billing_email']) && !filter_var($data['billing_email'], FILTER_VALIDATE_EMAIL)) {
             $errors[] = "Invalid email format";
         }
+        
+        error_log("Validation errors: " . json_encode($errors));
         
         return [
             'valid' => empty($errors),

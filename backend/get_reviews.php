@@ -9,8 +9,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-require_once 'db.php';
-require_once 'Review.php';
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/review_and_ratings/Review.php';
 
 try {
     // Accept product_id from GET (for frontend) or POST/JSON (for flexibility)

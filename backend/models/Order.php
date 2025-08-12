@@ -38,24 +38,18 @@ class Order {
     }
     
     /**
-     * Generate a unique order ID in the format: ORD-YYYYMMDD-XXXX
+     * Generate a unique order number in the format: ORD-YYYYMMDD-XXXX
      */
-    private function generateOrderId() {
-        $datePart = date('Ymd'); // e.g., 20250727
+    private function generateOrderNumber() {
+        $datePart = date('Ymd'); // e.g., 20250801
 
         // Get the last order number for today
-        $sql = "SELECT id FROM {$this->table} WHERE id LIKE ? ORDER BY id DESC LIMIT 1";
+        $sql = "SELECT COUNT(*) FROM {$this->table} WHERE DATE(created_at) = CURDATE()";
         $stmt = $this->conn->prepare($sql);
-        $stmt->execute(["ORD-$datePart-%"]);
-        $lastId = $stmt->fetchColumn();
+        $stmt->execute();
+        $todayCount = $stmt->fetchColumn();
 
-        if ($lastId) {
-            $lastNumber = (int)substr($lastId, -4); // Get last 4 digits
-            $nextNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
-        } else {
-            $nextNumber = '0001';
-        }
-
+        $nextNumber = str_pad($todayCount + 1, 4, '0', STR_PAD_LEFT);
         return "ORD-$datePart-$nextNumber";
     }
 
@@ -65,27 +59,42 @@ class Order {
     public function create($orderData) {
         try {
             error_log("Order creation attempt - Data: " . json_encode($orderData));
-            
-            // Generate unique order ID
-            $orderId = $this->generateOrderId();
-            $orderData['id'] = $orderId;
-            
-            error_log("Generated Order ID: " . $orderId);
-            
+
+            // Validate required fields
+            $required = [
+                'customer_id', 'seller_id', 'product_id', 'product_name', 'quantity',
+                'unit_price', 'total_amount', 'order_status', 'payment_status',
+                'payment_method', 'billing_name', 'billing_email', 'billing_address',
+                'billing_postal_code', 'billing_country', 'card_last_four', 'transaction_id'
+            ];
+            $missing = [];
+            foreach ($required as $field) {
+                if (!isset($orderData[$field]) || $orderData[$field] === null || $orderData[$field] === '') {
+                    $missing[] = $field;
+                }
+            }
+            if (count($missing) > 0) {
+                error_log("Order creation failed: Missing required fields: " . implode(", ", $missing));
+                return false;
+            }
+
+            // Generate unique order number
+            $orderNumber = $this->generateOrderNumber();
+            error_log("Generated Order Number: " . $orderNumber);
+
             $sql = "INSERT INTO {$this->table} 
-                    (id,customer_id, seller_id, product_id, product_name, quantity, 
+                    (customer_id, seller_id, product_id, product_name, quantity, 
                      unit_price, total_amount, order_status, payment_status, 
                      payment_method, billing_name, billing_email, billing_address, 
                      billing_postal_code, billing_country, 
                      card_last_four, transaction_id, created_at, updated_at) 
-                    VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
-            
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+
             error_log("SQL Query: " . $sql);
-            
+
             $stmt = $this->conn->prepare($sql);
-            
+
             $params = [
-                $orderData['id'],
                 $orderData['customer_id'],
                 $orderData['seller_id'],
                 $orderData['product_id'],
@@ -93,31 +102,32 @@ class Order {
                 $orderData['quantity'],
                 $orderData['unit_price'],
                 $orderData['total_amount'],
-                $orderData['order_status'] ?? 'pending',
-                $orderData['payment_status'] ?? 'pending',
-                $orderData['payment_method'] ?? 'credit_card',
+                $orderData['order_status'],
+                $orderData['payment_status'],
+                $orderData['payment_method'],
                 $orderData['billing_name'],
                 $orderData['billing_email'],
                 $orderData['billing_address'],
                 $orderData['billing_postal_code'],
                 $orderData['billing_country'],
-                $orderData['card_last_four'] ?? null,
-                $orderData['transaction_id'] ?? null
+                $orderData['card_last_four'],
+                $orderData['transaction_id']
             ];
-            
+
             error_log("Parameters: " . json_encode($params));
-            
+
             $result = $stmt->execute($params);
-            
+
             if ($result) {
-                $orderId = $orderData['id'];
+                $orderId = $this->conn->lastInsertId();
                 error_log("Order created successfully with ID: " . $orderId);
                 return $orderId;
             } else {
-                error_log("Order creation failed - execute() returned false");
+                $errorInfo = $stmt->errorInfo();
+                error_log("Order creation failed - execute() returned false. SQLSTATE: " . $errorInfo[0] . ", Error: " . $errorInfo[2]);
                 return false;
             }
-            
+
         } catch (PDOException $e) {
             error_log("Order creation PDO error: " . $e->getMessage());
             error_log("Order creation error code: " . $e->getCode());

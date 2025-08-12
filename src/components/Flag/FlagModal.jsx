@@ -45,7 +45,11 @@ const FlagModal = ({
 
     try {
       const response = await axios.post(
+<<<<<<< HEAD
         "http://localhost/backend/submit_flag.php",
+=======
+        "http://localhost/Agrilink-Agri-Marketplace/backend/submit_flag.php",
+>>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
         {
           flagged_by_customer_id: user.id,
           seller_id: sellerId,

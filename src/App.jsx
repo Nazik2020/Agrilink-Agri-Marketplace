@@ -5,7 +5,6 @@ import Navbar from "./components/common/Navbar"; //"./components/common/Navbar";
 import { CartProvider } from "./components/cart/CartContext";
 import { WishlistProvider } from "./components/wishlist/WishlistContext";
 import CartModal from "./components/cart/CartModal";
-import ProtectedRoute from "./components/common/ProtectedRoute";
 import Home from "./pages/Home";
 import Marketplace from "./pages/Marketplace";
 import Blog from "./pages/Blog";
@@ -69,18 +68,10 @@ function App() {
               <Route path="/CustomerSignup" element={<CustomerSignup />} />
               <Route path="/SellerSignup" element={<SellerSignup />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/admin-dashboard" element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } />
+              <Route path="/admin-dashboard" element={<AdminDashboard />} />
 
               {/* Seller Dashboard with nested routes */}
-              <Route path="/seller-dashboard" element={
-                <ProtectedRoute allowedRoles={['seller']}>
-                  <SellerDashboard />
-                </ProtectedRoute>
-              }>
+              <Route path="/seller-dashboard" element={<SellerDashboard />}>
                 <Route index element={<ProfilePage />} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="add-product" element={<AddProductPage />} />
@@ -90,11 +81,7 @@ function App() {
               </Route>
 
               {/* Customer Dashboard Routes */}
-              <Route path="/customer-dashboard" element={
-                <ProtectedRoute allowedRoles={['customer']}>
-                  <CustomerDashboard />
-                </ProtectedRoute>
-              }>
+              <Route path="/customer-dashboard" element={<CustomerDashboard />}>
                 <Route index element={<CustomerProfilePage />} />
                 <Route path="profile" element={<CustomerProfilePage />} />
                 <Route path="wishlist" element={<WishlistPage />} />

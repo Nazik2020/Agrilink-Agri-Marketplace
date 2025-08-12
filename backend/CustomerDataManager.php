@@ -13,10 +13,10 @@ class CustomerDataManager {
      * @param PDO $conn Database connection
      * @param int $customerId Customer ID
      */
-    public function __construct($conn, $customerId) {
+    public function __construct($conn, $customerData) {
         $this->conn = $conn;
-        $this->customerId = $customerId;
-        $this->customerData = null;
+        $this->customerData = $customerData;
+        $this->customerId = $customerData['id'] ?? null;
     }
 
     /**
@@ -54,7 +54,7 @@ class CustomerDataManager {
      * @return int Customer ID
      */
     public function getCustomerId() {
-        return $this->customerId;
+        return $this->customerData['id'] ?? null;
     }
 
     /**
@@ -94,7 +94,7 @@ class CustomerDataManager {
      * @return string Customer country or empty string
      */
     public function getCustomerCountry() {
-        return $this->customerData['country'] ?? '';
+        return $this->customerData['country'] ?? 'Sri Lanka';
     }
 
     /**
@@ -102,7 +102,7 @@ class CustomerDataManager {
      * @return string Customer postal code or empty string
      */
     public function getCustomerPostalCode() {
-        return $this->customerData['postal_code'] ?? '';
+        return $this->customerData['postal_code'] ?? '20000';
     }
 
     /**
@@ -198,16 +198,23 @@ class CustomerDataManager {
      * @return CustomerDataManager|null Instance or null if invalid
      */
     public static function createFromCustomerId($conn, $customerId) {
-        if (!$customerId || !is_numeric($customerId)) {
+        try {
+            $query = "SELECT * FROM customers WHERE id = :customer_id";
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam(':customer_id', $customerId);
+            $stmt->execute();
+            
+            $customerData = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($customerData) {
+                return new self($conn, $customerData);
+            }
+            
+            return null;
+        } catch (Exception $e) {
+            error_log("Error in CustomerDataManager::createFromCustomerId: " . $e->getMessage());
             return null;
         }
-
-        $manager = new self($conn, $customerId);
-        if ($manager->loadCustomerData()) {
-            return $manager;
-        }
-
-        return null;
     }
 }
-?> 
+?>

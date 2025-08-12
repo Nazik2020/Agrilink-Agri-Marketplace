@@ -1,130 +1,47 @@
-"use client";
+import React from "react";
+import Logo from "../../assets/login/AgriLink.png";
+import { Link } from "react-router-dom";
 
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { useNavigate, useLocation } from "react-router-dom";
-import Logo from "../../assets/Login/AgriLink.png";
+const RightSection = ({
+  formData,
+  errors,
+  isLoading,
+  onInputChange,
+  onSubmit,
+  message,
+}) => {
+  const countries = [
+    "Select your country",
+    "United States",
+    "Canada",
+    "United Kingdom",
+    "Australia",
+    "Germany",
+    "France",
+    "Italy",
+    "Spain",
+    "Netherlands",
+    "India",
+    "China",
+    "Japan",
+    "Brazil",
+    "Mexico",
+    "South Africa",
+    "Kenya",
+    "Nigeria",
+    "Egypt",
+    "Other",
+  ];
 
-export default function RightSection() {
-  const [formData, setFormData] = useState({
-    newPassword: "",
-    confirmPassword: "",
-  });
-  const [message, setMessage] = useState("");
-  const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [tokenData, setTokenData] = useState({
-    token: "",
-    userType: "",
-  });
-  const [isValidToken, setIsValidToken] = useState(false);
-
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // Extract token and type from URL parameters and validate
-  useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const token = urlParams.get("token");
-    const userType = urlParams.get("userType");
-
-    if (token && userType) {
-      const validateToken = async () => {
-        try {
-          const res = await axios.get(
-            `http://localhost/backend/validate_token.php?token=${token}&userType=${userType}`
-          );
-          if (res.data.valid) {
-            setTokenData({ token, userType });
-            setIsValidToken(true);
-          } else {
-            setMessage(res.data.message || "Invalid or expired token.");
-            setIsValidToken(false);
-          }
-        } catch (error) {
-          setMessage("Error validating token. Please try again.");
-          setIsValidToken(false);
-        }
-      };
-      validateToken();
-    } else {
-      setMessage("Invalid or missing reset link. Please request a new one.");
-      setIsValidToken(false);
-    }
-  }, [location.search]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-  };
-
-  const validate = () => {
-    const newErrors = {};
-
-    if (!formData.newPassword.trim()) {
-      newErrors.newPassword = "New password is required";
-    } else if (formData.newPassword.length < 6) {
-      newErrors.newPassword = "Password must be at least 6 characters";
-    }
-
-    if (!formData.confirmPassword.trim()) {
-      newErrors.confirmPassword = "Please confirm your password";
-    } else if (formData.newPassword !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-
-    return newErrors;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setMessage("");
-
-    const validationErrors = validate();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const res = await axios.post(
-        "http://localhost/backend/reset_password.php",
-        {
-          token: tokenData.token,
-          userType: tokenData.userType,
-          newPassword: formData.newPassword,
-        }
-      );
-
-      setMessage(res.data.message);
-
-      if (res.data.success) {
-        setTimeout(() => {
-          navigate("/Login");
-        }, 3000);
-      }
-    } catch (error) {
-      setMessage("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  if (!isValidToken && tokenData.token === "" && tokenData.userType === "") {
-    return (
-      <div className="w-full md:w-1/2 bg-white p-4 md:p-8 flex flex-col justify-center items-center min-h-screen">
-        <div className="w-full max-w-sm sm:max-w-md md:max-w-lg">
+  return (
+    <div className="w-full min-h-screen lg:w-1/2 flex items-center justify-center p-4 sm:p-6 md:p-8 bg-gray-50 overflow-auto">
+      <div className="w-full max-w-md space-y-6">
+        {/* Logo and Header */}
+        <div className="text-center space-y-4">
           <div className="flex items-center justify-center mb-6">
             <img
-              src={Logo || "/placeholder.svg"}
-              alt="Logo"
+              src={Logo}
+              alt="Agricultural Marketplace Logo"
               className="h-12 sm:h-16 w-auto"
             />
             <div className="h-12 sm:h-16 border-l border-gray-300 mx-4"></div>
@@ -136,126 +53,289 @@ export default function RightSection() {
               </h2>
             </div>
           </div>
-          <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-md text-center">
-            <h1 className="text-2xl font-bold text-red-600 mb-4">
-              Invalid Reset Link
-            </h1>
-            <p className="text-gray-600 mb-4">
-              This reset link is invalid or has expired. Please request a new
-              password reset.
-            </p>
-            <button
-              onClick={() => navigate("/ForgotPassword")}
-              className="w-full bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition"
-            >
-              Request New Reset Link
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full md:w-1/2 bg-white p-4 md:p-8 flex flex-col justify-center items-center min-h-screen">
-      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg">
-        <div className="flex items-center justify-center mb-6">
-          <img
-            src={Logo || "/placeholder.svg"}
-            alt="Logo"
-            className="h-12 sm:h-16 w-auto"
-          />
-          <div className="h-12 sm:h-16 border-l border-gray-300 mx-4"></div>
-          <div className="text-left">
-            <h2 className="text-xl sm:text-2xl font-light text-gray-600">
-              Agricultural
-              <br />
-              Marketplace
-            </h2>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg p-6 border border-gray-200 shadow-md">
-          <h1 className="text-2xl font-bold text-green-600 mb-4 text-center">
-            Reset Password
+          <h1 className="text-2xl sm:text-3xl font-bold text-green-600">
+            Create your Account
           </h1>
+          <h2 className="text-xl sm:text-2xl font-sans text-green-700">
+            I'm a Seller
+          </h2>
+        </div>
 
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg text-sm">
-            <p>
-              <strong>Account Type:</strong> {tokenData.userType}
-            </p>
+        {/* Signup Form */}
+        <form onSubmit={onSubmit} className="space-y-5">
+          {/* User Name */}
+          <div>
+            <label
+              htmlFor="userName"
+              className="block text-base font-medium text-gray-600 mb-2"
+            >
+              User Name
+            </label>
+            <input
+              type="text"
+              id="userName"
+              name="userName"
+              value={formData.userName}
+              onChange={onInputChange}
+              placeholder="Enter username"
+              className={`w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+                errors.userName ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors.userName && (
+              <p className="mt-1 text-sm text-red-600">{errors.userName}</p>
+            )}
           </div>
 
-          {message && (
-            <div
-              className={`text-center mb-4 p-3 border rounded-lg ${
-                message.includes("success") || message.includes("updated")
-                  ? "bg-green-50 border-green-200 text-green-800"
-                  : "bg-red-50 border-red-200 text-red-800"
+          {/* Business Name */}
+          <div>
+            <label
+              htmlFor="businessName"
+              className="block text-base font-medium text-gray-600 mb-2"
+            >
+              Business Name
+            </label>
+            <input
+              type="text"
+              id="businessName"
+              name="businessName"
+              value={formData.businessName}
+              onChange={onInputChange}
+              placeholder="Enter your business name"
+              className={`w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+                errors.businessName ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors.businessName && (
+              <p className="mt-1 text-sm text-red-600">{errors.businessName}</p>
+            )}
+          </div>
+          {/* Business Description */}
+          <div>
+            <label
+              htmlFor="businessDescription"
+              className="block text-base font-medium text-gray-600 mb-2"
+            >
+              Business Description
+            </label>
+            <textarea
+              id="businessDescription"
+              name="businessDescription"
+              value={formData.businessDescription}
+              onChange={onInputChange}
+              placeholder="Describe your business"
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+                errors.businessDescription
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
+              rows={3}
+            />
+            {errors.businessDescription && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.businessDescription}
+              </p>
+            )}
+          </div>
+          {/* Country */}
+          <div>
+            <label
+              htmlFor="country"
+              className="block text-base font-medium text-gray-600 mb-2"
+            >
+              Country
+            </label>
+            <select
+              id="country"
+              name="country"
+              value={formData.country}
+              onChange={onInputChange}
+              className={`w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+                errors.country ? "border-red-500" : "border-gray-300"
               }`}
             >
-              {message}
+              {countries.map((country) => (
+                <option
+                  key={country}
+                  value={country === "Select your country" ? "" : country}
+                >
+                  {country}
+                </option>
+              ))}
+            </select>
+            {errors.country && (
+              <p className="mt-1 text-sm text-red-600">{errors.country}</p>
+            )}
+          </div>
+          {/* Email */}
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-base font-medium text-gray-600 mb-2"
+            >
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={onInputChange}
+              placeholder="Enter your email"
+              className={`w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+                errors.email ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+            )}
+          </div>
+          {/* Password */}
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-base font-medium text-gray-600 mb-2"
+            >
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={onInputChange}
+              placeholder="Enter your password"
+              className={`w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+                errors.password ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+            )}
+          </div>
+          {/* Confirm Password */}
+          <div>
+            <label
+              htmlFor="confirmPassword"
+              className="block text-base font-medium text-gray-600 mb-2"
+            >
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={onInputChange}
+              placeholder="Confirm your password"
+              className={`w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+                errors.confirmPassword ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors.confirmPassword && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.confirmPassword}
+              </p>
+            )}
+          </div>
+          {/* Agree to Terms */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="agreeToTerms"
+              name="agreeToTerms"
+              checked={formData.agreeToTerms}
+              onChange={onInputChange}
+              className="mr-2"
+            />
+            <label htmlFor="agreeToTerms" className="text-sm text-gray-600">
+              I agree to the{" "}
+              <a href="#" className="text-green-600 hover:underline">
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a href="#" className="text-green-600 hover:underline">
+                Privacy Policy
+              </a>
+            </label>
+          </div>
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white font-semibold py-2 px-4 rounded-full transition-colors duration-200 flex items-center justify-center"
+          >
+            {isLoading ? (
+              <>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Creating Account...
+              </>
+            ) : (
+              "Sign Up"
+            )}
+          </button>
+          {/* Show backend message */}
+          {message && (
+            <div
+              className={`text-center p-3 rounded-lg border ${
+                message.includes("successfully")
+                  ? "bg-green-50 text-green-800 border-green-200"
+                  : "bg-red-50 text-red-800 border-red-200"
+              }`}
+            >
+              <div className="flex items-center justify-center">
+                {message.includes("successfully") && (
+                  <svg
+                    className="w-5 h-5 mr-2 text-green-600"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                )}
+                {message}
+              </div>
             </div>
           )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                New Password
-              </label>
-              <input
-                type="password"
-                name="newPassword"
-                value={formData.newPassword}
-                onChange={handleChange}
-                placeholder="Enter your new password"
-                className={`w-full p-2 border rounded-lg ${
-                  errors.newPassword ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-              {errors.newPassword && (
-                <p className="text-red-500 text-sm">{errors.newPassword}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Confirm New Password
-              </label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="Confirm your new password"
-                className={`w-full p-2 border rounded-lg ${
-                  errors.confirmPassword ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-sm">{errors.confirmPassword}</p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50"
-            >
-              {isLoading ? "Updating Password..." : "Update Password"}
-            </button>
-          </form>
-
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => navigate("/Login")}
-              className="text-green-600 hover:text-green-700 text-sm underline"
-            >
-              {/* Back to Login */}
-            </button>
+          {/* Login Link */}
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="text-green-600 hover:text-green-700 font-bold hover:underline transition-colors"
+              >
+                Log In
+              </Link>
+            </p>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
-}
+};
+
+export default RightSection;

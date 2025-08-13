@@ -132,13 +132,30 @@ const ProductShowcase = () => {
 
               <Link to={`/product/${product.id}`} className="block">
                 <img
-                  src={
-                    product.product_images && product.product_images.length > 0
-                      ? product.product_images[0].startsWith("http")
-                        ? product.product_images[0]
-                        : `http://localhost/backend/${product.product_images[0]}`
-                      : "https://via.placeholder.com/300x200?text=No+Image"
-                  }
+                  src={(function() {
+                    let imagesArr = [];
+                    if (!product.product_images) {
+                      return "https://via.placeholder.com/300x200?text=No+Image";
+                    }
+                    if (Array.isArray(product.product_images)) {
+                      imagesArr = product.product_images;
+                    } else {
+                      try {
+                        imagesArr = JSON.parse(product.product_images);
+                      } catch (error) {
+                        imagesArr = [];
+                      }
+                    }
+                    if (imagesArr.length > 0) {
+                      const img = imagesArr[0];
+                      if (typeof img === "string" && img.startsWith("http")) {
+                        return img;
+                      } else if (typeof img === "string") {
+                        return `http://localhost/Agrilink-Agri-Marketplace/backend/${img}`;
+                      }
+                    }
+                    return "https://via.placeholder.com/300x200?text=No+Image";
+                  })()}
                   alt={product.product_name}
                   className="w-full h-40 object-cover rounded-t-2xl"
                 />

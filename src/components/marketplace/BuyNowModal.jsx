@@ -64,10 +64,16 @@ const BuyNowModal = ({
   const singleProductTotal = unitPrice * formData.quantity;
 
   // Use cart totals if this is a cart checkout, otherwise use single product totals
-  const totalAmount = isCartCheckout ? cartTotal || 0 : singleProductTotal;
-  const shipping = isCartCheckout ? cartShipping || 0 : 0;
-  const tax = isCartCheckout ? cartTax || 0 : 0;
-  const subtotalValue = isCartCheckout ? cartSubtotal || 0 : singleProductTotal;
+  // Only use product price for subtotal and total, no extra fees
+  const totalAmount = isCartCheckout
+    ? cartItems.reduce(
+        (sum, item) => sum + parseFloat(item.price) * item.quantity,
+        0
+      )
+    : singleProductTotal;
+  const shipping = 0;
+  const tax = 0;
+  const subtotalValue = totalAmount;
 
   // Load customer data when modal opens
   useEffect(() => {
@@ -339,7 +345,8 @@ const BuyNowModal = ({
           orderPayload.quantity = formData.quantity;
           orderPayload.price = product?.price;
           orderPayload.product_images = product?.images?.[0] || "";
-          orderPayload.seller_id = product?.seller_id || product?.sellerId || null;
+          orderPayload.seller_id =
+            product?.seller_id || product?.sellerId || null;
           if (product?.id || product?.product_id) {
             purchasedProductIds = [product.id || product.product_id];
           }
@@ -558,13 +565,33 @@ const BuyNowModal = ({
                         className="flex items-center space-x-4"
                       >
                         <img
-                          src={
-                            item.product_images
-                              ? `http://localhost/backend/${
-                                  item.product_images.split(",")[0]
-                                }`
-                              : "/placeholder.svg"
-                          }
+                          src={(function () {
+                            let imagesArr = [];
+                            if (!item.product_images) {
+                              return "/placeholder.svg";
+                            }
+                            if (Array.isArray(item.product_images)) {
+                              imagesArr = item.product_images;
+                            } else {
+                              try {
+                                imagesArr = JSON.parse(item.product_images);
+                              } catch (error) {
+                                imagesArr = [];
+                              }
+                            }
+                            if (imagesArr.length > 0) {
+                              const img = imagesArr[0];
+                              if (
+                                typeof img === "string" &&
+                                img.startsWith("http")
+                              ) {
+                                return img;
+                              } else if (typeof img === "string") {
+                                return `http://localhost/Agrilink-Agri-Marketplace/backend/${img}`;
+                              }
+                            }
+                            return "/placeholder.svg";
+                          })()}
                           alt={item.product_name}
                           className="w-16 h-16 object-cover rounded-lg border border-green-200"
                         />
@@ -595,25 +622,9 @@ const BuyNowModal = ({
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Subtotal:</span>
                         <span className="font-semibold">
-                          ${(cartSubtotal || 0).toFixed(2)}
+                          ${totalAmount.toFixed(2)}
                         </span>
                       </div>
-                      {(cartShipping || 0) > 0 && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Shipping:</span>
-                          <span className="font-semibold">
-                            ${(cartShipping || 0).toFixed(2)}
-                          </span>
-                        </div>
-                      )}
-                      {(cartTax || 0) > 0 && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Tax:</span>
-                          <span className="font-semibold">
-                            ${(cartTax || 0).toFixed(2)}
-                          </span>
-                        </div>
-                      )}
                       <div className="flex justify-between items-center text-lg">
                         <span className="font-bold text-gray-800">Total:</span>
                         <span className="font-bold text-xl text-green-600">
@@ -626,7 +637,33 @@ const BuyNowModal = ({
                   // Single product checkout
                   <div className="flex items-center space-x-4">
                     <img
-                      src={product?.images?.[0] || "/placeholder.svg"}
+                      src={(function () {
+                        let imagesArr = [];
+                        if (!product?.images) {
+                          return "/placeholder.svg";
+                        }
+                        if (Array.isArray(product.images)) {
+                          imagesArr = product.images;
+                        } else {
+                          try {
+                            imagesArr = JSON.parse(product.images);
+                          } catch (error) {
+                            imagesArr = [];
+                          }
+                        }
+                        if (imagesArr.length > 0) {
+                          const img = imagesArr[0];
+                          if (
+                            typeof img === "string" &&
+                            img.startsWith("http")
+                          ) {
+                            return img;
+                          } else if (typeof img === "string") {
+                            return `http://localhost/Agrilink-Agri-Marketplace/backend/${img}`;
+                          }
+                        }
+                        return "/placeholder.svg";
+                      })()}
                       alt={product?.name}
                       className="w-16 h-16 object-cover rounded-lg border border-green-200"
                     />

@@ -15,19 +15,29 @@ const CartItem = ({ item }) => {
 
   // Get product image
   const getProductImage = (productImages) => {
+    // If already an array, use directly
+    let imagesArr = [];
     if (!productImages) {
       return "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop";
     }
-
-    try {
-      const images = JSON.parse(productImages);
-      return images.length > 0
-        ? `http://localhost/backend/${images[0]}`
-        : "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop";
-    } catch (error) {
-      console.error("Error parsing product images:", error);
-      return "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop";
+    if (Array.isArray(productImages)) {
+      imagesArr = productImages;
+    } else {
+      try {
+        imagesArr = JSON.parse(productImages);
+      } catch (error) {
+        imagesArr = [];
+      }
     }
+    if (imagesArr.length > 0) {
+      const img = imagesArr[0];
+      if (typeof img === "string" && img.startsWith("http")) {
+        return img;
+      } else if (typeof img === "string") {
+        return `http://localhost/Agrilink-Agri-Marketplace/backend/${img}`;
+      }
+    }
+    return "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop";
   };
 
   return (

@@ -17,7 +17,7 @@ const Allproducts = ({ displayCount = 8 }) => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/get_products.php"
+          "http://localhost/Agrilink-Agri-Marketplace/backend/get_products.php"
         );
         if (response.data.success) {
           setProducts(response.data.products);

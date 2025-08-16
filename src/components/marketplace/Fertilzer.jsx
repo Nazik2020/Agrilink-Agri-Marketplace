@@ -17,7 +17,7 @@ const Fertilizer = ({ displayCount = 8 }) => {
       try {
         console.log("Fertilizer component: Fetching products...");
         const response = await axios.get(
-          "http://localhost:8080/get_products.php?category=Fertilizer"
+          "http://localhost/Agrilink-Agri-Marketplace/backend/get_products.php?category=Fertilizer"
         );
         console.log("Fertilizer component: Response received:", response.data);
 

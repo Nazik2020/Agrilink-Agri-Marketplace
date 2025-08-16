@@ -139,7 +139,7 @@ const BuyNowModal = ({
       }
 
       const response = await axios.post(
-        "http://localhost:8080/get_customer_billing_data.php",
+        "http://localhost/Agrilink-Agri-Marketplace/backend/get_customer_billing_data.php",
         {
           customer_id: customerId,
           customer_email: customerEmail,

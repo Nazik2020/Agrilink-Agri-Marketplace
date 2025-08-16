@@ -61,12 +61,24 @@ const SalesChart = () => {
             const monthIdx = item.month ? item.month - 1 : 0;
             monthlyIncome[monthIdx] = Number(item.income);
           });
+          // Rotate months so current month is at the end (rightmost bar).
+          // Example (current = Aug): Sep Oct Nov Dec Jan Feb Mar Apr May Jun Jul Aug
+          const currentIdx = new Date().getMonth(); // 0..11
+          const rotatedLabels = [
+            ...monthNames.slice(currentIdx + 1),
+            ...monthNames.slice(0, currentIdx + 1),
+          ];
+          const rotatedData = [
+            ...monthlyIncome.slice(currentIdx + 1),
+            ...monthlyIncome.slice(0, currentIdx + 1),
+          ];
+
           setChartData({
-            labels: monthNames,
+            labels: rotatedLabels,
             datasets: [
               {
                 label: "Monthly Income",
-                data: monthlyIncome,
+                data: rotatedData,
                 backgroundColor: "rgba(16, 185, 129, 0.8)",
                 borderColor: "#10B981",
                 borderWidth: 0.5,
@@ -135,10 +147,10 @@ const SalesChart = () => {
   if (loading) return <div>Loading monthly income chart...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
 
-  // Calculate total and percent change for display
-  const thisMonth = new Date().getMonth();
-  const thisMonthIncome = chartData.datasets[0].data[thisMonth] || 0;
-  const lastMonthIncome = chartData.datasets[0].data[thisMonth - 1] || 0;
+  // After rotation, current month is always the last element
+  const thisMonthIndex = chartData.datasets[0].data.length - 1;
+  const thisMonthIncome = chartData.datasets[0].data[thisMonthIndex] || 0;
+  const lastMonthIncome = chartData.datasets[0].data[thisMonthIndex - 1] || 0;
   const percentChange = lastMonthIncome
     ? (((thisMonthIncome - lastMonthIncome) / lastMonthIncome) * 100).toFixed(1)
     : 0;

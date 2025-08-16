@@ -2,9 +2,9 @@ import StarRating from "../marketplace/StarRating";
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FaShoppingCart } from "react-icons/fa";
-import axios from "axios";
 import { useCart } from "../cart/CartContext";
 import SimpleWishlistButton from "../wishlist/SimpleWishlistButton";
+import { getApiUrl } from "../../config/api";
 
 const ProductShowcase = () => {
   const [products, setProducts] = useState([]);
@@ -16,18 +16,18 @@ const ProductShowcase = () => {
     const fetchTopRatedProducts = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(
-          "http://localhost:8080/review_and_ratings/get_top_rated_products.php"
-        );
-        if (response.data.success) {
+        const response = await fetch(getApiUrl('GET_TOP_RATED_PRODUCTS'));
+        const data = await response.json();
+        
+        if (data.success) {
           // Separate rated and unrated products
-          const rated = response.data.products
+          const rated = data.products
             .filter(
               (p) =>
                 typeof p.average_rating === "number" && !isNaN(p.average_rating)
             )
             .sort((a, b) => b.average_rating - a.average_rating);
-          const unrated = response.data.products.filter(
+          const unrated = data.products.filter(
             (p) => !rated.includes(p)
           );
           // Always show 6: fill with unrated if needed
@@ -53,7 +53,7 @@ const ProductShowcase = () => {
       seller: product.seller_name,
       category: product.category,
       price: parseFloat(product.price),
-      maxQuantity: 10,
+      maxQuantity: product.stock > 0 ? product.stock : 0,
     });
   };
 
@@ -132,7 +132,7 @@ const ProductShowcase = () => {
 
               <Link to={`/product/${product.id}`} className="block">
                 <img
-                  src={(function() {
+                  src={(function () {
                     let imagesArr = [];
                     if (!product.product_images) {
                       return "https://via.placeholder.com/300x200?text=No+Image";
@@ -162,6 +162,10 @@ const ProductShowcase = () => {
               </Link>
 
               <div className="flex flex-col flex-1 px-4 pt-3 pb-4">
+                {/* Average Rating */}
+                <div className="mb-1">
+                  <StarRating rating={product.average_rating} />
+                </div>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-green-600 font-semibold text-sm">
                     {product.category}
@@ -170,21 +174,41 @@ const ProductShowcase = () => {
                     by {product.seller_name || "Unknown"}
                   </span>
                 </div>
-
-                {/* Average Rating */}
-                <div className="mb-1">
-                  <StarRating rating={product.average_rating} />
+                <div className="flex items-center mb-1">
+                  {product.stock > 0 ? (
+                    <span className="text-green-600 font-semibold text-xs">
+                      In Stock
+                    </span>
+                  ) : (
+                    <span className="text-red-500 font-semibold text-xs">
+                      Out of Stock
+                    </span>
+                  )}
+                  {product.stock > 0 && (
+                    <span className="text-gray-500 text-xs ml-2">
+                      ({product.stock} left)
+                    </span>
+                  )}
                 </div>
-                <Link to={`/product/${product.id}`}>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700">
+                <Link to={`/product/${product.id}`} title={product.product_name}>
+                  <h3
+                    className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700 truncate"
+                    style={{
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      width: "100%",
+                    }}
+                  >
                     {product.product_name}
                   </h3>
                 </Link>
 
                 <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-                  {product.product_description.length > 80
+                  {product.product_description &&
+                  product.product_description.length > 80
                     ? product.product_description.substring(0, 80) + "..."
-                    : product.product_description}
+                    : product.product_description || ""}
                 </p>
 
                 <div className="flex items-end justify-between mt-auto">
@@ -194,8 +218,11 @@ const ProductShowcase = () => {
                     </span>
                   </div>
                   <button
-                    className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base"
+                    className={`flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base ${
+                      product.stock === 0 ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                     onClick={() => handleAddToCart(product)}
+                    disabled={product.stock === 0}
                   >
                     <FaShoppingCart className="text-lg" /> Add
                   </button>

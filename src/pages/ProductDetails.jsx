@@ -19,12 +19,12 @@ import StarRating from "../components/marketplace/StarRating";
 import SimpleWishlistButton from "../components/wishlist/SimpleWishlistButton";
 import { FlagButton } from "../components/Flag";
 import axios from "axios";
+import { API_BASE, buildImageUrl } from "../config/api";
 
 // Function to fetch product details from backend
 const fetchProductDetails = async (productId) => {
   try {
-    // Always use the correct backend port for product details
-    const url = `http://localhost:8080/get_product_details.php?id=${productId}`;
+    const url = `${API_BASE}get_product_details.php?id=${productId}`;
     const response = await axios.get(url);
     if (response.data.success) {
       return response.data.product;
@@ -110,14 +110,18 @@ function ProductDetails() {
       fetchProductDetails(id)
         .then((data) => {
           setProduct(data);
-          // Set main image from product images
-          if (data.images && data.images.length > 0) {
-            // Try different possible backend URLs for images
-            const imageUrl = data.images[0].startsWith("http")
-              ? data.images[0]
-              : `http://localhost/backend/${data.images[0]}`;
-            setMainImg(imageUrl);
-          }
+          // Normalize images (array or comma string)
+          let rawImages = [];
+          if (Array.isArray(data.images)) rawImages = data.images;
+          else if (typeof data.images === "string")
+            rawImages = data.images
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean);
+          const resolved = rawImages.map(buildImageUrl).filter(Boolean);
+          setMainImg(resolved[0] || "");
+          // Store normalized images back for thumbnails usage
+          data.images = resolved;
           setLoading(false);
         })
         .catch((error) => {
@@ -133,7 +137,7 @@ function ProductDetails() {
 
   // Add to Cart logic (unchanged)
   const handleAddToCart = () => {
-    if (product) {
+    if (product && product.stock > 0) {
       addToCart({
         id: product.id,
         name: product.name,
@@ -156,7 +160,7 @@ function ProductDetails() {
   const fetchReviews = async (productId) => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/review_and_ratings/get_reviews.php?product_id=${productId}`
+        `${API_BASE}review_and_ratings/get_reviews.php?product_id=${productId}`
       );
       if (response.data && response.data.reviews) {
         // No filtering: show all reviews, including multiple from same user
@@ -197,7 +201,7 @@ function ProductDetails() {
     if (reviewText.trim()) {
       try {
         const response = await axios.post(
-          "http://localhost:8080/review_and_ratings/add_review.php",
+          `${API_BASE}review_and_ratings/add_review.php`,
           {
             product_id: id,
             customer_id: customerId,
@@ -243,7 +247,7 @@ function ProductDetails() {
     try {
       // To edit, you may want to call a dedicated edit_review.php, but for now, just add a new review (as per backend logic)
       const response = await axios.post(
-        "http://localhost:8080/review_and_ratings/add_review.php",
+        `${API_BASE}review_and_ratings/add_review.php`,
         {
           product_id: id,
           customer_id: customerId,
@@ -273,7 +277,7 @@ function ProductDetails() {
     }
     try {
       const response = await axios.post(
-        "http://localhost:8080/review_and_ratings/delete_review.php",
+        `${API_BASE}review_and_ratings/delete_review.php`,
         {
           review_id: reviewId,
           customer_id: customerId,
@@ -363,20 +367,35 @@ function ProductDetails() {
               <FaArrowLeft />
               Back
             </button>
-            <div className="w-full max-w-[600px] aspect-square bg-gray-100 rounded-xl flex items-center justify-center mb-4 overflow-hidden">
-              <img
-                src={mainImg || "/placeholder.svg"}
-                alt="Product"
-                className="object-cover w-full h-full rounded-xl"
-              />
+            <div className="w-full max-w-[600px] aspect-square bg-gray-100 rounded-xl mb-4 overflow-hidden relative group">
+              {mainImg ? (
+                <img
+                  src={mainImg}
+                  alt={product.name}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => {
+                    console.warn("Main image failed:", mainImg);
+                    e.currentTarget.src = "/placeholder.svg";
+                    e.currentTarget.classList.remove("object-cover");
+                    e.currentTarget.classList.add(
+                      "object-contain",
+                      "p-6",
+                      "opacity-70"
+                    );
+                  }}
+                />
+              ) : (
+                <img
+                  src="/placeholder.svg"
+                  alt="No product"
+                  className="w-full h-full object-contain p-6 opacity-70"
+                />
+              )}
             </div>
             {/* Thumbnails aligned left under main image */}
             <div className="flex gap-4 mt-2 w-full max-w-[600px] justify-start">
               {product.images &&
-                product.images.map((img, idx) => {
-                  const imgSrc = img.startsWith("http")
-                    ? img
-                    : `http://localhost/backend/${img}`;
+                product.images.map((imgSrc, idx) => {
                   return (
                     <button
                       key={idx}
@@ -391,6 +410,7 @@ function ProductDetails() {
                         src={imgSrc}
                         alt={`Product image ${idx + 1}`}
                         className="w-16 h-16 object-cover rounded"
+                        onError={(e) => (e.currentTarget.style.opacity = "0.3")}
                       />
                     </button>
                   );
@@ -498,10 +518,20 @@ function ProductDetails() {
             {/* SECTION: Action Buttons */}
             <div className="flex gap-3 mb-3">
               <button
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg text-lg font-semibold flex items-center justify-center gap-2 cursor-pointer"
+                disabled={product.stock === 0}
                 onClick={handleAddToCart}
+                aria-disabled={product.stock === 0}
+                title={product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-lg font-semibold
+                  bg-green-600 text-white shadow transition
+                  ${
+                    product.stock === 0
+                      ? "opacity-50 cursor-not-allowed pointer-events-none"
+                      : "hover:bg-green-700 cursor-pointer"
+                  }`}
               >
-                <FaShoppingCart /> Add to Cart
+                <FaShoppingCart />
+                Add to Cart
               </button>
               <SimpleWishlistButton productId={product.id} />
             </div>

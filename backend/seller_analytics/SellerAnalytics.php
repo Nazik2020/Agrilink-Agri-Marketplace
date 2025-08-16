@@ -22,14 +22,10 @@ class SellerAnalytics {
     return (float)$stmt->fetchColumn();
     }
 
-    public function getTodaysExpenses() {
-        $stmt = $this->pdo->prepare("SELECT SUM(amount) FROM expenses WHERE seller_id = ? AND expense_date = CURDATE()");
-        $stmt->execute([$this->sellerId]);
-        return (float)$stmt->fetchColumn();
-    }
-
-    public function getTodaysProfit() {
-        return $this->getTodaysIncome() - $this->getTodaysExpenses();
+    public function getTodaysCommission() {
+        // Calculate 2.5% commission on today's income
+        $todaysIncome = $this->getTodaysIncome();
+        return round($todaysIncome * 0.025, 2);
     }
 
     public function getMonthlyIncome() {

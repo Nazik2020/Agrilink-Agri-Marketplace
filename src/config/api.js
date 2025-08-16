@@ -22,6 +22,7 @@ export const API_CONFIG = {
     GET_PRODUCTS: "/get_products.php",
     GET_PRODUCT_DETAILS: "/get_product_details.php",
     ADD_PRODUCT: "/add_product.php",
+    GET_TOP_RATED_PRODUCTS: "/review_and_ratings/get_top_rated_products.php",
 
     // Authentication
     LOGIN: "/Login.php",
@@ -59,5 +60,25 @@ export const getApiUrl = (endpointKey) => {
   }
   return buildApiUrl(endpoint);
 };
+
+// Base API URL (override in .env: VITE_API_BASE_URL)
+const RAW = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/";
+export const API_BASE = RAW.endsWith("/") ? RAW : RAW + "/";
+
+/**
+ * Normalize product image path returned by backend into full URL.
+ * Accepts absolute URLs, relative paths, or bare filenames.
+ */
+export function buildImageUrl(raw) {
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw)) return raw;
+
+  let cleaned = raw.replace(/^\.?\//, "");
+  // If backend already sends uploads/... keep it; else assume products folder
+  if (!/^uploads\//i.test(cleaned)) {
+    cleaned = "uploads/products/" + cleaned;
+  }
+  return API_BASE + cleaned;
+}
 
 export default API_CONFIG;

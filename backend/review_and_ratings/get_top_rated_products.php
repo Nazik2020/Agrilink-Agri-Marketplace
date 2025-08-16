@@ -9,6 +9,7 @@ require_once '../db.php';
 require_once __DIR__ . '/TopRatedProducts.php';
 
 try {
+    $conn = getDbConnection();
     $topRated = new TopRatedProducts($conn);
     $products = $topRated->getTopRated(6);
     echo json_encode([

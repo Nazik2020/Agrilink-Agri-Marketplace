@@ -35,8 +35,7 @@ $response = [
     'success' => true,
     'today_orders' => $analytics->getTodaysOrders(),
     'today_income' => $analytics->getTodaysIncome(),
-    'today_expenses' => $analytics->getTodaysExpenses(),
-    'today_profit' => $analytics->getTodaysProfit(),
+    'today_commission' => $analytics->getTodaysCommission(),
     'monthly_income' => $analytics->getMonthlyIncome(),
     'monthly_income_breakdown' => $monthlyBreakdown,
     // Add more fields as needed

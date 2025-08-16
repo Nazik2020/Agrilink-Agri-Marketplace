@@ -110,9 +110,12 @@ export const CartProvider = ({ children }) => {
     try {
       console.log("Loading cart for customer ID:", customerId);
 
-      const response = await axios.post("http://localhost:8080/get_cart.php", {
-        customer_id: customerId,
-      });
+      const response = await axios.post(
+        "http://localhost/Agrilink-Agri-Marketplace/backend/get_cart.php",
+        {
+          customer_id: customerId,
+        }
+      );
 
       console.log("Cart response:", response.data);
 
@@ -314,9 +317,9 @@ export const CartProvider = ({ children }) => {
     (sum, item) => sum + parseFloat(item.price) * item.quantity,
     0
   );
-  const shipping = subtotal > 100 ? 0 : 15;
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
+  const shipping = 0;
+  const tax = 0;
+  const total = subtotal;
 
   return (
     <CartContext.Provider

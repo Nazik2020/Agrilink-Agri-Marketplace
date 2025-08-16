@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FaShoppingCart, FaHeart } from "react-icons/fa";
+import { FaShoppingCart } from "react-icons/fa";
 import axios from "axios";
 import { useCart } from "../cart/CartContext";
 import SimpleWishlistButton from "../wishlist/SimpleWishlistButton";
@@ -155,7 +155,7 @@ const Allproducts = ({ displayCount = 8 }) => {
             <img
               src={
                 product.product_images && product.product_images.length > 0
-                  ? product.product_images[0] // Use the full URL from backend
+                  ? `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
                   : "https://via.placeholder.com/300x200?text=No+Image"
               }
               alt={product.product_name}
@@ -176,23 +176,40 @@ const Allproducts = ({ displayCount = 8 }) => {
                 by {product.seller_name || "Unknown"}
               </span>
             </div>
+            <div className="flex items-center mb-1">
+              {product.stock > 0 ? (
+                <span className="text-green-600 font-semibold text-xs">
+                  In Stock
+                </span>
+              ) : (
+                <span className="text-red-500 font-semibold text-xs">
+                  Out of Stock
+                </span>
+              )}
+              {product.stock > 0 && (
+                <span className="text-gray-500 text-xs ml-2">
+                  ({product.stock} left)
+                </span>
+              )}
+            </div>
             <Link to={`/product/${product.id}`} title={product.product_name}>
               <h3
                 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700 truncate"
                 style={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  width: '100%'
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  width: "100%",
                 }}
               >
                 {product.product_name}
               </h3>
             </Link>
             <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-              {product.product_description.length > 80
+              {product.product_description &&
+              product.product_description.length > 80
                 ? product.product_description.substring(0, 80) + "..."
-                : product.product_description}
+                : product.product_description || ""}
             </p>
             <div className="flex items-end justify-between mt-auto">
               <div>
@@ -201,8 +218,11 @@ const Allproducts = ({ displayCount = 8 }) => {
                 </span>
               </div>
               <button
-                className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base"
+                className={`flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base ${
+                  product.stock === 0 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
                 onClick={() => handleAddToCart(product)}
+                disabled={product.stock === 0}
               >
                 <FaShoppingCart className="text-lg" /> Add
               </button>

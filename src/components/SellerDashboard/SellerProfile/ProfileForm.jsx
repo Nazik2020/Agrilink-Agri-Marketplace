@@ -62,8 +62,8 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
 
   const handleSubmit = async () => {
     if (validateForm()) {
-      // Get seller_id from sessionStorage
-      const sellerId = sessionStorage.getItem("seller_id") || profile.id;
+      // Get seller_id from localStorage
+      const sellerId = window.localStorage.getItem("seller_id") || profile.id;
 
       if (!sellerId) {
         alert("Seller ID not found. Please login again.");
@@ -83,7 +83,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
 
       try {
         const res = await axios.post(
-          "http://localhost/backend/update_seller_profile.php",
+          "http://localhost/Agrilink-Agri-Marketplace/backend/update_seller_profile.php",
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },

@@ -79,11 +79,14 @@ const CustomerProfilePage = () => {
 
     console.log("Fetching profile for email:", email); // Debug log
 
-    fetch("http://localhost/backend/get_customer_profile.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    })
+    fetch(
+      "http://localhost/Agrilink-Agri-Marketplace/backend/get_customer_profile.php",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      }
+    )
       .then((res) => {
         console.log("Response status:", res.status); // Debug log
         return res.json();
@@ -170,11 +173,14 @@ const CustomerProfilePage = () => {
 
   const fetchProfile = (emailToFetch) => {
     setLoading(true);
-    fetch("http://localhost/backend/get_customer_profile.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: emailToFetch }),
-    })
+    fetch(
+      "http://localhost/Agrilink-Agri-Marketplace/backend/get_customer_profile.php",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToFetch }),
+      }
+    )
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.profile) {
@@ -242,10 +248,13 @@ const CustomerProfilePage = () => {
       console.log("FormData:", pair[0], pair[1]);
     }
 
-    fetch("http://localhost/backend/update_customer_profile.php", {
-      method: "POST",
-      body: formDataToSend,
-    })
+    fetch(
+      "http://localhost/Agrilink-Agri-Marketplace/backend/update_customer_profile.php",
+      {
+        method: "POST",
+        body: formDataToSend,
+      }
+    )
       .then((res) => res.json())
       .then((data) => {
         setSaving(false);

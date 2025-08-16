@@ -29,34 +29,44 @@ try {
     // Get real orders from database
     $stmt = $pdo->prepare("
         SELECT 
-            id as order_id,
-            customer_id,
-            seller_id,
-            product_id,
-            product_name,
-            quantity,
-            unit_price,
-            total_amount,
-            order_status,
-            payment_status,
-            payment_method,
-            billing_name,
-            billing_email,
-            billing_address,
-            billing_postal_code,
-            billing_country,
-            transaction_id,
-            created_at,
-            updated_at,
-            CONCAT('AGR-', DATE_FORMAT(created_at, '%Y%m%d'), '-', LPAD(id, 3, '0')) as order_number
-        FROM orders 
-        WHERE customer_id = ? 
-        ORDER BY created_at DESC
+            o.id as order_id,
+            o.customer_id,
+            o.seller_id,
+            o.product_id,
+            o.product_name,
+            o.quantity,
+            o.unit_price,
+            o.total_amount,
+            o.order_status,
+            o.payment_status,
+            o.payment_method,
+            o.billing_name,
+            o.billing_email,
+            o.billing_address,
+            o.billing_postal_code,
+            o.billing_country,
+            o.transaction_id,
+            o.created_at,
+            o.updated_at,
+            CONCAT('AGR-', DATE_FORMAT(o.created_at, '%Y%m%d'), '-', LPAD(o.id, 3, '0')) as order_number,
+            p.product_images
+        FROM orders o
+        LEFT JOIN products p ON o.product_id = p.id
+        WHERE o.customer_id = ? 
+        ORDER BY o.created_at DESC
         LIMIT 50
     ");
 
     $stmt->execute([$customerId]);
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Decode product_images for each order
+    foreach ($orders as &$order) {
+        if (isset($order['product_images']) && $order['product_images']) {
+            $order['product_images'] = json_decode($order['product_images'], true);
+        } else {
+            $order['product_images'] = [];
+        }
+    }
 
     // Add average_rating for each product in the orders
     foreach ($orders as &$order) {

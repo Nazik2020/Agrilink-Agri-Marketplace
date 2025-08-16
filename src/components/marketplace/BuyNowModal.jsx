@@ -64,10 +64,16 @@ const BuyNowModal = ({
   const singleProductTotal = unitPrice * formData.quantity;
 
   // Use cart totals if this is a cart checkout, otherwise use single product totals
-  const totalAmount = isCartCheckout ? cartTotal || 0 : singleProductTotal;
-  const shipping = isCartCheckout ? cartShipping || 0 : 0;
-  const tax = isCartCheckout ? cartTax || 0 : 0;
-  const subtotalValue = isCartCheckout ? cartSubtotal || 0 : singleProductTotal;
+  // Only use product price for subtotal and total, no extra fees
+  const totalAmount = isCartCheckout
+    ? cartItems.reduce(
+        (sum, item) => sum + parseFloat(item.price) * item.quantity,
+        0
+      )
+    : singleProductTotal;
+  const shipping = 0;
+  const tax = 0;
+  const subtotalValue = totalAmount;
 
   // Load customer data when modal opens
   useEffect(() => {
@@ -133,7 +139,7 @@ const BuyNowModal = ({
       }
 
       const response = await axios.post(
-        "http://localhost/agrilink/backend/get_customer_billing_data.php",
+        "http://localhost:8080/get_customer_billing_data.php",
         {
           customer_id: customerId,
           customer_email: customerEmail,
@@ -314,6 +320,8 @@ const BuyNowModal = ({
           billing_country: formData.billing_country,
         };
 
+        let purchasedProductIds = [];
+
         if (isCartCheckout) {
           // Cart checkout: send all cart items
           orderPayload.cart_items = cartItems.map((item) => ({
@@ -322,10 +330,12 @@ const BuyNowModal = ({
             quantity: item.quantity,
             price: item.price,
             product_images: item.product_images,
+            seller_id: item.seller_id || item.sellerId || null,
           }));
           orderPayload.subtotal = cartSubtotal;
           orderPayload.shipping = cartShipping;
           orderPayload.tax = cartTax;
+          purchasedProductIds = cartItems.map((item) => item.product_id);
         } else {
           // Single product checkout
           orderPayload.product_id = product?.id || product?.product_id;
@@ -333,6 +343,11 @@ const BuyNowModal = ({
           orderPayload.quantity = formData.quantity;
           orderPayload.price = product?.price;
           orderPayload.product_images = product?.images?.[0] || "";
+          orderPayload.seller_id =
+            product?.seller_id || product?.sellerId || null;
+          if (product?.id || product?.product_id) {
+            purchasedProductIds = [product.id || product.product_id];
+          }
         }
 
         // Send order to backend to record all details
@@ -341,7 +356,7 @@ const BuyNowModal = ({
 
           // Real POST request to backend
           const response = await axios.post(
-            "http://localhost/backend/add_order_simple.php",
+            "http://localhost/Agrilink-Agri-Marketplace/backend/add_order_simple.php",
             orderPayload
           );
 
@@ -359,6 +374,20 @@ const BuyNowModal = ({
           setError("Error sending order to backend: " + err.message);
           setLoading(false);
           return;
+        }
+
+        // Dispatch custom event for each purchased product to update ProductDetails page
+        if (purchasedProductIds.length > 0) {
+          purchasedProductIds.forEach((productId) => {
+            console.log(
+              "[BuyNowModal] Dispatching orderPaid event for productId:",
+              productId,
+              typeof productId
+            );
+            window.dispatchEvent(
+              new CustomEvent("orderPaid", { detail: { productId } })
+            );
+          });
         }
 
         if (isCartCheckout) {
@@ -534,13 +563,33 @@ const BuyNowModal = ({
                         className="flex items-center space-x-4"
                       >
                         <img
-                          src={
-                            item.product_images
-                              ? `http://localhost/backend/${
-                                  item.product_images.split(",")[0]
-                                }`
-                              : "/placeholder.svg"
-                          }
+                          src={(function () {
+                            let imagesArr = [];
+                            if (!item.product_images) {
+                              return "/placeholder.svg";
+                            }
+                            if (Array.isArray(item.product_images)) {
+                              imagesArr = item.product_images;
+                            } else {
+                              try {
+                                imagesArr = JSON.parse(item.product_images);
+                              } catch (error) {
+                                imagesArr = [];
+                              }
+                            }
+                            if (imagesArr.length > 0) {
+                              const img = imagesArr[0];
+                              if (
+                                typeof img === "string" &&
+                                img.startsWith("http")
+                              ) {
+                                return img;
+                              } else if (typeof img === "string") {
+                                return `http://localhost/Agrilink-Agri-Marketplace/backend/${img}`;
+                              }
+                            }
+                            return "/placeholder.svg";
+                          })()}
                           alt={item.product_name}
                           className="w-16 h-16 object-cover rounded-lg border border-green-200"
                         />
@@ -563,16 +612,54 @@ const BuyNowModal = ({
                         </div>
                       </div>
                     ))}
+
+                    {/* Cart totals */}
+                    <div className="border-t border-green-200 mt-4 pt-4 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Subtotal:</span>
+                        <span className="font-semibold">
+                          ${totalAmount.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-lg">
+                        <span className="font-bold text-gray-800">Total:</span>
+                        <span className="font-bold text-xl text-green-600">
+                          ${(totalAmount || 0).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   // Single product checkout
                   <div className="flex items-center space-x-4">
                     <img
-                      src={
-                        product?.images?.[0]
-                          ? `http://localhost/backend/${product.images[0]}`
-                          : "/placeholder.svg"
-                      }
+                      src={(function () {
+                        let imagesArr = [];
+                        if (!product?.images) {
+                          return "/placeholder.svg";
+                        }
+                        if (Array.isArray(product.images)) {
+                          imagesArr = product.images;
+                        } else {
+                          try {
+                            imagesArr = JSON.parse(product.images);
+                          } catch (error) {
+                            imagesArr = [];
+                          }
+                        }
+                        if (imagesArr.length > 0) {
+                          const img = imagesArr[0];
+                          if (
+                            typeof img === "string" &&
+                            img.startsWith("http")
+                          ) {
+                            return img;
+                          } else if (typeof img === "string") {
+                            return `http://localhost/Agrilink-Agri-Marketplace/backend/${img}`;
+                          }
+                        }
+                        return "/placeholder.svg";
+                      })()}
                       alt={product?.name}
                       className="w-24 h-24 object-cover rounded-lg border border-green-200"
                     />

@@ -8,6 +8,8 @@ const AddProductPage = () => {
     productDescription: "",
     price: "",
     specialOffer: "",
+    stock: "", // No default value, blank by default
+    category: ""
   });
 
   const handleProductChange = (updatedProduct) => {
@@ -18,8 +20,8 @@ const AddProductPage = () => {
     console.log("Product image uploaded:", file.name);
   };
 
-  // Get sellerId from sessionStorage (or your auth context)
-  const sellerId = sessionStorage.getItem("seller_id");
+  // Get sellerId from localStorage (or your auth context)
+  const sellerId = window.localStorage.getItem("seller_id");
 
   return (
     <div className="flex min-h-screen bg-gray-50">

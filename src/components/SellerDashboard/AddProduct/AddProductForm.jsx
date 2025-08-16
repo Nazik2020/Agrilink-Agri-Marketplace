@@ -43,13 +43,28 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
     ];
 
     requiredFields.forEach((field) => {
-      if (!product[field] || product[field].trim() === "") {
+      if (
+        !product[field] ||
+        (typeof product[field] === "string" && product[field].trim() === "")
+      ) {
         newErrors[field] = "This field is required.";
       }
     });
 
+    // Validate price
     if (product.price && isNaN(product.price)) {
       newErrors.price = "Please enter a valid price.";
+    }
+
+    // Validate stock
+    if (
+      product.stock === undefined ||
+      product.stock === null ||
+      product.stock === ""
+    ) {
+      newErrors.stock = "Quantity is required.";
+    } else if (isNaN(product.stock) || parseInt(product.stock, 10) < 0) {
+      newErrors.stock = "Please enter a valid quantity (0 or more).";
     }
 
     setErrors(newErrors);
@@ -59,12 +74,18 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
   const handleSubmit = async () => {
     if (validateForm()) {
       const formData = new FormData();
+
       formData.append("seller_id", sellerId || product.seller_id);
       formData.append("product_name", product.productName);
       formData.append("product_description", product.productDescription);
       formData.append("price", product.price);
       formData.append("special_offer", product.specialOffer);
       formData.append("category", product.category);
+      // Always send stock as integer
+      formData.append(
+        "stock",
+        Number.isNaN(Number(product.stock)) ? 0 : parseInt(product.stock, 10)
+      );
 
       imageFiles.forEach((file) => {
         formData.append("product_images[]", file);
@@ -72,17 +93,18 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
 
       try {
         const res = await axios.post(
-          "http://localhost/backend/add_product.php",
+          "http://localhost/Agrilink-Agri-Marketplace/backend/add_product.php",
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },
           }
         );
 
-        if (res.data.success) {
+        console.log("Add Product API Response:", res.data);
+        if (res.data.success === true) {
           alert("Product Listed Successfully!");
         } else {
-          alert("Product listing failed!");
+          alert("Product listing failed! " + (res.data.error || JSON.stringify(res.data)));
         }
       } catch (err) {
         alert("Error adding product");
@@ -134,6 +156,17 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
               value={product.price}
               onChange={handleInputChange}
               error={errors.price}
+              required
+            />
+
+            <ProfileFormField
+              label="Quantity"
+              name="stock"
+              type="number"
+              value={product.stock === 0 ? "" : product.stock || ""}
+              onChange={handleInputChange}
+              error={errors.stock}
+              min={0}
               required
             />
 

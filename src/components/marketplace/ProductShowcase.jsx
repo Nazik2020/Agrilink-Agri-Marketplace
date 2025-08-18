@@ -35,6 +35,23 @@ const ProductShowcase = () => {
     fetchTopRatedProducts();
   }, []);
 
+  // Instant stock update
+  useEffect(() => {
+    const handleOrderPaid = (e) => {
+      const { productId, quantity = 1 } = e.detail || {};
+      if (!productId) return;
+      setProducts((prev) =>
+        prev.map((p) =>
+          String(p.id) === String(productId)
+            ? { ...p, stock: Math.max(0, (parseInt(p.stock, 10) || 0) - (quantity || 1)) }
+            : p
+        )
+      );
+    };
+    window.addEventListener("orderPaid", handleOrderPaid);
+    return () => window.removeEventListener("orderPaid", handleOrderPaid);
+  }, []);
+
   const handleAddToCart = (product) => {
     addToCart({
       id: product.id,

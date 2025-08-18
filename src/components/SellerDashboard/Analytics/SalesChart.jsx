@@ -73,12 +73,17 @@ const SalesChart = () => {
             ...monthlyIncome.slice(0, currentIdx + 1),
           ];
 
+          // Show only the last 7 months (current month + previous 6)
+          const monthsToShow = 7;
+          const trimmedLabels = rotatedLabels.slice(-monthsToShow);
+          const trimmedData = rotatedData.slice(-monthsToShow);
+
           setChartData({
-            labels: rotatedLabels,
+            labels: trimmedLabels,
             datasets: [
               {
                 label: "Monthly Income",
-                data: rotatedData,
+                data: trimmedData,
                 backgroundColor: "rgba(16, 185, 129, 0.8)",
                 borderColor: "#10B981",
                 borderWidth: 0.5,

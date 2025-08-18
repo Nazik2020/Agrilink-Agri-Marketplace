@@ -42,6 +42,9 @@ export const API_CONFIG = {
     ADD_REVIEW: "/add_review.php",
     DELETE_REVIEW: "/delete_review.php",
 
+    // Seller Analytics
+    SELLER_TODAYS_PRICE_LIST: "/seller_analytics/get_todays_price_list.php",
+
     // Test
     TEST_SERVER: "/test_server.php",
   },

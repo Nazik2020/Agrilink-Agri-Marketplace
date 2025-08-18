@@ -35,6 +35,23 @@ const Products = ({ displayCount = 8 }) => {
     fetchProducts();
   }, []);
 
+  // Instant stock update when an order is paid
+  useEffect(() => {
+    const handleOrderPaid = (e) => {
+      const { productId, quantity = 1 } = e.detail || {};
+      if (!productId) return;
+      setProducts((prev) =>
+        prev.map((p) =>
+          String(p.id) === String(productId)
+            ? { ...p, stock: Math.max(0, (parseInt(p.stock, 10) || 0) - (quantity || 1)) }
+            : p
+        )
+      );
+    };
+    window.addEventListener("orderPaid", handleOrderPaid);
+    return () => window.removeEventListener("orderPaid", handleOrderPaid);
+  }, []);
+
   const handleAddToCart = (product) => {
     addToCart({
       id: product.id,
@@ -77,22 +94,18 @@ const Products = ({ displayCount = 8 }) => {
     return (
       <div className="text-center py-16">
         <div className="max-w-md mx-auto">
-          <div className="text-6xl mb-6">📦</div>
+          <div className="text-6xl mb-6">🛍️</div>
           <h3 className="text-2xl font-bold text-gray-800 mb-4">
             No Products Available Yet
           </h3>
           <p className="text-gray-600 text-lg mb-2">
             We currently don't have any products in this category.
           </p>
-          <p className="text-gray-500">
-            Check back later for new product listings!
-          </p>
         </div>
       </div>
     );
   }
 
-  // Get products to display based on displayCount
   const displayedProducts = products.slice(0, displayCount);
 
   return (
@@ -156,7 +169,6 @@ const Products = ({ displayCount = 8 }) => {
                 </span>
               )}
             </div>
-
             <Link to={`/product/${product.id}`} title={product.product_name}>
               <h3
                 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700 truncate"
@@ -170,13 +182,11 @@ const Products = ({ displayCount = 8 }) => {
                 {product.product_name}
               </h3>
             </Link>
-
             <p className="text-gray-600 text-sm line-clamp-2 mb-3">
               {product.product_description.length > 80
                 ? product.product_description.substring(0, 80) + "..."
                 : product.product_description}
             </p>
-
             <div className="flex items-end justify-between mt-auto">
               <div>
                 <span className="text-green-700 font-bold text-lg">

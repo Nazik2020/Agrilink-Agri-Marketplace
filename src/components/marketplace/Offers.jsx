@@ -52,6 +52,23 @@ const Offers = ({ displayCount = 8 }) => {
     fetchProducts();
   }, []);
 
+  // Instant stock update when an order is paid
+  useEffect(() => {
+    const handleOrderPaid = (e) => {
+      const { productId, quantity = 1 } = e.detail || {};
+      if (!productId) return;
+      setProducts((prev) =>
+        prev.map((p) =>
+          String(p.id) === String(productId)
+            ? { ...p, stock: Math.max(0, (parseInt(p.stock, 10) || 0) - (quantity || 1)) }
+            : p
+        )
+      );
+    };
+    window.addEventListener("orderPaid", handleOrderPaid);
+    return () => window.removeEventListener("orderPaid", handleOrderPaid);
+  }, []);
+
   const handleAddToCart = (product) => {
     if (!product || !product.id || !product.product_name) {
       console.error("Invalid product data for cart:", product);

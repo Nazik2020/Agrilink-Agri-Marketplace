@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS seller_bank_accounts (
+                                                                                                CREATE TABLE IF NOT EXISTS seller_bank_accounts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     seller_id INT NOT NULL,
     cardholder_name VARCHAR(100) NOT NULL,

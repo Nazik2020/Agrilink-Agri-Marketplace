@@ -64,16 +64,17 @@ const BuyNowModal = ({
   const singleProductTotal = unitPrice * formData.quantity;
 
   // Use cart totals if this is a cart checkout, otherwise use single product totals
-  // Only use product price for subtotal and total, no extra fees
-  const totalAmount = isCartCheckout
-    ? cartItems.reduce(
-        (sum, item) => sum + parseFloat(item.price) * item.quantity,
-        0
-      )
-    : singleProductTotal;
-  const shipping = 0;
-  const tax = 0;
-  const subtotalValue = totalAmount;
+  const subtotal = isCartCheckout ? cartSubtotal : singleProductTotal;
+  const shipping = isCartCheckout ? cartShipping : 0;
+  const tax = isCartCheckout ? cartTax : 0;
+  const totalAmount = subtotal + shipping + tax;
+
+  const allowedCards = {
+    "4242424242424242": "success",
+    "4000000000000002": "Your card was declined.",
+    "4000000000009995": "Insufficient funds.",
+    "4000000000009987": "Card expired.",
+  };
 
   // Load customer data when modal opens
   useEffect(() => {
@@ -266,32 +267,17 @@ const BuyNowModal = ({
     return errors;
   };
 
-  // Handle payment processing - ONLY SPECIFIC CARDS ALLOWED
   const handlePayment = async () => {
-    setError("");
-    setLoading(true);
-
     try {
-      // Validate form first
-      const validationErrors = validateForm();
-      if (validationErrors.length > 0) {
-        setError(validationErrors.join(", "));
+      setLoading(true);
+      setError("");
+
+      const cardNumber = (formData.card_number || "").replace(/\s+/g, "");
+      if (!cardNumber) {
+        setError("Please enter a card number.");
         setLoading(false);
         return;
       }
-
-      // Get card number without spaces
-      const cardNumber = formData.card_number.replace(/\s/g, "");
-
-      // ONLY THESE CARDS ARE ALLOWED - NO RANDOM NUMBERS
-      const allowedCards = {
-        4242424242424242: "success", // ✅ Visa
-        5555555555554444: "success", // ✅ Mastercard
-        378282246310005: "success", // ✅ American Express
-        4000000000000002: "Your card was declined.", // ❌ Generic decline
-        4000000000009995: "Your card has insufficient funds.", // ❌ Insufficient funds
-        4000000000009987: "Your card was reported lost or stolen.", // ❌ Lost card
-      };
 
       // Check if card number is in allowed list
       if (!allowedCards.hasOwnProperty(cardNumber)) {
@@ -322,7 +308,7 @@ const BuyNowModal = ({
           billing_country: formData.billing_country,
         };
 
-        let purchasedProductIds = [];
+        let purchasedProducts = [];
 
         if (isCartCheckout) {
           // Cart checkout: send all cart items
@@ -337,7 +323,10 @@ const BuyNowModal = ({
           orderPayload.subtotal = cartSubtotal;
           orderPayload.shipping = cartShipping;
           orderPayload.tax = cartTax;
-          purchasedProductIds = cartItems.map((item) => item.product_id);
+          purchasedProducts = cartItems.map((item) => ({
+            productId: item.product_id,
+            quantity: item.quantity,
+          }));
         } else {
           // Single product checkout
           orderPayload.product_id = product?.id || product?.product_id;
@@ -348,7 +337,12 @@ const BuyNowModal = ({
           orderPayload.seller_id =
             product?.seller_id || product?.sellerId || null;
           if (product?.id || product?.product_id) {
-            purchasedProductIds = [product.id || product.product_id];
+            purchasedProducts = [
+              {
+                productId: product.id || product.product_id,
+                quantity: formData.quantity || 1,
+              },
+            ];
           }
         }
 
@@ -378,16 +372,11 @@ const BuyNowModal = ({
           return;
         }
 
-        // Dispatch custom event for each purchased product to update ProductDetails page
-        if (purchasedProductIds.length > 0) {
-          purchasedProductIds.forEach((productId) => {
-            console.log(
-              "[BuyNowModal] Dispatching orderPaid event for productId:",
-              productId,
-              typeof productId
-            );
+        // Dispatch custom event for each purchased product to update listings instantly
+        if (purchasedProducts.length > 0) {
+          purchasedProducts.forEach(({ productId, quantity }) => {
             window.dispatchEvent(
-              new CustomEvent("orderPaid", { detail: { productId } })
+              new CustomEvent("orderPaid", { detail: { productId, quantity } })
             );
           });
         }

@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { User, Plus, BarChart3, Wallet, Bell, LogOut } from "lucide-react";
 import axios from "axios";
 import Image from "../../../assets/SellerDashboard/seller.jpg"; // Adjust the path as necessary
+import { API_CONFIG } from "../../../config/api";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -19,7 +20,14 @@ const Sidebar = () => {
   });
   // Used to force image refresh
   const [logoVersion, setLogoVersion] = useState(Date.now());
-  // (Removed broken always-sync effect. Only sync on mount and on storage event, like customer dashboard)
+
+  const buildLogoUrl = (raw) => {
+    if (!raw) return null;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    const base = API_CONFIG.BASE_URL.replace(/\/$/, "");
+    const rel = String(raw).replace(/^\/?/, "");
+    return `${base}/${rel}?v=${logoVersion}`;
+  };
 
   // Listen for sessionStorage changes to update instantly (profile image, username, etc)
   useEffect(() => {
@@ -86,16 +94,19 @@ const Sidebar = () => {
               const s = JSON.parse(sessionStorage.getItem("seller"));
               if (s) seller = s;
             } catch {}
+            const logoSrc = seller.business_logo
+              ? buildLogoUrl(seller.business_logo)
+              : "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop";
             return (
               <img
                 key={logoVersion + (seller.business_logo || "default")}
-                src={
-                  seller.business_logo
-                    ? `http://localhost/backend/${seller.business_logo}?v=${logoVersion}`
-                    : "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop"
-                }
+                src={logoSrc}
                 alt={seller.username || "Seller Profile"}
                 className="w-30 h-30 rounded-full object-cover border-4 border-green-100 shadow-lg"
+                onError={(e) => {
+                  e.currentTarget.src =
+                    "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop";
+                }}
               />
             );
           })()}

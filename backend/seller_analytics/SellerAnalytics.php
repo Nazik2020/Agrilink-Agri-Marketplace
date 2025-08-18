@@ -49,5 +49,35 @@ class SellerAnalytics {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Return today's sold products for this seller with aggregated quantity and totals.
+     */
+    public function getTodaysSoldProducts() {
+        $sql = "
+            SELECT 
+                o.product_id,
+                o.product_name,
+                MAX(o.unit_price) AS unit_price,
+                SUM(o.quantity) AS total_quantity,
+                SUM(o.total_amount) AS total_amount
+            FROM orders o
+            WHERE 
+                o.seller_id = ?
+                AND DATE(CONVERT_TZ(o.created_at, '+00:00', '+05:30')) = CURDATE()
+                AND o.payment_status = 'completed'
+            GROUP BY o.product_id, o.product_name
+            ORDER BY total_amount DESC
+        ";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$this->sellerId]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return array_map(function ($row) {
+            $row['unit_price'] = (float)$row['unit_price'];
+            $row['total_quantity'] = (int)$row['total_quantity'];
+            $row['total_amount'] = (float)$row['total_amount'];
+            return $row;
+        }, $rows);
+    }
+
     // Add more analytics methods as needed
 }

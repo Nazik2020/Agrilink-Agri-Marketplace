@@ -1,38 +1,36 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { API_CONFIG } from '../../../config/api';
 
 const PriceListTable = () => {
-  const products = [
-    {
-      product: "Organic Apples",
-      price: "$2.50/lb",
-      quantity: "200 lbs",
-      total: "$500"
-    },
-    {
-      product: "Fresh Tomatoes",
-      price: "$1.20/lb",
-      quantity: "300 lbs",
-      total: "$360"
-    },
-    {
-      product: "Free-Range Eggs",
-      price: "$3.00/dozen",
-      quantity: "100 dozen",
-      total: "$300"
-    },
-    {
-      product: "Local Honey",
-      price: "$8.00/jar",
-      quantity: "50 jars",
-      total: "$400"
-    },
-    {
-      product: "Artisan Cheese",
-      price: "$15.00/lb",
-      quantity: "40 lbs",
-      total: "$600"
-    }
-  ];
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const sellerId = window.localStorage.getItem('seller_id') || 1;
+    fetch(`${API_CONFIG.BASE_URL}/seller_analytics/get_todays_price_list.php`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ seller_id: sellerId })
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.price_list)) {
+          setRows(data.price_list);
+          setError(null);
+        } else {
+          setRows([]);
+          setError('No sales found for today');
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        setError('Failed to load today\'s price list');
+        setLoading(false);
+      });
+  }, []);
+
+  const formatCurrency = (n) => `$${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -47,12 +45,22 @@ const PriceListTable = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {products.map((product, index) => (
-              <tr key={index} className="hover:bg-gray-50 transition-colors duration-200">
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">{product.product}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">{product.price}</td>
-                <td className="px-6 py-4 text-sm text-gray-600">{product.quantity}</td>
-                <td className="px-6 py-4 text-sm font-semibold text-green-600">{product.total}</td>
+            {loading && (
+              <tr>
+                <td className="px-6 py-4 text-sm text-gray-600" colSpan={4}>Loading...</td>
+              </tr>
+            )}
+            {!loading && rows.length === 0 && (
+              <tr>
+                <td className="px-6 py-4 text-sm text-gray-600" colSpan={4}>{error || 'No sales today'}</td>
+              </tr>
+            )}
+            {!loading && rows.map((item) => (
+              <tr key={item.product_id} className="hover:bg-gray-50 transition-colors duration-200">
+                <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.product_name}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">{formatCurrency(item.unit_price)}</td>
+                <td className="px-6 py-4 text-sm text-gray-600">{item.total_quantity}</td>
+                <td className="px-6 py-4 text-sm font-semibold text-green-600">{formatCurrency(item.total_amount)}</td>
               </tr>
             ))}
           </tbody>

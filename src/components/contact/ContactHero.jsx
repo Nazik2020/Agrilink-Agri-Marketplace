@@ -2,8 +2,8 @@ import React from 'react';
 import Image from '../../assets/contactus/contact.jpg';
 const ContactHero = () => {
   return (
-    <div className="relative bg-gradient-to-r from-green-200 to-green-300 py-40 w-full min-w-screen">
-  <div 
+<div className="relative bg-gradient-to-r from-green-50 to-green-400 py-40 w-full min-w-screen">
+    <div 
     className="absolute inset-0 bg-cover bg-center opacity-20 w-full"
     style={{ backgroundImage: `url(${Image})` }}
   ></div>

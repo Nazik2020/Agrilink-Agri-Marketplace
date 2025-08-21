@@ -11,7 +11,7 @@ const ContactInfo = () => {
             <h2 className="text-3xl font-bold text-gray-800 mb-6">Our Information</h2>
             <p className="text-gray-600 mb-8 leading-relaxed">
               At <span className="font-semibold text-green-600">AgriLink</span>, we connect the world to Sri 
-              Lanka's finest tea, coffee, cinnamon, and more. Whether you\'re a global buyer seeking 
+              Lanka's finest tea, coffee, cinnamon, and more. Whether you're a global buyer seeking 
               premium exports or a local grower ready to reach new markets, we're here to help. Reach 
               out to us today and let's cultivate success together, across continents.
             </p>

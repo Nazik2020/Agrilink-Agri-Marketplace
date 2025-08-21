@@ -40,40 +40,74 @@ function ConfirmRemoveModal({ open, ad, onConfirm, onCancel }) {
 
 const ContentModeration = () => {
   const { toast } = useToast();
-  const [flaggedContent, setFlaggedContent] = useState([
-    {
-      id: 1,
-      title: 'Premium Organic Tomatoes',
-      seller: 'Jane Farmer',
-      reason: 'Misleading claims',
-      reports: 3,
-      status: 'pending'
-    },
-    {
-      id: 2,
-      title: 'Fresh Milk Direct',
-      seller: 'Bob Smith',
-      reason: 'Inappropriate content',
-      reports: 2,
-      status: 'pending'
-    },
-    {
-      id: 3,
-      title: 'Organic Vegetables Bundle',
-      seller: 'Green Valley Farm',
-      reason: 'Spam content',
-      reports: 1,
-      status: 'pending'
-    },
-    {
-      id: 4,
-      title: 'Farm Fresh Eggs',
-      seller: 'Sunny Side Farm',
-      reason: 'False advertising',
-      reports: 4,
-      status: 'urgent'
+  const [flaggedContent, setFlaggedContent] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  // Configure API base via Vite env (define VITE_API_BASE_URL in .env)
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
+
+  React.useEffect(() => {
+    const fetchFlags = async () => {
+      try {
+        const url = `${API_BASE}/backend/admin/content_moderation/list_flags.php`;
+        const res = await fetch(url);
+        let data;
+        const text = await res.text();
+        try { data = JSON.parse(text); } catch { data = { success: false, message: 'Invalid JSON', raw: text }; }
+        if (!res.ok) {
+          console.error('Flags fetch failed', { status: res.status, data });
+        }
+        if (data.success) {
+          const mapped = data.flags.map(f => ({
+            id: f.flag_id,
+            title: f.product_name || 'Seller Flag',
+            seller: f.seller_name || f.seller_email || 'Unknown seller',
+            reason: f.reason,
+            reports: 1, // each row is a single flag; aggregation can be added later
+            status: f.status,
+            category: f.category,
+            reporter: f.reporter_name || f.reporter_email || 'Unknown reporter',
+            created_at: f.created_at
+          }));
+          setFlaggedContent(mapped);
+          if (mapped.length === 0) setError('No flags submitted yet.');
+        } else {
+          setError((data && data.message) ? data.message : 'Failed to load flags');
+        }
+      } catch (e) {
+        console.error('Network / parsing error while fetching flags', e);
+        setError('Failed to fetch flags from server');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFlags();
+  }, []);
+
+  const updateFlagStatus = async (id, newStatus) => {
+    try {
+      const url = `${API_BASE}/backend/admin/content_moderation/update_flag_status.php`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flag_id: id, status: newStatus })
+      });
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = { success: false, message: 'Invalid JSON', raw: text }; }
+      if (!res.ok) {
+        console.error('Update flag failed', { status: res.status, data });
+      }
+      if (data.success) {
+        setFlaggedContent(prev => prev.map(f => f.id === id ? { ...f, status: newStatus } : f));
+        toast({ title: 'Status Updated', description: `Flag #${id} set to ${newStatus}` });
+      } else {
+        toast({ title: 'Update Failed', description: data.message || 'Could not update flag', variant: 'destructive' });
+      }
+    } catch (e) {
+      toast({ title: 'Network Error', description: 'Failed to reach server', variant: 'destructive' });
     }
-  ]);
+  };
   const [removeAd, setRemoveAd] = useState(null);
 
   const { toast: showToast } = useToast();
@@ -97,58 +131,50 @@ const ContentModeration = () => {
   return (
     <div className="space-y-6 px-2 sm:px-4">
       <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">
-          Content Moderation
-        </h2>
-        <p className="text-muted-foreground">
-          Review and manage flagged advertisements and content
-        </p>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Content Moderation</h2>
+        <p className="text-muted-foreground">Review and manage flagged advertisements and content</p>
       </div>
-
-      <div className="space-y-6">
-        {flaggedContent.map((content) => (
-          <div
-            key={content.id}
-            className="bg-white border border-red-200 shadow-sm rounded-xl p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-lg font-bold">{content.title}</span>
-                <span className="bg-red-500 text-white rounded-full px-3 py-1 text-xs font-semibold">{content.reports} reports</span>
-              </div>
-              <div className="text-sm mb-1">
-                <span className="font-semibold">Seller:</span> {content.seller}
-              </div>
-              <div className="text-sm text-red-600">
-                <span className="font-semibold">Reason:</span> {content.reason}
+      {loading && <p>Loading flagged content...</p>}
+      {!loading && error && <p className="text-red-500">{error}</p>}
+      {!loading && !error && (
+        <div className="space-y-6">
+          {flaggedContent.map((content) => (
+            <div key={content.id} className="bg-white border border-red-200 shadow-sm rounded-xl p-6">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-lg font-bold">{content.title}</span>
+                    <span className="bg-red-500 text-white rounded-full px-3 py-1 text-xs font-semibold">{content.category}</span>
+                  </div>
+                  <div className="text-sm mb-1"><span className="font-semibold">Seller:</span> {content.seller}</div>
+                  <div className="text-sm mb-1"><span className="font-semibold">Reporter:</span> {content.reporter}</div>
+                  <div className="text-sm text-red-600 mb-1"><span className="font-semibold">Reason:</span> {content.reason}</div>
+                  <div className="text-sm"><span className="font-semibold">Status:</span> {content.status}</div>
+                </div>
+                <div className="flex gap-2 items-start">
+                  <button
+                    className="border border-gray-300 rounded px-3 py-1 text-sm font-semibold hover:bg-gray-100"
+                    onClick={() => updateFlagStatus(content.id, 'resolved')}
+                  >Resolve</button>
+                  <button
+                    className="border border-gray-300 rounded px-3 py-1 text-sm font-semibold hover:bg-gray-100"
+                    onClick={() => updateFlagStatus(content.id, 'dismissed')}
+                  >Dismiss</button>
+                  <button
+                    className="bg-red-500 text-white rounded px-3 py-1 text-sm font-semibold hover:bg-red-600"
+                    onClick={() => setRemoveAd(content)}
+                  >Remove</button>
+                </div>
               </div>
             </div>
-            <div className="flex gap-3 mt-4 sm:mt-0">
-              <button
-                className="border border-gray-300 rounded px-3 py-1 text-sm flex items-center gap-2 font-semibold hover:bg-gray-100"
-                onClick={() => toast({
-                  title: "Review Started",
-                  description: `Content review for item #${content.id} has been initiated`,
-                  variant: "default"
-                })}
-              >
-                <Eye className="h-4 w-4" /> Review
-              </button>
-              <button
-                className="bg-red-500 text-white rounded px-3 py-1 text-sm flex items-center gap-2 font-semibold hover:bg-red-600"
-                onClick={() => setRemoveAd(content)}
-              >
-                <Trash2 className="h-4 w-4" /> Remove
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
       <ConfirmRemoveModal
         open={!!removeAd}
         ad={removeAd}
         onCancel={() => setRemoveAd(null)}
-        onConfirm={() => handleRemove(removeAd.id)}
+        onConfirm={() => handleRemove(removeAd?.id)}
       />
     </div>
   );

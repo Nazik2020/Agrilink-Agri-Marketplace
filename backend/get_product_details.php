@@ -36,18 +36,33 @@ try {
         exit;
     }
     
+    // Helper to clean and format image paths
+    function format_image_url($image_path) {
+        // Remove any existing domain or leading slashes
+        $image_path = preg_replace('#^https?://[^/]+/#', '', $image_path);
+        $image_path = ltrim($image_path, '/');
+        if (!str_starts_with($image_path, 'uploads/')) {
+            $image_path = 'uploads/' . $image_path;
+        }
+        return "http://localhost/Agrilink-Agri-Marketplace/backend/get_image.php?path=" . urlencode($image_path);
+    }
+
     // Process product images from JSON and convert to full URLs
     if ($product['product_images']) {
         $image_paths = json_decode($product['product_images'], true);
         if (is_array($image_paths)) {
-            $product['product_images'] = array_map(function($image_path) {
-                return "http://localhost/Agrilink-Agri-Marketplace/backend/get_image.php?path=" . urlencode($image_path);
-            }, $image_paths);
+            $product['product_images'] = array_map('format_image_url', $image_paths);
         } else {
             $product['product_images'] = [];
         }
     } else {
         $product['product_images'] = [];
+    }
+
+    // Format seller logo
+    $seller_logo_url = null;
+    if ($product['seller_logo']) {
+        $seller_logo_url = format_image_url($product['seller_logo']);
     }
     
     // Calculate average rating for this product
@@ -76,7 +91,7 @@ try {
                 "contact" => $product['seller_contact'],
                 "email" => $product['seller_email'],
                 "address" => $product['seller_address'],
-                "logo" => $product['seller_logo'] ? "http://localhost/Agrilink-Agri-Marketplace/backend/get_image.php?path=" . urlencode($product['seller_logo']) : null
+                "logo" => $seller_logo_url
             ]
         ]
     ];

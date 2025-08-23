@@ -61,7 +61,18 @@ export default function RightSection() {
 
       if (res.data.success) {
         setMessage(res.data.message);
+        
+        // Store user data in sessionStorage
         sessionStorage.setItem("user", JSON.stringify(res.data.user));
+        
+        // Store seller info for sidebar/dashboard - FIXED
+        if (res.data.user && res.data.user.role === "seller") {
+          // Store the complete seller data
+          sessionStorage.setItem("seller", JSON.stringify(res.data.user));
+          console.log("Seller data stored:", res.data.user); // Debug log
+        }
+        
+        // Dispatch custom event to notify other components
         window.dispatchEvent(
           new CustomEvent("userStateChanged", {
             detail: { action: "login", user: res.data.user },
@@ -86,9 +97,10 @@ export default function RightSection() {
           if (res.data.user.role === "admin") {
             navigate("/admin-dashboard");
           } else if (res.data.user.role === "seller") {
-            navigate("/"); // Redirect sellers to home page
+            navigate("/seller-dashboard"); // Redirect sellers to seller dashboard
+          } else if (res.data.user.role === "customer") {
+            navigate("/customer-dashboard"); // Redirect customers to customer dashboard
           } else {
-            // Redirect customers to home page
             navigate("/");
           }
         }, 2000);
@@ -96,7 +108,14 @@ export default function RightSection() {
         setMessage(res.data.message);
       }
     } catch (error) {
-      setMessage("Network error. Please try again.");
+      console.error("Login error:", error);
+      if (error.response) {
+        setMessage(error.response.data?.message || "Server error occurred");
+      } else if (error.request) {
+        setMessage("Network error. Please check your connection.");
+      } else {
+        setMessage("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }

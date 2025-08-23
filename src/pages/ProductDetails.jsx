@@ -399,15 +399,15 @@ function ProductDetails() {
                   return (
                     <button
                       key={idx}
-                      onClick={() => setMainImg(img)}
+                      onClick={() => setMainImg(imgSrc)}
                       className={`border-2 rounded-lg p-1 transition ${
-                        mainImg === img
+                        mainImg === imgSrc
                           ? "border-green-500"
                           : "border-transparent"
                       }`}
                     >
                       <img
-                        src={img}
+                        src={imgSrc}
                         alt={`Product image ${idx + 1}`}
                         className="w-16 h-16 object-cover rounded"
                         onError={(e) => (e.currentTarget.style.opacity = "0.3")}

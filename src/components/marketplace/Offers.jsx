@@ -52,6 +52,23 @@ const Offers = ({ displayCount = 8 }) => {
     fetchProducts();
   }, []);
 
+  // Instant stock update when an order is paid
+  useEffect(() => {
+    const handleOrderPaid = (e) => {
+      const { productId, quantity = 1 } = e.detail || {};
+      if (!productId) return;
+      setProducts((prev) =>
+        prev.map((p) =>
+          String(p.id) === String(productId)
+            ? { ...p, stock: Math.max(0, (parseInt(p.stock, 10) || 0) - (quantity || 1)) }
+            : p
+        )
+      );
+    };
+    window.addEventListener("orderPaid", handleOrderPaid);
+    return () => window.removeEventListener("orderPaid", handleOrderPaid);
+  }, []);
+
   const handleAddToCart = (product) => {
     if (!product || !product.id || !product.product_name) {
       console.error("Invalid product data for cart:", product);
@@ -142,7 +159,7 @@ const Offers = ({ displayCount = 8 }) => {
               <img
                 src={
                   product.product_images && product.product_images.length > 0
-                    ? product.product_images[0] // Use the full URL from backend
+                    ? `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
                     : "/placeholder.svg"
                 }
                 alt={product.product_name}
@@ -159,6 +176,7 @@ const Offers = ({ displayCount = 8 }) => {
               <div className="mb-1">
                 <StarRating rating={product.average_rating} />
               </div>
+
               <div className="flex items-center justify-between mb-1">
                 <span className="text-green-600 font-semibold text-sm">
                   {product.category || "Offers"}
@@ -166,6 +184,22 @@ const Offers = ({ displayCount = 8 }) => {
                 <span className="text-gray-500 text-xs">
                   by {product.seller_name || "Unknown"}
                 </span>
+              </div>
+              <div className="flex items-center mb-1">
+                {product.stock > 0 ? (
+                  <span className="text-green-600 font-semibold text-xs">
+                    In Stock
+                  </span>
+                ) : (
+                  <span className="text-red-500 font-semibold text-xs">
+                    Out of Stock
+                  </span>
+                )}
+                {product.stock > 0 && (
+                  <span className="text-gray-500 text-xs ml-2">
+                    ({product.stock} left)
+                  </span>
+                )}
               </div>
 
               <Link to={`/product/${product.id}`} title={product.product_name}>
@@ -199,8 +233,11 @@ const Offers = ({ displayCount = 8 }) => {
                 </div>
 
                 <button
-                  className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base"
+                  className={`flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base ${
+                    product.stock === 0 ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                   onClick={() => handleAddToCart(product)}
+                  disabled={product.stock === 0}
                 >
                   <FaShoppingCart className="text-lg" />
                   Add

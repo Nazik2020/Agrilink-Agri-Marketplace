@@ -62,8 +62,8 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
 
   const handleSubmit = async () => {
     if (validateForm()) {
-      // Get seller_id from sessionStorage
-      const sellerId = sessionStorage.getItem("seller_id") || profile.id;
+      // Get seller_id from localStorage
+      const sellerId = window.localStorage.getItem("seller_id") || profile.id;
 
       if (!sellerId) {
         alert("Seller ID not found. Please login again.");

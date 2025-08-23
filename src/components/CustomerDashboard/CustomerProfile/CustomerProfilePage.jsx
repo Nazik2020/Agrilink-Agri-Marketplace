@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ChevronDown, Upload } from "lucide-react";
 import CountryDropdown from "../../SellerDashboard/SellerProfile/CountryDropdown";
+import { API_CONFIG } from "../../../config/api";
 
 const CustomerProfilePage = () => {
   const [formData, setFormData] = useState({
@@ -47,88 +48,21 @@ const CustomerProfilePage = () => {
       try {
         const user = JSON.parse(userString);
         email = user.email;
-        console.log("User object from localStorage:", user); // Debug log
       } catch (error) {
         console.error("Error parsing user from localStorage:", error);
       }
     }
-
-    // Fallback to old method for backward compatibility
     if (!email) {
       email = sessionStorage.getItem("userEmail");
     }
 
-    console.log("Email to use:", email); // Debug log
-    console.log(
-      "All localStorage items:",
-      Object.keys(sessionStorage).map((key) => ({
-        key,
-        value: sessionStorage.getItem(key),
-      }))
-    ); // Debug log
-
     if (!email) {
       setLoading(false);
-      setToast({
-        show: true,
-        message: "No user email found. Please login again.",
-        type: "error",
-      });
       return;
     }
 
-    console.log("Fetching profile for email:", email); // Debug log
-
-    fetch("http://localhost/Agrilink-Agri-Marketplace/backend/get_customer_profile.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    })
-      .then((res) => {
-        console.log("Response status:", res.status); // Debug log
-        return res.json();
-      })
-      .then((data) => {
-        console.log("Profile data received:", data); // Debug log
-
-        if (data.success && data.profile) {
-          setFormData((prev) => ({
-            ...prev,
-            fullName: data.profile.full_name || "",
-            email: data.profile.email || "",
-            address: data.profile.address || "",
-            contactNumber: data.profile.contactno || "",
-            country: data.profile.country || "",
-            postalCode: data.profile.postal_code || "", // <-- Add this line
-          }));
-
-          if (data.profile.profile_image) {
-            setProfileImage(data.profile.profile_image);
-          }
-        } else {
-          console.log("Profile fetch failed:", data.message); // Debug log
-          console.log("Debug info:", data.debug); // Debug log
-          if (data.all_emails) {
-            console.log("Available emails in database:", data.all_emails); // Debug log
-          }
-          setToast({
-            show: true,
-            message:
-              "Failed to load profile: " + (data.message || "Unknown error"),
-            type: "error",
-          });
-        }
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Profile fetch error:", error); // Debug log
-        setToast({
-          show: true,
-          message: "Network error while loading profile.",
-          type: "error",
-        });
-        setLoading(false);
-      });
+    // Backend expects JSON body with email → use POST helper
+    fetchProfile(email);
   }, []);
 
   const handleInputChange = (e) => {
@@ -170,11 +104,14 @@ const CustomerProfilePage = () => {
 
   const fetchProfile = (emailToFetch) => {
     setLoading(true);
-    fetch("http://localhost/Agrilink-Agri-Marketplace/backend/get_customer_profile.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: emailToFetch }),
-    })
+    fetch(
+      "http://localhost/Agrilink-Agri-Marketplace/backend/get_customer_profile.php",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToFetch }),
+      }
+    )
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.profile) {
@@ -242,10 +179,13 @@ const CustomerProfilePage = () => {
       console.log("FormData:", pair[0], pair[1]);
     }
 
-    fetch("http://localhost/Agrilink-Agri-Marketplace/backend/update_customer_profile.php", {
-      method: "POST",
-      body: formDataToSend,
-    })
+    fetch(
+      "http://localhost/Agrilink-Agri-Marketplace/backend/update_customer_profile.php",
+      {
+        method: "POST",
+        body: formDataToSend,
+      }
+    )
       .then((res) => res.json())
       .then((data) => {
         setSaving(false);
@@ -255,15 +195,17 @@ const CustomerProfilePage = () => {
             message: "Profile updated successfully!",
             type: "success",
           });
-          // Update sessionStorage user object with new profile_image for sidebar
+          // Update sessionStorage user object with new profile_image for sidebar/navbar
           try {
             const user = JSON.parse(sessionStorage.getItem("user"));
             if (user && data.profile_image_path) {
-              user.profile_image = data.profile_image_path.startsWith("http")
+              const rel = data.profile_image_path.replace(/^\/?/, "");
+              const base = API_CONFIG.BASE_URL.replace(/\/$/, "");
+              user.profile_image = /^https?:\/\//i.test(data.profile_image_path)
                 ? data.profile_image_path
-                : `http://localhost/Agrilink-Agri-Marketplace/backend/${data.profile_image_path}`;
+                : `${base}/${rel}`;
               sessionStorage.setItem("user", JSON.stringify(user));
-              // Trigger storage event for sidebar update
+              // Trigger storage event for sidebar/nav update
               window.dispatchEvent(new Event("storage"));
             }
           } catch (e) {}

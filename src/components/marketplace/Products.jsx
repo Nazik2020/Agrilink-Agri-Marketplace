@@ -35,11 +35,29 @@ const Products = ({ displayCount = 8 }) => {
     fetchProducts();
   }, []);
 
+  // Instant stock update when an order is paid
+  useEffect(() => {
+    const handleOrderPaid = (e) => {
+      const { productId, quantity = 1 } = e.detail || {};
+      if (!productId) return;
+      setProducts((prev) =>
+        prev.map((p) =>
+          String(p.id) === String(productId)
+            ? { ...p, stock: Math.max(0, (parseInt(p.stock, 10) || 0) - (quantity || 1)) }
+            : p
+        )
+      );
+    };
+    window.addEventListener("orderPaid", handleOrderPaid);
+    return () => window.removeEventListener("orderPaid", handleOrderPaid);
+  }, []);
+
   const handleAddToCart = (product) => {
     addToCart({
       id: product.id,
       name: product.product_name,
       seller: product.seller_name,
+      seller_id: product.seller_id, // Ensure seller_id is included
       category: product.category,
       price: parseFloat(product.price),
       maxQuantity: 10,
@@ -82,22 +100,18 @@ const Products = ({ displayCount = 8 }) => {
     return (
       <div className="text-center py-16">
         <div className="max-w-md mx-auto">
-          <div className="text-6xl mb-6">📦</div>
+          <div className="text-6xl mb-6">🛍️</div>
           <h3 className="text-2xl font-bold text-gray-800 mb-4">
             No Products Available Yet
           </h3>
           <p className="text-gray-600 text-lg mb-2">
             We currently don't have any products in this category.
           </p>
-          <p className="text-gray-500">
-            Check back later for new product listings!
-          </p>
         </div>
       </div>
     );
   }
 
-  // Get products to display based on displayCount
   const displayedProducts = products.slice(0, displayCount);
 
   return (
@@ -123,7 +137,7 @@ const Products = ({ displayCount = 8 }) => {
             <img
               src={
                 product.product_images && product.product_images.length > 0
-                  ? product.product_images[0] // Use the full URL from backend
+                  ? `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
                   : "https://via.placeholder.com/300x200?text=No+Image"
               }
               alt={product.product_name}
@@ -144,7 +158,22 @@ const Products = ({ displayCount = 8 }) => {
                 by {product.seller_name || "Unknown"}
               </span>
             </div>
-
+            <div className="flex items-center mb-1">
+              {product.stock > 0 ? (
+                <span className="text-green-600 font-semibold text-xs">
+                  In Stock
+                </span>
+              ) : (
+                <span className="text-red-500 font-semibold text-xs">
+                  Out of Stock
+                </span>
+              )}
+              {product.stock > 0 && (
+                <span className="text-gray-500 text-xs ml-2">
+                  ({product.stock} left)
+                </span>
+              )}
+            </div>
             <Link to={`/product/${product.id}`} title={product.product_name}>
               <h3
                 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700 truncate"
@@ -158,13 +187,11 @@ const Products = ({ displayCount = 8 }) => {
                 {product.product_name}
               </h3>
             </Link>
-
             <p className="text-gray-600 text-sm line-clamp-2 mb-3">
               {product.product_description.length > 80
                 ? product.product_description.substring(0, 80) + "..."
                 : product.product_description}
             </p>
-
             <div className="flex items-end justify-between mt-auto">
               <div>
                 <span className="text-green-700 font-bold text-lg">
@@ -172,8 +199,11 @@ const Products = ({ displayCount = 8 }) => {
                 </span>
               </div>
               <button
-                className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base"
+                className={`flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base ${
+                  product.stock === 0 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
                 onClick={() => handleAddToCart(product)}
+                disabled={product.stock === 0}
               >
                 <FaShoppingCart className="text-lg" /> Add
               </button>

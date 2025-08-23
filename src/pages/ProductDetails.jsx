@@ -19,12 +19,12 @@ import StarRating from "../components/marketplace/StarRating";
 import SimpleWishlistButton from "../components/wishlist/SimpleWishlistButton";
 import { FlagButton } from "../components/Flag";
 import axios from "axios";
+import { API_BASE, buildImageUrl } from "../config/api";
 
 // Function to fetch product details from backend
 const fetchProductDetails = async (productId) => {
   try {
-    // Always use the correct backend port for product details
-    const url = `http://localhost/Agrilink-Agri-Marketplace/backend/get_product_details.php?id=${productId}`;
+    const url = `${API_BASE}get_product_details.php?id=${productId}`;
     const response = await axios.get(url);
     if (response.data.success) {
       return response.data.product;
@@ -39,6 +39,24 @@ const fetchProductDetails = async (productId) => {
   }
 };
 
+// Exported React hook for use in checkout/payment flow
+// Usage example in your checkout/payment component:
+//   import { useProductDetailsRefresh } from "./ProductDetails";
+//   const refreshProductDetails = useProductDetailsRefresh(productId, setProduct);
+//   // After successful payment:
+//   refreshProductDetails();
+export function useProductDetailsRefresh(productId, setProduct) {
+  return () => {
+    if (productId) {
+      fetchProductDetails(productId)
+        .then((data) => setProduct(data))
+        .catch((error) =>
+          console.error("Error refreshing product details:", error)
+        );
+    }
+  };
+}
+
 function ProductDetails() {
   const navigate = useNavigate();
   const { id } = useParams(); // Get product ID from URL
@@ -47,7 +65,7 @@ function ProductDetails() {
   // SECTION: State Management
   const [product, setProduct] = useState(null);
   const [mainImg, setMainImg] = useState("");
-  const [quantity, setQuantity] = useState(1);
+  // Removed quantity state; quantity is now managed in the cart only
   const [showCustomize, setShowCustomize] = useState(false);
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
@@ -59,6 +77,32 @@ function ProductDetails() {
   const [editReviewText, setEditReviewText] = useState("");
   const [editReviewRating, setEditReviewRating] = useState(5);
 
+  // Listen for a custom event after payment to refresh product details
+  useEffect(() => {
+    function handleOrderPaid(e) {
+      console.log(
+        "[ProductDetails] orderPaid event received:",
+        e.detail,
+        "Current page id:",
+        id,
+        typeof id
+      );
+      // e.detail.productId can be used to filter, but here we always refresh
+      if (id) {
+        fetchProductDetails(id)
+          .then((data) => setProduct(data))
+          .catch((error) =>
+            console.error(
+              "Error refreshing product details after payment:",
+              error
+            )
+          );
+      }
+    }
+    window.addEventListener("orderPaid", handleOrderPaid);
+    return () => window.removeEventListener("orderPaid", handleOrderPaid);
+  }, [id]);
+
   // SECTION: Data Fetching
   useEffect(() => {
     if (id) {
@@ -66,11 +110,18 @@ function ProductDetails() {
       fetchProductDetails(id)
         .then((data) => {
           setProduct(data);
-          // Set main image from product images
-          if (data.images && data.images.length > 0) {
-            // Use the full URL from backend (already processed)
-            setMainImg(data.images[0]);
-          }
+          // Normalize images (array or comma string)
+          let rawImages = [];
+          if (Array.isArray(data.images)) rawImages = data.images;
+          else if (typeof data.images === "string")
+            rawImages = data.images
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean);
+          const resolved = rawImages.map(buildImageUrl).filter(Boolean);
+          setMainImg(resolved[0] || "");
+          // Store normalized images back for thumbnails usage
+          data.images = resolved;
           setLoading(false);
         })
         .catch((error) => {
@@ -84,26 +135,32 @@ function ProductDetails() {
     }
   }, [id]);
 
+  // Add to Cart logic (unchanged)
   const handleAddToCart = () => {
-    if (product) {
-      for (let i = 0; i < quantity; i++) {
-        addToCart({
-          id: product.id,
-          name: product.name,
-          seller: product.seller.name,
-          category: product.category,
-          price: product.price,
-          maxQuantity: 100, // Default max quantity since we don't have this field
-        });
-      }
+    if (product && product.stock > 0) {
+      addToCart({
+        id: product.id,
+        name: product.name,
+        seller: product.seller.name,
+        category: product.category,
+        price: product.price,
+        quantity: 1, // Always add 1, user can adjust in cart
+        maxQuantity: 100, // Default max quantity since we don't have this field
+      });
     }
   };
+
+  // To refresh product details (e.g., after payment), use the hook:
+  //   import { useProductDetailsRefresh } from "./ProductDetails";
+  //   const refreshProductDetails = useProductDetailsRefresh(product.id, setProduct);
+  //   // After successful payment:
+  //   refreshProductDetails();
 
   // Fetch reviews from backend
   const fetchReviews = async (productId) => {
     try {
       const response = await axios.get(
-        `http://localhost/Agrilink-Agri-Marketplace/backend/review_and_ratings/get_reviews.php?product_id=${productId}`
+        `${API_BASE}review_and_ratings/get_reviews.php?product_id=${productId}`
       );
       if (response.data && response.data.reviews) {
         // No filtering: show all reviews, including multiple from same user
@@ -144,7 +201,7 @@ function ProductDetails() {
     if (reviewText.trim()) {
       try {
         const response = await axios.post(
-          "http://localhost/Agrilink-Agri-Marketplace/backend/review_and_ratings/add_review.php",
+          `${API_BASE}review_and_ratings/add_review.php`,
           {
             product_id: id,
             customer_id: customerId,
@@ -190,7 +247,7 @@ function ProductDetails() {
     try {
       // To edit, you may want to call a dedicated edit_review.php, but for now, just add a new review (as per backend logic)
       const response = await axios.post(
-        "http://localhost/Agrilink-Agri-Marketplace/backend/review_and_ratings/add_review.php",
+        `${API_BASE}review_and_ratings/add_review.php`,
         {
           product_id: id,
           customer_id: customerId,
@@ -220,7 +277,7 @@ function ProductDetails() {
     }
     try {
       const response = await axios.post(
-        "http://localhost/Agrilink-Agri-Marketplace/backend/review_and_ratings/delete_review.php",
+        `${API_BASE}review_and_ratings/delete_review.php`,
         {
           review_id: reviewId,
           customer_id: customerId,
@@ -310,18 +367,35 @@ function ProductDetails() {
               <FaArrowLeft />
               Back
             </button>
-            <div className="w-full max-w-[600px] aspect-square bg-gray-100 rounded-xl flex items-center justify-center mb-4 overflow-hidden">
-              <img
-                src={mainImg || "/placeholder.svg"}
-                alt="Product"
-                className="object-cover w-full h-full rounded-xl"
-              />
+            <div className="w-full max-w-[600px] aspect-square bg-gray-100 rounded-xl mb-4 overflow-hidden relative group">
+              {mainImg ? (
+                <img
+                  src={mainImg}
+                  alt={product.name}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => {
+                    console.warn("Main image failed:", mainImg);
+                    e.currentTarget.src = "/placeholder.svg";
+                    e.currentTarget.classList.remove("object-cover");
+                    e.currentTarget.classList.add(
+                      "object-contain",
+                      "p-6",
+                      "opacity-70"
+                    );
+                  }}
+                />
+              ) : (
+                <img
+                  src="/placeholder.svg"
+                  alt="No product"
+                  className="w-full h-full object-contain p-6 opacity-70"
+                />
+              )}
             </div>
             {/* Thumbnails aligned left under main image */}
             <div className="flex gap-4 mt-2 w-full max-w-[600px] justify-start">
               {product.images &&
-                product.images.map((img, idx) => {
-                  // Use the full URL from backend (already processed)
+                product.images.map((imgSrc, idx) => {
                   return (
                     <button
                       key={idx}
@@ -336,6 +410,7 @@ function ProductDetails() {
                         src={img}
                         alt={`Product image ${idx + 1}`}
                         className="w-16 h-16 object-cover rounded"
+                        onError={(e) => (e.currentTarget.style.opacity = "0.3")}
                       />
                     </button>
                   );
@@ -363,6 +438,21 @@ function ProductDetails() {
                 ${parseFloat(product.price).toFixed(2)}
               </span>
             </div>
+            {/* Stock/Quantity Left */}
+            <div className="mb-2">
+              <span className="font-semibold text-gray-800">
+                Quantity Left:{" "}
+              </span>
+              <span
+                className={
+                  product.stock > 0
+                    ? "text-green-700"
+                    : "text-red-600 font-bold"
+                }
+              >
+                {product.stock > 0 ? product.stock : "Out of Stock"}
+              </span>
+            </div>
             <p className="text-gray-700 mb-6 text-lg">{product.description}</p>
 
             {/* SECTION: Product Details */}
@@ -385,25 +475,7 @@ function ProductDetails() {
               </div>
             </div>
 
-            {/* SECTION: Quantity Selector */}
-            <div className="flex items-center gap-3 mb-6">
-              <span className="font-semibold text-lg">Quantity:</span>
-              <button
-                className="border px-3 py-1 rounded text-xl cursor-pointer hover:bg-gray-100"
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              >
-                -
-              </button>
-              <span className="text-lg min-w-[50px] text-center">
-                {quantity}
-              </span>
-              <button
-                className="border px-3 py-1 rounded text-xl cursor-pointer hover:bg-gray-100"
-                onClick={() => setQuantity((q) => q + 1)}
-              >
-                +
-              </button>
-            </div>
+            {/* Quantity selector removed; adjust quantity in cart */}
 
             {/* SECTION: Seller Information */}
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
@@ -446,13 +518,25 @@ function ProductDetails() {
             {/* SECTION: Action Buttons */}
             <div className="flex gap-3 mb-3">
               <button
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg text-lg font-semibold flex items-center justify-center gap-2 cursor-pointer"
+                disabled={product.stock === 0}
                 onClick={handleAddToCart}
+                aria-disabled={product.stock === 0}
+                title={product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-lg font-semibold
+                  bg-green-600 text-white shadow transition
+                  ${
+                    product.stock === 0
+                      ? "opacity-50 cursor-not-allowed pointer-events-none"
+                      : "hover:bg-green-700 cursor-pointer"
+                  }`}
               >
-                <FaShoppingCart /> Add to Cart
+                <FaShoppingCart />
+                Add to Cart
               </button>
               <SimpleWishlistButton productId={product.id} />
             </div>
+            {/* IMPORTANT: After payment in your checkout flow, call refreshProductDetails() here if user is on this page */}
+            {/* IMPORTANT: After payment in your checkout flow, call refreshProductDetails() here if user is on this page */}
             {/* Only show customization button for logged-in customers */}
             {currentUser && currentUser.role === "customer" ? (
               <button

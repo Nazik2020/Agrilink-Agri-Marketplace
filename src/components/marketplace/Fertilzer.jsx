@@ -52,6 +52,23 @@ const Fertilizer = ({ displayCount = 8 }) => {
     fetchProducts();
   }, []);
 
+  // Instant stock update when an order is paid
+  useEffect(() => {
+    const handleOrderPaid = (e) => {
+      const { productId, quantity = 1 } = e.detail || {};
+      if (!productId) return;
+      setProducts((prev) =>
+        prev.map((p) =>
+          String(p.id) === String(productId)
+            ? { ...p, stock: Math.max(0, (parseInt(p.stock, 10) || 0) - (quantity || 1)) }
+            : p
+        )
+      );
+    };
+    window.addEventListener("orderPaid", handleOrderPaid);
+    return () => window.removeEventListener("orderPaid", handleOrderPaid);
+  }, []);
+
   const handleAddToCart = (product) => {
     if (!product || !product.id || !product.product_name) {
       console.error("Invalid product data for cart:", product);
@@ -142,7 +159,7 @@ const Fertilizer = ({ displayCount = 8 }) => {
               <img
                 src={
                   product.product_images && product.product_images.length > 0
-                    ? product.product_images[0] // Use the full URL from backend
+                    ? `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
                     : "/placeholder.svg"
                 }
                 alt={product.product_name}
@@ -155,7 +172,7 @@ const Fertilizer = ({ displayCount = 8 }) => {
             </Link>
 
             <div className="flex flex-col flex-1 px-4 pt-3 pb-4">
-              {/* Average Rating */}
+              {/* Rating */}
               <div className="mb-1">
                 <StarRating rating={product.average_rating} />
               </div>
@@ -167,9 +184,33 @@ const Fertilizer = ({ displayCount = 8 }) => {
                   by {product.seller_name || "Unknown"}
                 </span>
               </div>
+              <div className="flex items-center mb-1">
+                {product.stock > 0 ? (
+                  <span className="text-green-600 font-semibold text-xs">
+                    In Stock
+                  </span>
+                ) : (
+                  <span className="text-red-500 font-semibold text-xs">
+                    Out of Stock
+                  </span>
+                )}
+                {product.stock > 0 && (
+                  <span className="text-gray-500 text-xs ml-2">
+                    ({product.stock} left)
+                  </span>
+                )}
+              </div>
 
-              <Link to={`/product/${product.id}`}>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700">
+              <Link to={`/product/${product.id}`} title={product.product_name}>
+                <h3
+                  className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700 truncate"
+                  style={{
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    width: "100%",
+                  }}
+                >
                   {product.product_name}
                 </h3>
               </Link>
@@ -192,8 +233,11 @@ const Fertilizer = ({ displayCount = 8 }) => {
                 </div>
 
                 <button
-                  className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base"
+                  className={`flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base ${
+                    product.stock === 0 ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                   onClick={() => handleAddToCart(product)}
+                  disabled={product.stock === 0}
                 >
                   <FaShoppingCart className="text-lg" />
                   Add

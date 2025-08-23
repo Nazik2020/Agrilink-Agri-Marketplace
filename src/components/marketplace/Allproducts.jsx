@@ -35,6 +35,23 @@ const Allproducts = ({ displayCount = 8 }) => {
     fetchProducts();
   }, []);
 
+  // Instant stock update when an order is paid
+  useEffect(() => {
+    const handleOrderPaid = (e) => {
+      const { productId, quantity = 1 } = e.detail || {};
+      if (!productId) return;
+      setProducts((prev) =>
+        prev.map((p) =>
+          String(p.id) === String(productId)
+            ? { ...p, stock: Math.max(0, (parseInt(p.stock, 10) || 0) - (quantity || 1)) }
+            : p
+        )
+      );
+    };
+    window.addEventListener("orderPaid", handleOrderPaid);
+    return () => window.removeEventListener("orderPaid", handleOrderPaid);
+  }, []);
+
   const handleAddToCart = (product) => {
     addToCart({
       id: product.id,
@@ -49,25 +66,9 @@ const Allproducts = ({ displayCount = 8 }) => {
   // Loading state
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center h-64">
-        <div className="relative">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-200 border-t-green-600"></div>
-          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-green-400 animate-ping"></div>
-        </div>
-        <p className="mt-6 text-gray-600 text-lg font-medium">
-          Loading amazing products...
-        </p>
-        <div className="flex space-x-2 mt-4">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce"></div>
-          <div
-            className="w-2 h-2 bg-green-500 rounded-full animate-bounce"
-            style={{ animationDelay: "0.1s" }}
-          ></div>
-          <div
-            className="w-2 h-2 bg-green-500 rounded-full animate-bounce"
-            style={{ animationDelay: "0.2s" }}
-          ></div>
-        </div>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+        <p className="ml-4 text-gray-600">Loading products...</p>
       </div>
     );
   }
@@ -76,19 +77,13 @@ const Allproducts = ({ displayCount = 8 }) => {
   if (error) {
     return (
       <div className="text-center py-12">
-        <div className="max-w-md mx-auto">
-          <div className="text-6xl mb-6">⚠️</div>
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">
-            Oops! Something went wrong
-          </h3>
-          <p className="text-gray-600 text-lg mb-6">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-3 rounded-2xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
-          >
-            Try Again
-          </button>
-        </div>
+        <p className="text-red-600 text-lg">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
@@ -155,7 +150,7 @@ const Allproducts = ({ displayCount = 8 }) => {
             <img
               src={
                 product.product_images && product.product_images.length > 0
-                  ? product.product_images[0] // Use the full URL from backend
+                  ? `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
                   : "https://via.placeholder.com/300x200?text=No+Image"
               }
               alt={product.product_name}
@@ -176,23 +171,40 @@ const Allproducts = ({ displayCount = 8 }) => {
                 by {product.seller_name || "Unknown"}
               </span>
             </div>
+            <div className="flex items-center mb-1">
+              {product.stock > 0 ? (
+                <span className="text-green-600 font-semibold text-xs">
+                  In Stock
+                </span>
+              ) : (
+                <span className="text-red-500 font-semibold text-xs">
+                  Out of Stock
+                </span>
+              )}
+              {product.stock > 0 && (
+                <span className="text-gray-500 text-xs ml-2">
+                  ({product.stock} left)
+                </span>
+              )}
+            </div>
             <Link to={`/product/${product.id}`} title={product.product_name}>
               <h3
                 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700 truncate"
                 style={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  width: '100%'
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  width: "100%",
                 }}
               >
                 {product.product_name}
               </h3>
             </Link>
             <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-              {product.product_description.length > 80
+              {product.product_description &&
+              product.product_description.length > 80
                 ? product.product_description.substring(0, 80) + "..."
-                : product.product_description}
+                : product.product_description || ""}
             </p>
             <div className="flex items-end justify-between mt-auto">
               <div>
@@ -201,8 +213,11 @@ const Allproducts = ({ displayCount = 8 }) => {
                 </span>
               </div>
               <button
-                className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base"
+                className={`flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base ${
+                  product.stock === 0 ? "opacity-50 cursor-not-allowed" : ""
+                }`}
                 onClick={() => handleAddToCart(product)}
+                disabled={product.stock === 0}
               >
                 <FaShoppingCart className="text-lg" /> Add
               </button>

@@ -64,10 +64,17 @@ const BuyNowModal = ({
   const singleProductTotal = unitPrice * formData.quantity;
 
   // Use cart totals if this is a cart checkout, otherwise use single product totals
-  const totalAmount = isCartCheckout ? cartTotal || 0 : singleProductTotal;
-  const shipping = isCartCheckout ? cartShipping || 0 : 0;
-  const tax = isCartCheckout ? cartTax || 0 : 0;
-  const subtotalValue = isCartCheckout ? cartSubtotal || 0 : singleProductTotal;
+  const subtotal = isCartCheckout ? cartSubtotal : singleProductTotal;
+  const shipping = isCartCheckout ? cartShipping : 0;
+  const tax = isCartCheckout ? cartTax : 0;
+  const totalAmount = subtotal + shipping + tax;
+
+  const allowedCards = {
+    "4242424242424242": "success",
+    "4000000000000002": "Your card was declined.",
+    "4000000000009995": "Insufficient funds.",
+    "4000000000009987": "Card expired.",
+  };
 
   // Load customer data when modal opens
   useEffect(() => {
@@ -258,32 +265,17 @@ const BuyNowModal = ({
     return errors;
   };
 
-  // Handle payment processing - ONLY SPECIFIC CARDS ALLOWED
   const handlePayment = async () => {
-    setError("");
-    setLoading(true);
-
     try {
-      // Validate form first
-      const validationErrors = validateForm();
-      if (validationErrors.length > 0) {
-        setError(validationErrors.join(", "));
+      setLoading(true);
+      setError("");
+
+      const cardNumber = (formData.card_number || "").replace(/\s+/g, "");
+      if (!cardNumber) {
+        setError("Please enter a card number.");
         setLoading(false);
         return;
       }
-
-      // Get card number without spaces
-      const cardNumber = formData.card_number.replace(/\s/g, "");
-
-      // ONLY THESE CARDS ARE ALLOWED - NO RANDOM NUMBERS
-      const allowedCards = {
-        4242424242424242: "success", // ✅ Visa
-        5555555555554444: "success", // ✅ Mastercard
-        378282246310005: "success", // ✅ American Express
-        4000000000000002: "Your card was declined.", // ❌ Generic decline
-        4000000000009995: "Your card has insufficient funds.", // ❌ Insufficient funds
-        4000000000009987: "Your card was reported lost or stolen.", // ❌ Lost card
-      };
 
       // Check if card number is in allowed list
       if (!allowedCards.hasOwnProperty(cardNumber)) {
@@ -314,6 +306,8 @@ const BuyNowModal = ({
           billing_country: formData.billing_country,
         };
 
+        let purchasedProducts = [];
+
         if (isCartCheckout) {
           // Cart checkout: send all cart items
           orderPayload.cart_items = cartItems.map((item) => ({
@@ -322,10 +316,15 @@ const BuyNowModal = ({
             quantity: item.quantity,
             price: item.price,
             product_images: item.product_images,
+            seller_id: item.seller_id || item.sellerId || null,
           }));
           orderPayload.subtotal = cartSubtotal;
           orderPayload.shipping = cartShipping;
           orderPayload.tax = cartTax;
+          purchasedProducts = cartItems.map((item) => ({
+            productId: item.product_id,
+            quantity: item.quantity,
+          }));
         } else {
           // Single product checkout
           orderPayload.product_id = product?.id || product?.product_id;
@@ -333,6 +332,16 @@ const BuyNowModal = ({
           orderPayload.quantity = formData.quantity;
           orderPayload.price = product?.price;
           orderPayload.product_images = product?.images?.[0] || "";
+          orderPayload.seller_id =
+            product?.seller_id || product?.sellerId || null;
+          if (product?.id || product?.product_id) {
+            purchasedProducts = [
+              {
+                productId: product.id || product.product_id,
+                quantity: formData.quantity || 1,
+              },
+            ];
+          }
         }
 
         // Send order to backend to record all details
@@ -359,6 +368,15 @@ const BuyNowModal = ({
           setError("Error sending order to backend: " + err.message);
           setLoading(false);
           return;
+        }
+
+        // Dispatch custom event for each purchased product to update listings instantly
+        if (purchasedProducts.length > 0) {
+          purchasedProducts.forEach(({ productId, quantity }) => {
+            window.dispatchEvent(
+              new CustomEvent("orderPaid", { detail: { productId, quantity } })
+            );
+          });
         }
 
         if (isCartCheckout) {
@@ -534,13 +552,33 @@ const BuyNowModal = ({
                         className="flex items-center space-x-4"
                       >
                         <img
-                          src={
-                            item.product_images
-                              ? `http://localhost/Agrilink-Agri-Marketplace/backend/${
-                                  item.product_images.split(",")[0]
-                                }`
-                              : "/placeholder.svg"
-                          }
+                          src={(function () {
+                            let imagesArr = [];
+                            if (!item.product_images) {
+                              return "/placeholder.svg";
+                            }
+                            if (Array.isArray(item.product_images)) {
+                              imagesArr = item.product_images;
+                            } else {
+                              try {
+                                imagesArr = JSON.parse(item.product_images);
+                              } catch (error) {
+                                imagesArr = [];
+                              }
+                            }
+                            if (imagesArr.length > 0) {
+                              const img = imagesArr[0];
+                              if (
+                                typeof img === "string" &&
+                                img.startsWith("http")
+                              ) {
+                                return img;
+                              } else if (typeof img === "string") {
+                                return `http://localhost/Agrilink-Agri-Marketplace/backend/${img}`;
+                              }
+                            }
+                            return "/placeholder.svg";
+                          })()}
                           alt={item.product_name}
                           className="w-16 h-16 object-cover rounded-lg border border-green-200"
                         />
@@ -563,16 +601,54 @@ const BuyNowModal = ({
                         </div>
                       </div>
                     ))}
+
+                    {/* Cart totals */}
+                    <div className="border-t border-green-200 mt-4 pt-4 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Subtotal:</span>
+                        <span className="font-semibold">
+                          ${totalAmount.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-lg">
+                        <span className="font-bold text-gray-800">Total:</span>
+                        <span className="font-bold text-xl text-green-600">
+                          ${(totalAmount || 0).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   // Single product checkout
                   <div className="flex items-center space-x-4">
                     <img
-                      src={
-                        product?.images?.[0]
-                          ? `http://localhost/Agrilink-Agri-Marketplace/backend/${product.images[0]}`
-                          : "/placeholder.svg"
-                      }
+                      src={(function () {
+                        let imagesArr = [];
+                        if (!product?.images) {
+                          return "/placeholder.svg";
+                        }
+                        if (Array.isArray(product.images)) {
+                          imagesArr = product.images;
+                        } else {
+                          try {
+                            imagesArr = JSON.parse(product.images);
+                          } catch (error) {
+                            imagesArr = [];
+                          }
+                        }
+                        if (imagesArr.length > 0) {
+                          const img = imagesArr[0];
+                          if (
+                            typeof img === "string" &&
+                            img.startsWith("http")
+                          ) {
+                            return img;
+                          } else if (typeof img === "string") {
+                            return `http://localhost/Agrilink-Agri-Marketplace/backend/${img}`;
+                          }
+                        }
+                        return "/placeholder.svg";
+                      })()}
                       alt={product?.name}
                       className="w-24 h-24 object-cover rounded-lg border border-green-200"
                     />

@@ -95,7 +95,7 @@ export default function RightSection() {
     setIsLoading(true);
     try {
       const res = await axios.post(
-        "hhttp://localhost/Agrilink-Agri-Marketplace/backend/reset_password.php",
+        "http://localhost/Agrilink-Agri-Marketplace/backend/reset_password.php",
         {
           token: tokenData.token,
           userType: tokenData.userType,

@@ -2,9 +2,9 @@ import StarRating from "../marketplace/StarRating";
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { FaShoppingCart } from "react-icons/fa";
-import axios from "axios";
 import { useCart } from "../cart/CartContext";
 import SimpleWishlistButton from "../wishlist/SimpleWishlistButton";
+import { getApiUrl } from "../../config/api";
 
 const ProductShowcase = () => {
   const [products, setProducts] = useState([]);
@@ -16,18 +16,18 @@ const ProductShowcase = () => {
     const fetchTopRatedProducts = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(
-          "http://localhost/Agrilink-Agri-Marketplace/backend/review_and_ratings/get_top_rated_products.php"
-        );
-        if (response.data.success) {
+        const response = await fetch(getApiUrl('GET_TOP_RATED_PRODUCTS'));
+        const data = await response.json();
+        
+        if (data.success) {
           // Separate rated and unrated products
-          const rated = response.data.products
+          const rated = data.products
             .filter(
               (p) =>
                 typeof p.average_rating === "number" && !isNaN(p.average_rating)
             )
             .sort((a, b) => b.average_rating - a.average_rating);
-          const unrated = response.data.products.filter(
+          const unrated = data.products.filter(
             (p) => !rated.includes(p)
           );
           // Always show 6: fill with unrated if needed
@@ -46,6 +46,23 @@ const ProductShowcase = () => {
     fetchTopRatedProducts();
   }, []);
 
+  // Instant stock update
+  useEffect(() => {
+    const handleOrderPaid = (e) => {
+      const { productId, quantity = 1 } = e.detail || {};
+      if (!productId) return;
+      setProducts((prev) =>
+        prev.map((p) =>
+          String(p.id) === String(productId)
+            ? { ...p, stock: Math.max(0, (parseInt(p.stock, 10) || 0) - (quantity || 1)) }
+            : p
+        )
+      );
+    };
+    window.addEventListener("orderPaid", handleOrderPaid);
+    return () => window.removeEventListener("orderPaid", handleOrderPaid);
+  }, []);
+
   const handleAddToCart = (product) => {
     addToCart({
       id: product.id,
@@ -53,7 +70,7 @@ const ProductShowcase = () => {
       seller: product.seller_name,
       category: product.category,
       price: parseFloat(product.price),
-      maxQuantity: 10,
+      maxQuantity: product.stock > 0 ? product.stock : 0,
     });
   };
 
@@ -132,13 +149,30 @@ const ProductShowcase = () => {
 
               <Link to={`/product/${product.id}`} className="block">
                 <img
-                  src={
-                    product.product_images && product.product_images.length > 0
-                      ? product.product_images[0].startsWith("http")
-                        ? product.product_images[0]
-                        : `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
-                      : "https://via.placeholder.com/300x200?text=No+Image"
-                  }
+                  src={(function () {
+                    let imagesArr = [];
+                    if (!product.product_images) {
+                      return "https://via.placeholder.com/300x200?text=No+Image";
+                    }
+                    if (Array.isArray(product.product_images)) {
+                      imagesArr = product.product_images;
+                    } else {
+                      try {
+                        imagesArr = JSON.parse(product.product_images);
+                      } catch (error) {
+                        imagesArr = [];
+                      }
+                    }
+                    if (imagesArr.length > 0) {
+                      const img = imagesArr[0];
+                      if (typeof img === "string" && img.startsWith("http")) {
+                        return img;
+                      } else if (typeof img === "string") {
+                        return `http://localhost/Agrilink-Agri-Marketplace/backend/${img}`;
+                      }
+                    }
+                    return "https://via.placeholder.com/300x200?text=No+Image";
+                  })()}
                   alt={product.product_name}
                   className="w-full h-40 object-cover rounded-t-2xl"
                 />
@@ -158,16 +192,25 @@ const ProductShowcase = () => {
                 <div className="mb-1">
                   <StarRating rating={product.average_rating} />
                 </div>
-                <Link to={`/product/${product.id}`}>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700">
+                <Link to={`/product/${product.id}`} title={product.product_name}>
+                  <h3
+                    className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700 truncate"
+                    style={{
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      width: "100%",
+                    }}
+                  >
                     {product.product_name}
                   </h3>
                 </Link>
 
                 <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-                  {product.product_description.length > 80
+                  {product.product_description &&
+                  product.product_description.length > 80
                     ? product.product_description.substring(0, 80) + "..."
-                    : product.product_description}
+                    : product.product_description || ""}
                 </p>
 
                 <div className="flex items-end justify-between mt-auto">
@@ -177,8 +220,11 @@ const ProductShowcase = () => {
                     </span>
                   </div>
                   <button
-                    className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base"
+                    className={`flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base ${
+                      product.stock === 0 ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                     onClick={() => handleAddToCart(product)}
+                    disabled={product.stock === 0}
                   >
                     <FaShoppingCart className="text-lg" /> Add
                   </button>

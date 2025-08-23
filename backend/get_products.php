@@ -58,6 +58,8 @@ try {
         // Ensure correct data types
         $product['average_rating'] = isset($product['average_rating']) ? round((float)$product['average_rating'], 2) : null;
         $product['review_count'] = isset($product['review_count']) ? (int)$product['review_count'] : 0;
+        // Ensure seller_id is always present and integer
+        $product['seller_id'] = isset($product['seller_id']) ? (int)$product['seller_id'] : null;
     }
     
     echo json_encode([

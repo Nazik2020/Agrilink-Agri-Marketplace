@@ -6,7 +6,7 @@ const ProductShowcase = () => {
 
   useEffect(() => {
     // Fetch top rated products
-    fetch("http://localhost:8080/review_and_ratings/get_top_rated_products.php")
+    fetch("http://localhost/Agrilink-Agri-Marketplace/backend/review_and_ratings/get_top_rated_products.php")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) setProducts(data.products);
@@ -30,7 +30,7 @@ const ProductShowcase = () => {
                   product.product_images && product.product_images[0]
                     ? product.product_images[0].startsWith("http")
                       ? product.product_images[0]
-                      : `http://localhost/backend/${product.product_images[0]}`
+                      : `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
                     : "/no-image.png"
                 }
                 alt={product.name}

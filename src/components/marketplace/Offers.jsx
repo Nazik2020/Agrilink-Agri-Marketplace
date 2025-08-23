@@ -17,7 +17,7 @@ const Offers = ({ displayCount = 8 }) => {
       try {
         console.log("Offers component: Fetching products...");
         const response = await axios.get(
-          "http://localhost:8080/get_products.php?category=Offers"
+          "http://localhost/Agrilink-Agri-Marketplace/backend/get_products.php?category=Offers"
         );
         console.log("Offers component: Response received:", response.data);
 

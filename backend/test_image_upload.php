@@ -23,8 +23,8 @@ echo json_encode([
         "get_image_php_exists" => file_exists("get_image.php") ? "✅ Exists" : "❌ Missing"
     ],
     "usage" => [
-        "upload_url" => "POST to: http://localhost/backend/add_product.php",
-        "image_url_format" => "http://localhost/backend/get_image.php?path=uploads/products/filename.jpg",
+        "upload_url" => "POST to: http://localhost/Agrilink-Agri-Marketplace/backend/add_product.php",
+        "image_url_format" => "http://localhost/Agrilink-Agri-Marketplace/backend/get_image.php?path=uploads/products/filename.jpg",
         "database_storage" => "Store relative paths like: uploads/products/abc123_timestamp_sellerid.jpg"
     ]
 ]);

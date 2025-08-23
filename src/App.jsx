@@ -28,6 +28,7 @@ import AddProductPage from "./components/SellerDashboard/AddProduct/AddProductPa
 import AnalyticsPage from "./components/SellerDashboard/Analytics/AnalyticsPage";
 import WalletPage from "./components/SellerDashboard/Wallet/WalletPage";
 import NotificationsPage from "./components/SellerDashboard/Notifications/NotificationsPage";
+import MyStorePage from "./components/SellerDashboard/Mystore/MyStorePage"; 
 
 // Customer Dashboard
 import CustomerDashboard from "./pages/CustomerDashboard";
@@ -78,6 +79,7 @@ function App() {
                 <Route path="analytics" element={<AnalyticsPage />} />
                 <Route path="wallet" element={<WalletPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="my-store" element={<MyStorePage />} /> 
               </Route>
 
               {/* Customer Dashboard Routes */}

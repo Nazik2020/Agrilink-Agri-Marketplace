@@ -51,7 +51,7 @@ export default function RightSection() {
     setIsLoading(true);
 
     try {
-      const res = await axios.post("http://localhost/backend/Login.php", {
+      const res = await axios.post("http://localhost/Agrilink-Agri-Marketplace/backend/Login.php", {
         email: formData.email,
         password: formData.password,
       });
@@ -66,13 +66,11 @@ export default function RightSection() {
         );
 
         // Set seller_id in localStorage if user is a seller
-        if (
-          res.data.user &&
-          res.data.user.role === "seller" &&
-          res.data.user.id
-        ) {
-          sessionStorage.setItem("seller_id", res.data.user.id);
-        }
+       if (res.data.user && res.data.user.role === "seller" && res.data.user.id) {
+  sessionStorage.setItem("seller_id", res.data.user.id);
+  sessionStorage.setItem("seller", JSON.stringify(res.data.user)); // Store full seller object
+  window.dispatchEvent(new Event("storage")); // Trigger sidebar update
+}
 
         // Sync guest wishlist if user is a customer
         if (res.data.user && res.data.user.role === "customer") {
@@ -118,7 +116,7 @@ export default function RightSection() {
 
         // Sync to backend
         const syncRes = await axios.post(
-          "http://localhost/backend/sync_guest_wishlist.php",
+          "http://localhost/Agrilink-Agri-Marketplace/backend/sync_guest_wishlist.php",
           {
             customerId: customerId,
             productIds: guestWishlist,

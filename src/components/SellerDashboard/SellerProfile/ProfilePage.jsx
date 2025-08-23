@@ -26,7 +26,7 @@ const ProfilePage = () => {
         }
 
         const response = await axios.get(
-          `http://localhost/backend/get_seller_profile.php?seller_id=${sellerId}`
+          `http://localhost/Agrilink-Agri-Marketplace/backend/get_seller_profile.php?seller_id=${sellerId}`
         );
         
         if (response.data.success) {

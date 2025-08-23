@@ -69,7 +69,7 @@ const ResetPassword = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost/backend/reset_password.php",
+        "http://localhost/Agrilink-Agri-Marketplace/backend/reset_password.php",
         {
           token,
           userType,

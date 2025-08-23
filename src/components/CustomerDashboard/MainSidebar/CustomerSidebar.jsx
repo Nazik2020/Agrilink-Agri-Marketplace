@@ -36,7 +36,7 @@ const CustomerSidebar = () => {
 
   const handleLogout = () => {
     console.log("Customer logged out");
-    navigate("/login");
+    navigate("/marketplace");
   };
 
   const menuItems = [

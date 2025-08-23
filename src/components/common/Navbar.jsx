@@ -90,7 +90,7 @@ const Navbar = () => {
         try {
           const seller = JSON.parse(sessionStorage.getItem("seller"));
           if (seller && seller.business_logo) {
-            currentUser.profile_image = `http://localhost/backend/${seller.business_logo}`;
+            currentUser.profile_image = `http://localhost/Agrilink-Agri-Marketplace/backend/${seller.business_logo}`;
           }
         } catch (e) {}
       }
@@ -184,7 +184,7 @@ const Navbar = () => {
       try {
         const seller = JSON.parse(sessionStorage.getItem("seller"));
         if (seller && seller.business_logo) {
-          return `http://localhost/backend/${seller.business_logo}?t=${seller.business_logo}`;
+          return `http://localhost/Agrilink-Agri-Marketplace/backend/${seller.business_logo}?t=${seller.business_logo}`;
         }
       } catch {}
     }

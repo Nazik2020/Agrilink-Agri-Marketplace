@@ -45,7 +45,7 @@ const FlagModal = ({
 
     try {
       const response = await axios.post(
-        "http://localhost/backend/submit_flag.php",
+        "http://localhost/Agrilink-Agri-Marketplace/backend/submit_flag.php",
         {
           flagged_by_customer_id: user.id,
           seller_id: sellerId,

@@ -41,7 +41,7 @@ try {
         $image_paths = json_decode($product['product_images'], true);
         if (is_array($image_paths)) {
             $product['product_images'] = array_map(function($image_path) {
-                return "http://localhost/backend/get_image.php?path=" . urlencode($image_path);
+                return "http://localhost/Agrilink-Agri-Marketplace/backend/get_image.php?path=" . urlencode($image_path);
             }, $image_paths);
         } else {
             $product['product_images'] = [];
@@ -75,7 +75,7 @@ try {
                 "contact" => $product['seller_contact'],
                 "email" => $product['seller_email'],
                 "address" => $product['seller_address'],
-                "logo" => $product['seller_logo'] ? "http://localhost/backend/get_image.php?path=" . urlencode($product['seller_logo']) : null
+                "logo" => $product['seller_logo'] ? "http://localhost/Agrilink-Agri-Marketplace/backend/get_image.php?path=" . urlencode($product['seller_logo']) : null
             ]
         ]
     ];

@@ -17,7 +17,7 @@ const ProductShowcase = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          "http://localhost:8080/review_and_ratings/get_top_rated_products.php"
+          "http://localhost/Agrilink-Agri-Marketplace/backend/review_and_ratings/get_top_rated_products.php"
         );
         if (response.data.success) {
           // Separate rated and unrated products
@@ -136,7 +136,7 @@ const ProductShowcase = () => {
                     product.product_images && product.product_images.length > 0
                       ? product.product_images[0].startsWith("http")
                         ? product.product_images[0]
-                        : `http://localhost/backend/${product.product_images[0]}`
+                        : `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
                       : "https://via.placeholder.com/300x200?text=No+Image"
                   }
                   alt={product.product_name}

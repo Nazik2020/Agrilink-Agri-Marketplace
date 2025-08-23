@@ -24,7 +24,7 @@ import axios from "axios";
 const fetchProductDetails = async (productId) => {
   try {
     // Always use the correct backend port for product details
-    const url = `http://localhost:8080/get_product_details.php?id=${productId}`;
+    const url = `http://localhost/Agrilink-Agri-Marketplace/backend/get_product_details.php?id=${productId}`;
     const response = await axios.get(url);
     if (response.data.success) {
       return response.data.product;
@@ -103,7 +103,7 @@ function ProductDetails() {
   const fetchReviews = async (productId) => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/review_and_ratings/get_reviews.php?product_id=${productId}`
+        `http://localhost/Agrilink-Agri-Marketplace/backend/review_and_ratings/get_reviews.php?product_id=${productId}`
       );
       if (response.data && response.data.reviews) {
         // No filtering: show all reviews, including multiple from same user
@@ -144,7 +144,7 @@ function ProductDetails() {
     if (reviewText.trim()) {
       try {
         const response = await axios.post(
-          "http://localhost:8080/review_and_ratings/add_review.php",
+          "http://localhost/Agrilink-Agri-Marketplace/backend/review_and_ratings/add_review.php",
           {
             product_id: id,
             customer_id: customerId,
@@ -190,7 +190,7 @@ function ProductDetails() {
     try {
       // To edit, you may want to call a dedicated edit_review.php, but for now, just add a new review (as per backend logic)
       const response = await axios.post(
-        "http://localhost:8080/review_and_ratings/add_review.php",
+        "http://localhost/Agrilink-Agri-Marketplace/backend/review_and_ratings/add_review.php",
         {
           product_id: id,
           customer_id: customerId,
@@ -220,7 +220,7 @@ function ProductDetails() {
     }
     try {
       const response = await axios.post(
-        "http://localhost:8080/review_and_ratings/delete_review.php",
+        "http://localhost/Agrilink-Agri-Marketplace/backend/review_and_ratings/delete_review.php",
         {
           review_id: reviewId,
           customer_id: customerId,

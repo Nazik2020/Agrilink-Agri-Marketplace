@@ -32,7 +32,7 @@ export default function RightSection() {
       const validateToken = async () => {
         try {
           const res = await axios.get(
-            `http://localhost/backend/validate_token.php?token=${token}&userType=${userType}`
+            `http://localhost/Agrilink-Agri-Marketplace/backend/validate_token.php?token=${token}&userType=${userType}`
           );
           if (res.data.valid) {
             setTokenData({ token, userType });
@@ -95,7 +95,7 @@ export default function RightSection() {
     setIsLoading(true);
     try {
       const res = await axios.post(
-        "http://localhost/backend/reset_password.php",
+        "hhttp://localhost/Agrilink-Agri-Marketplace/backend/reset_password.php",
         {
           token: tokenData.token,
           userType: tokenData.userType,

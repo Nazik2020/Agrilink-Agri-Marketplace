@@ -1,6 +1,6 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:8080/backend',
+  BASE_URL: 'http://localhost/Agrilink-Agri-Marketplace/backend',
   ENDPOINTS: {
     // Order History
     ORDER_HISTORY: '/order_history/get_customer_orders_enhanced.php',

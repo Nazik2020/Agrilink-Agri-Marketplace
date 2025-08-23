@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { User, Plus, BarChart3, Wallet, Bell, LogOut } from "lucide-react";
+import { User, Plus, BarChart3, Wallet, Bell, LogOut,Store } from "lucide-react";
 import axios from "axios";
 import Image from "../../../assets/SellerDashboard/seller.jpg"; // Adjust the path as necessary
 
@@ -56,11 +56,12 @@ const Sidebar = () => {
 
   const handleLogout = () => {
     console.log("User logged out");
-    navigate("/login");
+    navigate("/marketplace");
   };
 
   const menuItems = [
     { icon: User, label: "Profile", path: "/seller-dashboard/profile" },
+    { icon: Store, label: "My Store", path: "/seller-dashboard/my-store" }, 
     { icon: Plus, label: "Add Product", path: "/seller-dashboard/add-product" },
     {
       icon: BarChart3,
@@ -91,7 +92,7 @@ const Sidebar = () => {
                 key={logoVersion + (seller.business_logo || "default")}
                 src={
                   seller.business_logo
-                    ? `http://localhost/backend/${seller.business_logo}?v=${logoVersion}`
+                    ? `http://localhost/Agrilink-Agri-Marketplace/backend/${seller.business_logo}?v=${logoVersion}`
                     : "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop"
                 }
                 alt={seller.username || "Seller Profile"}

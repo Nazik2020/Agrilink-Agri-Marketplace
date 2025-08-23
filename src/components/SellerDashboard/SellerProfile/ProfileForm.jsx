@@ -12,7 +12,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
   // Set logo preview when profile loads with existing logo
   useEffect(() => {
     if (profile.business_logo) {
-      setLogoPreview(`http://localhost/backend/${profile.business_logo}`);
+      setLogoPreview(`http://localhost/Agrilink-Agri-Marketplace/backend/${profile.business_logo}`);
     }
   }, [profile.business_logo]);
 
@@ -83,7 +83,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
 
       try {
         const res = await axios.post(
-          "http://localhost/backend/update_seller_profile.php",
+          "http://localhost/Agrilink-Agri-Marketplace/backend/update_seller_profile.php",
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },
@@ -104,7 +104,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
             if (res.data.logo_path) {
               seller.business_logo = res.data.logo_path;
               onChange({ ...profile, business_logo: res.data.logo_path });
-              setLogoPreview(`http://localhost/backend/${res.data.logo_path}`);
+              setLogoPreview(`http://localhost/Agrilink-Agri-Marketplace/backend/${res.data.logo_path}`);
             }
             sessionStorage.setItem("seller", JSON.stringify(seller));
             window.dispatchEvent(new Event("storage"));

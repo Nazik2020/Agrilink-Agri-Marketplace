@@ -133,7 +133,7 @@ const BuyNowModal = ({
       }
 
       const response = await axios.post(
-        "http://localhost/agrilink/backend/get_customer_billing_data.php",
+        "http://localhost/Agrilink-Agri-Marketplace/backend/get_customer_billing_data.php",
         {
           customer_id: customerId,
           customer_email: customerEmail,
@@ -341,7 +341,7 @@ const BuyNowModal = ({
 
           // Real POST request to backend
           const response = await axios.post(
-            "http://localhost/backend/add_order_simple.php",
+            "http://localhost/Agrilink-Agri-Marketplace/backend/add_order_simple.php",
             orderPayload
           );
 
@@ -536,7 +536,7 @@ const BuyNowModal = ({
                         <img
                           src={
                             item.product_images
-                              ? `http://localhost/backend/${
+                              ? `http://localhost/Agrilink-Agri-Marketplace/backend/${
                                   item.product_images.split(",")[0]
                                 }`
                               : "/placeholder.svg"
@@ -570,7 +570,7 @@ const BuyNowModal = ({
                     <img
                       src={
                         product?.images?.[0]
-                          ? `http://localhost/backend/${product.images[0]}`
+                          ? `http://localhost/Agrilink-Agri-Marketplace/backend/${product.images[0]}`
                           : "/placeholder.svg"
                       }
                       alt={product?.name}

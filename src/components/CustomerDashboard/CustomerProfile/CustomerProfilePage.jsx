@@ -79,7 +79,7 @@ const CustomerProfilePage = () => {
 
     console.log("Fetching profile for email:", email); // Debug log
 
-    fetch("http://localhost/backend/get_customer_profile.php", {
+    fetch("http://localhost/Agrilink-Agri-Marketplace/backend/get_customer_profile.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
@@ -170,7 +170,7 @@ const CustomerProfilePage = () => {
 
   const fetchProfile = (emailToFetch) => {
     setLoading(true);
-    fetch("http://localhost/backend/get_customer_profile.php", {
+    fetch("http://localhost/Agrilink-Agri-Marketplace/backend/get_customer_profile.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: emailToFetch }),
@@ -242,7 +242,7 @@ const CustomerProfilePage = () => {
       console.log("FormData:", pair[0], pair[1]);
     }
 
-    fetch("http://localhost/backend/update_customer_profile.php", {
+    fetch("http://localhost/Agrilink-Agri-Marketplace/backend/update_customer_profile.php", {
       method: "POST",
       body: formDataToSend,
     })
@@ -261,7 +261,7 @@ const CustomerProfilePage = () => {
             if (user && data.profile_image_path) {
               user.profile_image = data.profile_image_path.startsWith("http")
                 ? data.profile_image_path
-                : `http://localhost/backend/${data.profile_image_path}`;
+                : `http://localhost/Agrilink-Agri-Marketplace/backend/${data.profile_image_path}`;
               sessionStorage.setItem("user", JSON.stringify(user));
               // Trigger storage event for sidebar update
               window.dispatchEvent(new Event("storage"));

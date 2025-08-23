@@ -182,7 +182,7 @@ if (isset($_FILES['test_image']) && !empty($_FILES['test_image']['name'])) {
             
             if ($move_result) {
                 $upload_info["final_size"] = filesize($full_target_file);
-                $upload_info["test_url"] = "http://localhost/backend/get_image.php?path=" . urlencode($target_file);
+                $upload_info["test_url"] = "http://localhost/Agrilink-Agri-Marketplace/backend/get_image.php?path=" . urlencode($target_file);
             }
         }
         

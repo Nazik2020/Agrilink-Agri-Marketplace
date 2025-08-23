@@ -114,7 +114,7 @@ const WishlistPage = () => {
       return images.length > 0
         ? images[0].startsWith("http")
           ? images[0]
-          : `http://localhost/backend/${images[0]}`
+          : `http://localhost/Agrilink-Agri-Marketplace/backend/${images[0]}`
         : "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop";
     } catch (error) {
       console.error("Error parsing product images:", error);

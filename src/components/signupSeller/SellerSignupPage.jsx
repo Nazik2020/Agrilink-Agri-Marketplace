@@ -84,7 +84,7 @@ const SellerSignupPage = () => {
     setIsLoading(true);
 
     try {
-      const res = await axios.post("http://localhost/backend/SignupSeller.php", {
+      const res = await axios.post("http://localhost/Agrilink-Agri-Marketplace/backend/SignupSeller.php", {
         userName: formData.userName,
         businessName: formData.businessName,
         businessDescription: formData.businessDescription,

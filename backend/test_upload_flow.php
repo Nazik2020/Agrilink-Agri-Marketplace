@@ -43,7 +43,7 @@ echo json_encode([
         ],
         "step_5_image_serving" => [
             "description" => "Images served through secure server",
-            "url_format" => "http://localhost/backend/get_image.php?path=uploads/products/filename.jpg",
+            "url_format" => "http://localhost/Agrilink-Agri-Marketplace/backend/get_image.php?path=uploads/products/filename.jpg",
             "security" => "Prevents direct file access, validates paths"
         ]
     ],
@@ -52,7 +52,7 @@ echo json_encode([
         "image_server" => file_exists("get_image.php") ? "✅ Ready" : "❌ Missing",
         "database_ready" => "✅ Ready (product_images column exists)"
     ],
-    "test_upload_endpoint" => "POST to: http://localhost/backend/add_product.php",
-    "test_image_viewing" => "GET: http://localhost/backend/get_image.php?path=uploads/products/your_image.jpg"
+    "test_upload_endpoint" => "POST to: http://localhost/Agrilink-Agri-Marketplace/backend/add_product.php",
+    "test_image_viewing" => "GET: http://localhost/Agrilink-Agri-Marketplace/backend/get_image.php?path=uploads/products/your_image.jpg"
 ]);
 ?> 

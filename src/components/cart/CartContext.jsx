@@ -110,7 +110,7 @@ export const CartProvider = ({ children }) => {
     try {
       console.log("Loading cart for customer ID:", customerId);
 
-      const response = await axios.post("http://localhost:8080/get_cart.php", {
+      const response = await axios.post("http://localhost/Agrilink-Agri-Marketplace/backend/get_cart.php", {
         customer_id: customerId,
       });
 
@@ -153,7 +153,7 @@ export const CartProvider = ({ children }) => {
     try {
       // Send to database first
       const response = await axios.post(
-        "http://localhost:8080/add_to_cart.php",
+        "http://localhost/Agrilink-Agri-Marketplace/backend/add_to_cart.php",
         {
           customer_id: customerId,
           product_id: productId,
@@ -190,7 +190,7 @@ export const CartProvider = ({ children }) => {
       console.log("Updating quantity:", { customerId, productId, quantity });
 
       const response = await axios.post(
-        "http://localhost:8080/update_cart_item.php",
+        "http://localhost/Agrilink-Agri-Marketplace/backend/update_cart_item.php",
         {
           customer_id: customerId,
           product_id: productId,
@@ -225,7 +225,7 @@ export const CartProvider = ({ children }) => {
       console.log("Removing item:", { customerId, productId });
 
       const response = await axios.post(
-        "http://localhost:8080/remove_from_cart.php",
+        "http://localhost/Agrilink-Agri-Marketplace/backend/remove_from_cart.php",
         {
           customer_id: customerId,
           product_id: productId,
@@ -260,7 +260,7 @@ export const CartProvider = ({ children }) => {
 
       // Remove all items one by one
       for (const item of state.items) {
-        await axios.post("http://localhost:8080/remove_from_cart.php", {
+        await axios.post("http://localhost/Agrilink-Agri-Marketplace/backend/remove_from_cart.php", {
           customer_id: customerId,
           product_id: item.product_id,
         });

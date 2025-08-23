@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import React from "react";
+import { Link , useNavigate} from "react-router-dom";
+import React,{useEffect} from "react";
 import Logo from "../../assets/login/AgriLink.png";
 
 const RightSection = ({
@@ -10,6 +10,19 @@ const RightSection = ({
   onSubmit,
   message,
 }) => {
+   const navigate = useNavigate();
+
+  // Redirect after success
+  useEffect(() => {
+    if (message && message.includes("successfully")) {
+      const timer = setTimeout(() => {
+        navigate("/login"); // navigate to login page
+      }, 1000); // 1 second delay
+
+      return () => clearTimeout(timer); // cleanup
+    }
+  }, [message, navigate]);
+
   return (
     <div className="w-full min-h-screen lg:w-1/2 flex items-center justify-center p-4 sm:p-6 md:p-8 bg-gray-50 overflow-auto">
       <div className="w-full max-w-md space-y-4">

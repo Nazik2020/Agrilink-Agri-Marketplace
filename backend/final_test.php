@@ -8,7 +8,7 @@ $tests = [];
 // Test Order History
 try {
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, "http://localhost:8080/backend/order_history/orders.php");
+    curl_setopt($ch, CURLOPT_URL, "http://localhost/Agrilink-Agri-Marketplace/backend/order_history/orders.php");
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, '{"customer_id":4}');
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
@@ -30,7 +30,7 @@ try {
 // Test Get Cart
 try {
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, "http://localhost:8080/backend/get_cart.php");
+    curl_setopt($ch, CURLOPT_URL, "http://localhost/Agrilink-Agri-Marketplace/backend/get_cart.php");
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, '{"customer_id":4}');
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
@@ -52,7 +52,7 @@ try {
 // Test Add to Cart
 try {
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, "http://localhost:8080/backend/add_to_cart.php");
+    curl_setopt($ch, CURLOPT_URL, "http://localhost/Agrilink-Agri-Marketplace/backend/add_to_cart.php");
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, '{"customer_id":4,"product_id":44,"quantity":1}');
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
@@ -74,7 +74,7 @@ try {
 // Test Get Wishlist
 try {
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, "http://localhost:8080/backend/get_wishlist.php");
+    curl_setopt($ch, CURLOPT_URL, "http://localhost/Agrilink-Agri-Marketplace/backend/get_wishlist.php");
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, '{"customerId":4}');
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);

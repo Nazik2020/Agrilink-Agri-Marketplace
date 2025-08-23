@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { ChevronDown, CheckCircle, XCircle, X } from "lucide-react";
 import axios from "axios";
 import ProfileFormField from "../SellerProfile/ProfileFormField";
 import SpecialOfferDropdown from "./SpecialOfferDropdown";
@@ -7,10 +7,98 @@ import ProductImageUploader from "./ProductImageUploader";
 
 const categories = ["Products", "Seeds", "Offers", "Fertilizer"];
 
+// Custom Popup Component
+const PopupMessage = ({ message, type, onClose }) => {
+  if (!message) return null;
+
+  const isSuccess = type === 'success';
+  const bgColor = isSuccess ? 'bg-green-50' : 'bg-red-50';
+  const borderColor = isSuccess ? 'border-green-200' : 'border-red-200';
+  const textColor = isSuccess ? 'text-green-800' : 'text-red-800';
+  const iconColor = isSuccess ? 'text-green-600' : 'text-red-600';
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-green-50/50 z-50">
+      <div className={`${bgColor} ${borderColor} border rounded-xl p-6 max-w-md w-full mx-4 shadow-lg`}>
+        <div className="flex items-start space-x-3">
+          <div className={`${iconColor} flex-shrink-0 mt-0.5`}>
+            {isSuccess ? (
+              <CheckCircle className="h-6 w-6" />
+            ) : (
+              <XCircle className="h-6 w-6" />
+            )}
+          </div>
+          <div className="flex-1">
+            <p className={`${textColor} text-sm font-medium leading-relaxed`}>
+              {message}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className={`${textColor} hover:opacity-70 transition-opacity flex-shrink-0`}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={onClose}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              isSuccess 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-red-600 hover:bg-red-700 text-white'
+            }`}
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
   const [errors, setErrors] = useState({});
   const [imageFiles, setImageFiles] = useState([]);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [popupMessage, setPopupMessage] = useState(null);
+  const [popupType, setPopupType] = useState('success');
+  const productImageUploaderRef = useRef(null);
+
+  const showPopup = (message, type = 'success') => {
+    setPopupMessage(message);
+    setPopupType(type);
+  };
+
+  const closePopup = () => {
+    setPopupMessage(null);
+  };
+
+  const clearForm = () => {
+    // Clear the product data
+    onChange({
+      productName: "",
+      productDescription: "",
+      price: "",
+      stock: "",
+      category: "",
+      specialOffer: ""
+    });
+    
+    // Clear image files
+    setImageFiles([]);
+    
+    // Clear any errors
+    setErrors({});
+    
+    // Close category dropdown if open
+    setShowCategoryDropdown(false);
+    
+    // Clear the product image uploader
+    if (productImageUploaderRef.current && productImageUploaderRef.current.clearImages) {
+      productImageUploaderRef.current.clearImages();
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -43,13 +131,28 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
     ];
 
     requiredFields.forEach((field) => {
-      if (!product[field] || product[field].trim() === "") {
+      if (
+        !product[field] ||
+        (typeof product[field] === "string" && product[field].trim() === "")
+      ) {
         newErrors[field] = "This field is required.";
       }
     });
 
+    // Validate price
     if (product.price && isNaN(product.price)) {
       newErrors.price = "Please enter a valid price.";
+    }
+
+    // Validate stock
+    if (
+      product.stock === undefined ||
+      product.stock === null ||
+      product.stock === ""
+    ) {
+      newErrors.stock = "Quantity is required.";
+    } else if (isNaN(product.stock) || parseInt(product.stock, 10) < 0) {
+      newErrors.stock = "Please enter a valid quantity (0 or more).";
     }
 
     setErrors(newErrors);
@@ -59,12 +162,18 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
   const handleSubmit = async () => {
     if (validateForm()) {
       const formData = new FormData();
+
       formData.append("seller_id", sellerId || product.seller_id);
       formData.append("product_name", product.productName);
       formData.append("product_description", product.productDescription);
       formData.append("price", product.price);
       formData.append("special_offer", product.specialOffer);
       formData.append("category", product.category);
+      // Always send stock as integer
+      formData.append(
+        "stock",
+        Number.isNaN(Number(product.stock)) ? 0 : parseInt(product.stock, 10)
+      );
 
       imageFiles.forEach((file) => {
         formData.append("product_images[]", file);
@@ -72,20 +181,25 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
 
       try {
         const res = await axios.post(
-          "http://localhost/backend/add_product.php",
+          "http://localhost/Agrilink-Agri-Marketplace/backend/add_product.php",
           formData,
           {
             headers: { "Content-Type": "multipart/form-data" },
           }
         );
 
-        if (res.data.success) {
-          alert("Product Listed Successfully!");
+        console.log("Add Product API Response:", res.data);
+        if (res.data.success === true) {
+          showPopup("Product Listed Successfully!", 'success');
+          clearForm(); // Clear form after successful submission
         } else {
-          alert("Product listing failed!");
+          showPopup(
+            "Product listing failed! " + (res.data.error || "Please try again."), 
+            'error'
+          );
         }
       } catch (err) {
-        alert("Error adding product");
+        showPopup("Error adding product. Please check your connection and try again.", 'error');
       }
     }
   };
@@ -134,6 +248,17 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
               value={product.price}
               onChange={handleInputChange}
               error={errors.price}
+              required
+            />
+
+            <ProfileFormField
+              label="Quantity"
+              name="stock"
+              type="number"
+              value={product.stock === 0 ? "" : product.stock || ""}
+              onChange={handleInputChange}
+              error={errors.stock}
+              min={0}
               required
             />
 
@@ -197,6 +322,7 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
 
             <div className="mt-8">
               <ProductImageUploader
+                ref={productImageUploaderRef}
                 onUpload={handleImageUpload}
                 imageFiles={imageFiles}
                 maxImages={5}
@@ -214,6 +340,13 @@ const AddProductForm = ({ product, onChange, onUpload, sellerId }) => {
           </button>
         </div>
       </div>
+
+      {/* Custom Popup Message */}
+      <PopupMessage
+        message={popupMessage}
+        type={popupType}
+        onClose={closePopup}
+      />
     </div>
   );
 };

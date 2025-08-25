@@ -42,7 +42,7 @@ const Dashboard = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-3">
                 <Shield className="h-8 w-8 text-green-600" />
-                <h1 className="text-4xl font-bold text-foreground">Admin Dashboard</h1>
+                <h1 className="text-4xl font-bold text-green-700">Admin Dashboard</h1>
               </div>
               {/* Logout Button */}
               <button

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Avatar, AvatarFallback, Textarea } from './ui.jsx';
 import { Eye, MessageCircle, Ban, User, X, Send } from 'lucide-react';
 import { useToast } from './hooks/use-toast';
@@ -70,18 +70,35 @@ function UserDetailsModal({ user, open, onClose }) {
 }
 
 // Send Message Modal
-function SendMessageModal({ user, open, onClose }) {
+function SendMessageModal({ user, open, onClose, onSendMessage }) {
   const [message, setMessage] = useState('');
+  const [subject, setSubject] = useState('');
+  const [sending, setSending] = useState(false);
   const { toast } = useToast();
+  
   if (!open || !user) return null;
-  const handleSend = () => {
-    toast({
-      title: 'Message Sent',
-      description: `Your message has been sent to ${user.name}.`,
-      variant: 'success',
-    });
-    setMessage('');
-    onClose();
+  
+  const handleSend = async () => {
+    if (!message.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please enter a message',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    setSending(true);
+    try {
+      await onSendMessage(user.id, user.userType, message, subject || 'System Message');
+      setMessage('');
+      setSubject('');
+      onClose();
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setSending(false);
+    }
   };
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -95,6 +112,16 @@ function SendMessageModal({ user, open, onClose }) {
         </button>
         <h2 className="text-2xl font-bold mb-1">Send Message</h2>
         <p className="text-gray-500 mb-6 text-sm">Send a direct message to <span className="font-semibold text-foreground">{user.name}</span></p>
+        <div className="mb-4">
+          <div className="font-semibold mb-1">Subject (Optional)</div>
+          <input
+            type="text"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            placeholder="Enter subject..."
+            className="w-full border rounded-lg px-3 py-2"
+          />
+        </div>
         <div className="mb-6">
           <div className="font-semibold mb-1">Message</div>
           <Textarea
@@ -108,15 +135,17 @@ function SendMessageModal({ user, open, onClose }) {
           <button
             className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-100 font-semibold transition"
             onClick={onClose}
+            disabled={sending}
           >
             Cancel
           </button>
           <button
-            className="px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold flex items-center gap-2 transition"
+            className="px-6 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold flex items-center gap-2 transition disabled:opacity-50"
             onClick={handleSend}
+            disabled={sending}
           >
             <Send className="h-5 w-5" />
-            Send Message
+            {sending ? 'Sending...' : 'Send Message'}
           </button>
         </div>
       </div>
@@ -171,52 +200,13 @@ const UserManagement = () => {
   const [messageModalOpen, setMessageModalOpen] = useState(false);
   const [confirmUser, setConfirmUser] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: 'John Customer',
-      email: 'john.customer@example.com',
-      type: 'Customer',
-      status: 'Active',
-      lastLogin: '2024-01-15',
-      joinDate: '2023-06-15',
-      totalOrders: 12,
-      totalSpent: '$456.78',
-    },
-    {
-      id: 2,
-      name: 'Jane Farmer',
-      email: 'jane.farmer@greenfields.com',
-      type: 'Seller',
-      status: 'Active',
-      lastLogin: '2024-01-14',
-      joinDate: '2023-05-10',
-      totalOrders: 34,
-      totalSpent: '$1,234.56',
-    },
-    {
-      id: 3,
-      name: 'Bob Smith',
-      email: 'bob.smith@farms.com',
-      type: 'Seller',
-      status: 'Pending',
-      lastLogin: '2024-01-10',
-      joinDate: '2023-04-20',
-      totalOrders: 5,
-      totalSpent: '$123.45',
-    },
-    {
-      id: 4,
-      name: 'Alice Green',
-      email: 'alice.green@organic.com',
-      type: 'Customer',
-      status: 'Suspended',
-      lastLogin: '2024-01-08',
-      joinDate: '2023-03-15',
-      totalOrders: 0,
-      totalSpent: '$0.00',
-    }
-  ]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -235,18 +225,314 @@ const UserManagement = () => {
     return type === 'Seller' ? 'primary' : 'secondary';
   };
 
+  // API Functions
+  const fetchUsers = async (page = 1, search = '', filter = 'all') => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '10',
+        search: search,
+        filter: filter
+      });
+      
+      console.log('Fetching users from:', `http://localhost/Agrilink-Agri-Marketplace/backend/admin/user_management/get_all_users.php?${params}`);
+      
+      const response = await fetch(`http://localhost/Agrilink-Agri-Marketplace/backend/admin/user_management/get_all_users.php?${params}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('API Response:', data);
+      console.log('🔍 DEBUG: Raw users data from backend:', data.users);
+      
+      if (data.success) {
+        // Transform the data to match the expected format
+        const transformedUsers = data.users.map(user => ({
+          id: user.id,
+          name: user.full_name || user.name,
+          email: user.email,
+          // Keep original type from backend
+          type: user.type,
+          // Keep original status from backend - don't transform it
+          status: user.status,
+          lastLogin: user.last_login ? new Date(user.last_login).toLocaleDateString() + ' ' + new Date(user.last_login).toLocaleTimeString() : 'Never',
+          joinDate: new Date(user.created_at).toLocaleDateString(),
+          totalOrders: user.total_orders || 0,
+          totalSpent: user.total_spent ? `$${parseFloat(user.total_spent).toFixed(2)}` : '$0.00',
+          userType: user.type, // Keep original type for API calls
+          originalStatus: user.status // Keep original status for API calls
+        }));
+        
+        console.log('Transformed users:', transformedUsers);
+        setUsers(transformedUsers);
+        setTotalPages(data.pagination.total_pages);
+        setTotalUsers(data.pagination.total_records);
+        setCurrentPage(page);
+      } else {
+        console.error('API Error:', data.message);
+        toast({
+          title: "Error",
+          description: data.message || "Failed to fetch users",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast({
+        title: "Error",
+        description: `Failed to fetch users from server: ${error.message}`,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateUserStatus = async (userId, userType, status) => {
+    try {
+      // Debug: Log what we're sending
+      const requestBody = {
+        user_id: userId,
+        user_type: userType,
+        status: status
+      };
+      console.log('🔍 DEBUG: Sending request to update user status:', requestBody);
+      console.log('🔍 DEBUG: Request URL:', 'http://localhost/Agrilink-Agri-Marketplace/backend/admin/user_management/update_user_status.php');
+      
+      const response = await fetch('http://localhost/Agrilink-Agri-Marketplace/backend/admin/user_management/update_user_status.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
+      
+      console.log('🔍 DEBUG: Response status:', response.status);
+      console.log('🔍 DEBUG: Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      const data = await response.json();
+      console.log('🔍 DEBUG: Response data:', data);
+      
+      if (data.success) {
+        console.log('✅ DEBUG: Status update successful');
+        // Refresh the users list
+        fetchUsers(currentPage, searchTerm, filter);
+        toast({
+          title: "Success",
+          description: `User status updated to ${status}`,
+          variant: "success"
+        });
+      } else {
+        console.error('❌ DEBUG: Status update failed:', data.message);
+        toast({
+          title: "Error",
+          description: data.message || "Failed to update user status",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('❌ DEBUG: Network/JSON error:', error);
+      toast({
+        title: "Error",
+        description: `Failed to update user status: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const banUser = async (userId, userType, reason = '') => {
+    try {
+      const response = await fetch('http://localhost/Agrilink-Agri-Marketplace/backend/admin/user_management/ban_user.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          user_type: userType,
+          reason: reason
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Refresh the users list
+        fetchUsers(currentPage, searchTerm, filter);
+        toast({
+          title: "User Banned",
+          description: "User has been banned successfully",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to ban user",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error banning user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to ban user",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const unbanUser = async (userId, userType) => {
+    try {
+      const response = await fetch('http://localhost/Agrilink-Agri-Marketplace/backend/admin/user_management/unban_user.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          user_type: userType
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Refresh the users list
+        fetchUsers(currentPage, searchTerm, filter);
+        toast({
+          title: "User Unbanned",
+          description: "User has been unbanned successfully",
+          variant: "success"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to unban user",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error unbanning user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to unban user",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const sendMessageToUser = async (userId, userType, message, subject) => {
+    try {
+      const response = await fetch('http://localhost/Agrilink-Agri-Marketplace/backend/admin/user_management/send_message_to_user.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          user_type: userType,
+          message: message,
+          subject: subject
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        toast({
+          title: "Message Sent",
+          description: "Message has been sent successfully",
+          variant: "success"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to send message",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send message",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Test backend connection
+  const testBackendConnection = async () => {
+    try {
+      console.log('Testing backend connection...');
+      const response = await fetch('http://localhost/Agrilink-Agri-Marketplace/backend/admin/test_connection.php');
+      const data = await response.json();
+      console.log('Backend test result:', data);
+      
+      if (data.success) {
+        console.log('✅ Backend is accessible');
+        console.log('Customers:', data.data.customers_count);
+        console.log('Sellers:', data.data.sellers_count);
+      } else {
+        console.error('❌ Backend test failed:', data.message);
+      }
+    } catch (error) {
+      console.error('❌ Backend connection test failed:', error);
+    }
+  };
+
+  // Load users on component mount
+  useEffect(() => {
+    testBackendConnection(); // Test connection first
+    fetchUsers();
+  }, []);
+
+  // Handle search and filter changes
+  const handleSearch = (value) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+    fetchUsers(1, value, filter);
+  };
+
+  const handleFilterChange = (value) => {
+    setFilter(value);
+    setCurrentPage(1);
+    fetchUsers(1, searchTerm, value);
+  };
+
+  const handlePageChange = (page) => {
+    fetchUsers(page, searchTerm, filter);
+  };
+
   const handleConfirm = () => {
     if (!confirmUser || !confirmAction) return;
-    setUsers(prev => prev.map(u =>
-      u.id === confirmUser.id
-        ? { ...u, status: confirmAction === 'suspend' ? 'Suspended' : 'Active' }
-        : u
-    ));
-    toast({
-      title: confirmAction === 'suspend' ? 'User Suspended' : 'User Active',
-      description: `${confirmUser.name} has been ${confirmAction === 'suspend' ? 'suspended' : 'active'}.`,
-      variant: confirmAction === 'suspend' ? 'destructive' : 'success',
-    });
+    
+    const user = users.find(u => u.id === confirmUser.id);
+    if (!user) return;
+
+    console.log('🔍 DEBUG: handleConfirm called');
+    console.log('🔍 DEBUG: confirmAction:', confirmAction);
+    console.log('🔍 DEBUG: user object:', user);
+    console.log('🔍 DEBUG: user.id:', user.id);
+    console.log('🔍 DEBUG: user.userType:', user.userType);
+    console.log('🔍 DEBUG: user.status:', user.status);
+
+    if (confirmAction === 'suspend') {
+      console.log('🔍 DEBUG: Calling updateUserStatus with banned');
+      // Set status to 'banned' (since ENUM doesn't support 'suspended')
+      updateUserStatus(user.id, user.userType, 'banned');
+    } else if (confirmAction === 'activate') {
+      console.log('🔍 DEBUG: Calling updateUserStatus with active');
+      // Set status to 'active'
+      updateUserStatus(user.id, user.userType, 'active');
+    } else if (confirmAction === 'unban') {
+      console.log('🔍 DEBUG: Calling unbanUser');
+      unbanUser(user.id, user.userType);
+    }
+    
     setConfirmUser(null);
     setConfirmAction(null);
   };
@@ -254,7 +540,7 @@ const UserManagement = () => {
   return (
     <div className="space-y-6 px-2 sm:px-4">
       <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">
+        <h2 className="text-2xl font-bold  text-green-700 mb-2">
           User Management
         </h2>
         <p className="text-muted-foreground">
@@ -262,9 +548,50 @@ const UserManagement = () => {
         </p>
       </div>
 
+      {/* Search and Filter Controls */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex-1">
+          <input
+            type="text"
+            placeholder="Search users by name or email..."
+            value={searchTerm}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          />
+        </div>
+        <div className="sm:w-48">
+          <select
+            value={filter}
+            onChange={(e) => handleFilterChange(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          >
+            <option value="all">All Users</option>
+            <option value="customers">Customers Only</option>
+            <option value="sellers">Sellers Only</option>
+            <option value="active">Active Users</option>
+            <option value="banned">Banned Users</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+          <span className="ml-2 text-gray-600">Loading users...</span>
+        </div>
+      )}
+
+      {/* Users List */}
+      {!loading && users.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-gray-500">No users found</p>
+        </div>
+      )}
+
       <div className="space-y-4">
         {users.map((user) => (
-          <Card key={user.id} className="bg-white shadow-md rounded-xl border border-gray-200 p-0">
+          <Card key={`${user.type}-${user.id}`} className="bg-white shadow-md rounded-xl border border-gray-200 p-0">
             <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center space-x-4">
@@ -278,10 +605,10 @@ const UserManagement = () => {
                       <h3 className="font-semibold text-foreground">
                         {user.name}
                       </h3>
-                      {user.type === 'Customer' && (
+                      {user.type === 'customer' && (
                         <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">Customer</span>
                       )}
-                      {user.type === 'Seller' && (
+                      {user.type === 'seller' && (
                         <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-purple-100 text-purple-800 rounded-full">Seller</span>
                       )}
                     </div>
@@ -291,14 +618,14 @@ const UserManagement = () => {
                     </div>
                     {/* Status badge below user details */}
                     <div>
-                      {user.status === 'Active' && (
+                      {user.status === 'active' && (
                         <span className="inline-block mt-1 px-3 py-0.5 text-xs font-semibold bg-green-100 text-green-800 rounded-full">Active</span>
                       )}
-                      {user.status === 'Pending' && (
+                      {user.status === 'pending' && (
                         <span className="inline-block mt-1 px-3 py-0.5 text-xs font-semibold bg-yellow-100 text-yellow-800 rounded-full">Pending</span>
                       )}
-                      {user.status === 'Suspended' && (
-                        <span className="inline-block mt-1 px-3 py-0.5 text-xs font-semibold bg-red-100 text-red-800 rounded-full">Suspended</span>
+                      {user.status === 'banned' && (
+                        <span className="inline-block mt-1 px-3 py-0.5 text-xs font-semibold bg-red-100 text-red-800 rounded-full">Banned</span>
                       )}
                     </div>
                   </div>
@@ -318,7 +645,7 @@ const UserManagement = () => {
                     <MessageCircle className="h-4 w-4" />
                     Message
                   </Button>
-                  {user.status === 'Suspended' ? (
+                  {user.status === 'banned' ? (
                     <Button
                       size="sm"
                       className="rounded-md px-3 py-1 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white transition-colors flex items-center gap-2 w-full sm:w-auto whitespace-nowrap"
@@ -347,8 +674,32 @@ const UserManagement = () => {
           </Card>
         ))}
       </div>
+
+      {/* Pagination */}
+      {!loading && totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-6">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+          <span className="px-4 py-2 text-gray-600">
+            Page {currentPage} of {totalPages} ({totalUsers} total users)
+          </span>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      )}
+
       <UserDetailsModal user={modalUser} open={modalOpen} onClose={() => setModalOpen(false)} />
-      <SendMessageModal user={messageUser} open={messageModalOpen} onClose={() => setMessageModalOpen(false)} />
+      <SendMessageModal user={messageUser} open={messageModalOpen} onClose={() => setMessageModalOpen(false)} onSendMessage={sendMessageToUser} />
       <ConfirmActionModal
         open={!!confirmUser}
         user={confirmUser}

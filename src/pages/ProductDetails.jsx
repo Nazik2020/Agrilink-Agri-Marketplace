@@ -24,7 +24,7 @@ import { API_BASE, buildImageUrl } from "../config/api";
 // Function to fetch product details from backend
 const fetchProductDetails = async (productId) => {
   try {
-    const url = `${API_BASE}get_product_details.php?id=${productId}`;
+    const url = `${API_BASE}/backend/get_product_details.php?id=${productId}`;
     const response = await axios.get(url);
     if (response.data.success) {
       return response.data.product;
@@ -160,7 +160,7 @@ function ProductDetails() {
   const fetchReviews = async (productId) => {
     try {
       const response = await axios.get(
-        `${API_BASE}review_and_ratings/get_reviews.php?product_id=${productId}`
+        `${API_BASE}/backend/review_and_ratings/get_reviews.php?product_id=${productId}`
       );
       if (response.data && response.data.reviews) {
         // No filtering: show all reviews, including multiple from same user
@@ -399,15 +399,15 @@ function ProductDetails() {
                   return (
                     <button
                       key={idx}
-                      onClick={() => setMainImg(img)}
+                      onClick={() => setMainImg(imgSrc)}
                       className={`border-2 rounded-lg p-1 transition ${
-                        mainImg === img
+                        mainImg === imgSrc
                           ? "border-green-500"
                           : "border-transparent"
                       }`}
                     >
                       <img
-                        src={img}
+                        src={imgSrc}
                         alt={`Product image ${idx + 1}`}
                         className="w-16 h-16 object-cover rounded"
                         onError={(e) => (e.currentTarget.style.opacity = "0.3")}
@@ -481,7 +481,9 @@ function ProductDetails() {
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-lg">Seller Information</h3>
-                <FlagButton sellerId={product.seller.id} size="sm" />
+                {product && product.seller && (
+                  <FlagButton sellerId={product.seller.id} productId={product.id} size="sm" />
+                )}
               </div>
               <div className="space-y-2">
                 <div>
@@ -567,11 +569,13 @@ function ProductDetails() {
                 <span className="text-sm text-gray-600">
                   Report this product:
                 </span>
-                <FlagButton
-                  sellerId={product.seller.id}
-                  productId={product.id}
-                  size="md"
-                />
+                {product && product.seller && (
+                  <FlagButton
+                    sellerId={product.seller.id}
+                    productId={product.id}
+                    size="md"
+                  />
+                )}
               </div>
             </div>
             <div className="bg-white rounded-xl shadow p-6 mb-6">

@@ -40,25 +40,31 @@ try {
     
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Helper to clean and format image paths
+    function format_image_url($image_path) {
+        $image_path = preg_replace('#^https?://[^/]+/#', '', $image_path);
+        $image_path = ltrim($image_path, '/');
+        if (!str_starts_with($image_path, 'uploads/')) {
+            $image_path = 'uploads/' . $image_path;
+        }
+        return "http://localhost/Agrilink-Agri-Marketplace/backend/get_image.php?path=" . urlencode($image_path);
+    }
+
     // Process product images from JSON and cast average_rating to float
     foreach ($products as &$product) {
         if ($product['product_images']) {
             $image_paths = json_decode($product['product_images'], true);
             if (is_array($image_paths)) {
-                $product['product_images'] = array_map(function($image_path) {
-                    return "http://localhost/Agrilink-Agri-Marketplace/backend/get_image.php?path=" . urlencode($image_path);
-                }, $image_paths);
+                $product['product_images'] = array_map('format_image_url', $image_paths);
             } else {
                 $product['product_images'] = [];
             }
         } else {
             $product['product_images'] = [];
         }
-        
         // Ensure correct data types
         $product['average_rating'] = isset($product['average_rating']) ? round((float)$product['average_rating'], 2) : null;
         $product['review_count'] = isset($product['review_count']) ? (int)$product['review_count'] : 0;
-        // Ensure seller_id is always present and integer
         $product['seller_id'] = isset($product['seller_id']) ? (int)$product['seller_id'] : null;
     }
     

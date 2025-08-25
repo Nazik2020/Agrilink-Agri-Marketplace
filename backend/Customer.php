@@ -20,11 +20,11 @@ class Customer {
     public function updateProfile($email, $full_name, $address, $contactno, $country, $postal_code = '', $profile_image = null) {
         try {
             if ($profile_image) {
-                $stmt = $this->conn->prepare("UPDATE customers SET full_name = ?, address = ?, contactno = ?, country = ?, postal_code = ?, profile_image = ? WHERE email = ?");
+                $stmt = $this->conn->prepare("UPDATE customers SET full_name = ?, address = ?, contactno = ?, country = ?, postal_code = ?, profile_image = ?, updated_at = NOW() WHERE email = ?");
                 return $stmt->execute([$full_name, $address, $contactno, $country, $postal_code, $profile_image, $email]);
             } else {
-        $stmt = $this->conn->prepare("UPDATE customers SET full_name = ?, address = ?, contactno = ?, country = ?, postal_code = ? WHERE email = ?");
-        return $stmt->execute([$full_name, $address, $contactno, $country, $postal_code, $email]);
+                $stmt = $this->conn->prepare("UPDATE customers SET full_name = ?, address = ?, contactno = ?, country = ?, postal_code = ?, updated_at = NOW() WHERE email = ?");
+                return $stmt->execute([$full_name, $address, $contactno, $country, $postal_code, $email]);
             }
         } catch (PDOException $e) {
             error_log("Error in updateProfile: " . $e->getMessage());

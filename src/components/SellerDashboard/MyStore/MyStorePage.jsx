@@ -376,7 +376,7 @@ export default function MyStorePage() {
         </div>
 
         {/* View Orders Tab: Show all orders with product images */}
-        {activeTab === "view-orders" && (
+        {activeTab === "view-orders" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {ordersData.map(order => (
               <div key={order.id} className="bg-white rounded-lg shadow p-6  flex flex-col">
@@ -415,110 +415,40 @@ export default function MyStorePage() {
                 </div>
               </div>
             ))}
-           {/* {ordersData.length === 0 && (
-              <div className="text-center py-12 col-span-full">
-                <p className="text-gray-500 text-lg">No pending orders found</p>
-                <p className="text-gray-400 text-sm mt-2">
-                  When customers place orders, they will appear here
-                </p>
-              </div>
-            )}*/}
           </div>
-        )}
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+            {paginatedProducts.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white rounded-lg shadow-sm hover:shadow-md transition flex flex-col w-full max-w-sm mx-auto"
+              >
+                {/* Image */}
+                <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden flex items-center justify-center h-48">
+                  <img
+                    src={getImageUrl(product.product_images)}
+                    alt={product.product_name}
+                    className="w-full h-full object-cover"
+                    onError={handleImageError}
+                  />
+                </div>
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-          {paginatedProducts.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white rounded-lg shadow-sm hover:shadow-md transition flex flex-col w-full max-w-sm mx-auto"
-            >
-              {/* Image */}
-              <div className="aspect-square bg-gray-100 rounded-t-lg overflow-hidden flex items-center justify-center h-48">
-                <img
-                  src={getImageUrl(product.product_images)}
-                  alt={product.product_name}
-                  className="w-full h-full object-cover"
-                  onError={handleImageError}
-                />
-              </div>
+                {/* Product Info */}
+                <div className="flex flex-col p-4 flex-1 text-center">
+                  <h3 className="font-semibold text-green-700 mb-1 truncate text-xl">
+                    {product.product_name}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-1">
+                    Quantity: <span className="font-medium">{product.stock}</span>
+                  </p>
+                  <p className={`text-sm mb-2 ${parseInt(product.stock) === 0 ? "text-red-500" : "text-green-600"}`}>
+                    {parseInt(product.stock) === 0 ? "Out of Stock" : "In Stock"}
+                  </p>
+                  <p className="text-gray-900 font-bold mb-2">
+                    ${parseFloat(product.price).toFixed(2)}
+                  </p>
 
-              {/* Product Info */}
-              <div className="flex flex-col p-4 flex-1 text-center">
-                <h3 className="font-semibold text-green-700 mb-1 truncate text-xl">
-                  {product.product_name}
-                </h3>
-                <p className="text-gray-600 text-sm mb-1">
-                  Quantity: <span className="font-medium">{product.stock}</span>
-                </p>
-                <p className={`text-sm mb-2 ${parseInt(product.stock) === 0 ? "text-red-500" : "text-green-600"}`}>
-                  {parseInt(product.stock) === 0 ? "Out of Stock" : "In Stock"}
-                </p>
-                <p className="text-gray-900 font-bold mb-2">
-                  ${parseFloat(product.price).toFixed(2)}
-                </p>
-
-                {/* Orders info for View Orders tab */}
-                {activeTab === "view-orders" && product.pendingOrders && (
-                  <div className="mb-3 p-2 bg-yellow-50 rounded border border-yellow-200">
-                    <p className="text-sm text-yellow-800 font-medium">
-                      Pending Orders: {product.pendingOrders.length}
-                    </p>
-                    <div className="mt-2 space-y-1">
-                      {product.pendingOrders.slice(0, 2).map((order) => (
-                        <div key={order.id} className="text-xs text-gray-600 bg-white p-2 rounded border">
-                          <div className="flex justify-between items-start mb-1">
-                            <span className="font-medium">Order #{order.id}</span>
-                            <span className="text-green-600 font-bold">${parseFloat(order.total_amount).toFixed(2)}</span>
-                          </div>
-                          <div className="text-xs text-gray-500 mb-2">
-                            <p>Customer: {order.billing_name}</p>
-                            <p>Qty: {order.quantity} × ${parseFloat(order.unit_price).toFixed(2)}</p>
-                            <p>Payment: {order.payment_status}</p>
-                          </div>
-                          <div className="flex space-x-1">
-                            <button
-                              onClick={() => handleConfirmOrder(order.id, product.id)}
-                              disabled={confirmingOrder === order.id || cancellingOrder === order.id}
-                              className="flex-1 bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-1"
-                            >
-                              {confirmingOrder === order.id ? (
-                                "Confirming..."
-                              ) : (
-                                <>
-                                  <CheckCircle className="h-3 w-3" />
-                                  Confirm
-                                </>
-                              )}
-                            </button>
-                            <button
-                              onClick={() => handleCancelOrder(order.id, product.id)}
-                              disabled={confirmingOrder === order.id || cancellingOrder === order.id}
-                              className="flex-1 bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 disabled:opacity-50 flex items-center justify-center gap-1"
-                            >
-                              {cancellingOrder === order.id ? (
-                                "Cancelling..."
-                              ) : (
-                                <>
-                                  <X className="h-3 w-3" />
-                                  Cancel
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                      {product.pendingOrders.length > 2 && (
-                        <p className="text-xs text-gray-500 mt-2 text-center">
-                          +{product.pendingOrders.length - 2} more orders
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Buttons */}
-                {activeTab !== "view-orders" && (
+                  {/* Buttons */}
                   <div className="flex space-x-2 mt-auto">
                     <button
                       onClick={() => handleEdit(product)}
@@ -533,11 +463,11 @@ export default function MyStorePage() {
                       Delete
                     </button>
                   </div>
-                )}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Empty State */}
         {filteredProducts.length === 0 && (

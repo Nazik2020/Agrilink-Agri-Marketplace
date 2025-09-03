@@ -15,7 +15,7 @@ if (empty($sellerId)) {
 }
 
 try {
-    $stmt = $conn->prepare("SELECT id, product_name, price, stock, product_images FROM products WHERE seller_id = ?");
+    $stmt = $conn->prepare("SELECT id, product_name, price, stock, product_images FROM products WHERE seller_id = ? AND status = 'active'");
     $stmt->execute([$sellerId]);
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
     

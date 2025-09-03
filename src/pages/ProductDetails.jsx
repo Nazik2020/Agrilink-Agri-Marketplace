@@ -20,11 +20,60 @@ import SimpleWishlistButton from "../components/wishlist/SimpleWishlistButton";
 import { FlagButton } from "../components/Flag";
 import axios from "axios";
 import { API_BASE, buildImageUrl } from "../config/api";
+// Custom Popup Component (copied from AddProductForm)
+import { CheckCircle, XCircle, X } from "lucide-react";
+
+const PopupMessage = ({ message, type, onClose }) => {
+  if (!message) return null;
+  const isSuccess = type === 'success';
+  const bgColor = isSuccess ? 'bg-green-50' : 'bg-red-50';
+  const borderColor = isSuccess ? 'border-green-200' : 'border-red-200';
+  const textColor = isSuccess ? 'text-green-800' : 'text-red-800';
+  const iconColor = isSuccess ? 'text-green-600' : 'text-red-600';
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-green-50/50 z-50">
+      <div className={`${bgColor} ${borderColor} border rounded-xl p-6 max-w-md w-full mx-4 shadow-lg`}>
+        <div className="flex items-start space-x-3">
+          <div className={`${iconColor} flex-shrink-0 mt-0.5`}>
+            {isSuccess ? (
+              <CheckCircle className="h-6 w-6" />
+            ) : (
+              <XCircle className="h-6 w-6" />
+            )}
+          </div>
+          <div className="flex-1">
+            <p className={`${textColor} text-sm font-medium leading-relaxed`}>
+              {message}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className={`${textColor} hover:opacity-70 transition-opacity flex-shrink-0`}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={onClose}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              isSuccess 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-red-600 hover:bg-red-700 text-white'
+            }`}
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Function to fetch product details from backend
 const fetchProductDetails = async (productId) => {
   try {
-    const url = `${API_BASE}get_product_details.php?id=${productId}`;
+    const url = `${API_BASE}/backend/get_product_details.php?id=${productId}`;
     const response = await axios.get(url);
     if (response.data.success) {
       return response.data.product;
@@ -58,6 +107,14 @@ export function useProductDetailsRefresh(productId, setProduct) {
 }
 
 function ProductDetails() {
+  // Popup state
+  const [popupMessage, setPopupMessage] = useState(null);
+  const [popupType, setPopupType] = useState('success');
+  const showPopup = (message, type = 'success') => {
+    setPopupMessage(message);
+    setPopupType(type);
+  };
+  const closePopup = () => setPopupMessage(null);
   const navigate = useNavigate();
   const { id } = useParams(); // Get product ID from URL
   const { addToCart } = useCart();
@@ -160,7 +217,7 @@ function ProductDetails() {
   const fetchReviews = async (productId) => {
     try {
       const response = await axios.get(
-        `${API_BASE}review_and_ratings/get_reviews.php?product_id=${productId}`
+        `${API_BASE}/backend/review_and_ratings/get_reviews.php?product_id=${productId}`
       );
       if (response.data && response.data.reviews) {
         // No filtering: show all reviews, including multiple from same user
@@ -195,7 +252,7 @@ function ProductDetails() {
   // Submit review to backend
   const handleSubmitReview = async () => {
     if (!customerId) {
-      alert("You must be logged in as a customer to submit a review.");
+      showPopup("You must be logged in as a customer to submit a review.", 'error');
       return;
     }
     if (reviewText.trim()) {
@@ -218,10 +275,10 @@ function ProductDetails() {
           fetchProductDetails(id).then((data) => setProduct(data));
           setTimeout(() => setReviewSuccess(false), 3000);
         } else {
-          alert(response.data.message || "Failed to add review.");
+          showPopup(response.data.message || "Failed to add review.", 'error');
         }
       } catch (err) {
-        alert("Error submitting review.");
+        showPopup("Error submitting review.", 'error');
       }
     }
   };
@@ -241,7 +298,7 @@ function ProductDetails() {
 
   const handleSaveEdit = async (reviewId) => {
     if (!editReviewText.trim()) {
-      alert("Review cannot be empty.");
+      showPopup("Review cannot be empty.", 'error');
       return;
     }
     try {
@@ -263,16 +320,16 @@ function ProductDetails() {
         // Refresh product details to update average rating
         fetchProductDetails(id).then((data) => setProduct(data));
       } else {
-        alert(response.data.message || "Failed to update review.");
+        showPopup(response.data.message || "Failed to update review.", 'error');
       }
     } catch (err) {
-      alert("Error updating review.");
+      showPopup("Error updating review.", 'error');
     }
   };
 
   const handleDeleteReview = async (reviewId) => {
     if (!customerId) {
-      alert("You must be logged in as a customer to delete your review.");
+      showPopup("You must be logged in as a customer to delete your review.", 'error');
       return;
     }
     try {
@@ -288,10 +345,10 @@ function ProductDetails() {
         // Refresh product details to update average rating
         fetchProductDetails(id).then((data) => setProduct(data));
       } else {
-        alert(response.data.message || "Failed to delete review.");
+        showPopup(response.data.message || "Failed to delete review.", 'error');
       }
     } catch (err) {
-      alert("Error deleting review.");
+      showPopup("Error deleting review.", 'error');
     }
   };
 
@@ -354,7 +411,7 @@ function ProductDetails() {
   }
 
   return (
-    <div className="bg-[#fafbfc] min-h-screen relative">
+  <div className="bg-[#fafbfc] min-h-screen relative">
       <div className="max-w-7xl mx-auto px-4 py-2 mt-20">
         <div className="flex flex-col md:flex-row gap-10">
           {/* SECTION: Product Image and Thumbnails */}
@@ -399,15 +456,15 @@ function ProductDetails() {
                   return (
                     <button
                       key={idx}
-                      onClick={() => setMainImg(img)}
+                      onClick={() => setMainImg(imgSrc)}
                       className={`border-2 rounded-lg p-1 transition ${
-                        mainImg === img
+                        mainImg === imgSrc
                           ? "border-green-500"
                           : "border-transparent"
                       }`}
                     >
                       <img
-                        src={img}
+                        src={imgSrc}
                         alt={`Product image ${idx + 1}`}
                         className="w-16 h-16 object-cover rounded"
                         onError={(e) => (e.currentTarget.style.opacity = "0.3")}
@@ -481,7 +538,9 @@ function ProductDetails() {
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-lg">Seller Information</h3>
-                <FlagButton sellerId={product.seller.id} size="sm" />
+                {product && product.seller && (
+                  <FlagButton sellerId={product.seller.id} productId={product.id} size="sm" />
+                )}
               </div>
               <div className="space-y-2">
                 <div>
@@ -567,11 +626,13 @@ function ProductDetails() {
                 <span className="text-sm text-gray-600">
                   Report this product:
                 </span>
-                <FlagButton
-                  sellerId={product.seller.id}
-                  productId={product.id}
-                  size="md"
-                />
+                {product && product.seller && (
+                  <FlagButton
+                    sellerId={product.seller.id}
+                    productId={product.id}
+                    size="md"
+                  />
+                )}
               </div>
             </div>
             <div className="bg-white rounded-xl shadow p-6 mb-6">
@@ -725,6 +786,12 @@ function ProductDetails() {
       <CustomizationModal
         open={showCustomize}
         onClose={() => setShowCustomize(false)}
+      />
+      {/* Custom Popup Message */}
+      <PopupMessage
+        message={popupMessage}
+        type={popupType}
+        onClose={closePopup}
       />
     </div>
   );

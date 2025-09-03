@@ -65,7 +65,7 @@ export const getApiUrl = (endpointKey) => {
 };
 
 // Base API URL (override in .env: VITE_API_BASE_URL)
-const RAW = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/";
+const RAW = import.meta.env.VITE_API_BASE_URL || "http://localhost/Agrilink-Agri-Marketplace/backend/";
 export const API_BASE = RAW.endsWith("/") ? RAW : RAW + "/";
 
 /**

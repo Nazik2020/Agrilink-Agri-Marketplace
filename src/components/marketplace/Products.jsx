@@ -134,15 +134,15 @@ const Products = ({ displayCount = 8 }) => {
           </div>
 
           <Link to={`/product/${product.id}`} className="block">
-            <img
-              src={
-                product.product_images && product.product_images.length > 0
-                  ? `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
-                  : "https://via.placeholder.com/300x200?text=No+Image"
-              }
-              alt={product.product_name}
-              className="w-full h-40 object-cover rounded-t-2xl"
-            />
+              <img
+                src={
+                  product.product_images && product.product_images.length > 0
+                    ? product.product_images[0]
+                    : "https://via.placeholder.com/300x200?text=No+Image"
+                }
+                alt={product.product_name}
+                className="w-full h-40 object-cover rounded-t-2xl"
+              />
           </Link>
 
           <div className="flex flex-col flex-1 px-4 pt-3 pb-4">

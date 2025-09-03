@@ -1,58 +1,73 @@
 import React from 'react';
+import dayjs from 'dayjs';
 import { Card, CardContent, CardHeader, CardTitle, Badge, Avatar, AvatarFallback } from './ui';
 import { Activity, User, ShoppingCart, Plus, Edit } from 'lucide-react';
 
 const ActivityMonitor = () => {
-  const activities = [
-    {
-      id: 1,
-      user: 'John Customer',
-      action: 'Placed order #1234',
-      time: '10 minutes ago',
-      type: 'order',
-      icon: ShoppingCart
-    },
-    {
-      id: 2,
-      user: 'Jane Farmer',
-      action: 'Added new product',
-      time: '25 minutes ago',
-      type: 'product',
-      icon: Plus
-    },
-    {
-      id: 3,
-      user: 'Bob Smith',
-      action: 'Updated profile',
-      time: '1 hour ago',
-      type: 'profile',
-      icon: Edit
-    },
-    {
-      id: 4,
-      user: 'Alice Green',
-      action: 'Registered new account',
-      time: '2 hours ago',
-      type: 'registration',
-      icon: User
-    },
-    {
-      id: 5,
-      user: 'Mike Johnson',
-      action: 'Placed order #1235',
-      time: '3 hours ago',
-      type: 'order',
-      icon: ShoppingCart
-    },
-    {
-      id: 6,
-      user: 'Sarah Wilson',
-      action: 'Added new product listing',
-      time: '4 hours ago',
-      type: 'product',
-      icon: Plus
+  const [selectedActivity, setSelectedActivity] = React.useState(null);
+  const [activityDetails, setActivityDetails] = React.useState(null);
+  const [detailsLoading, setDetailsLoading] = React.useState(false);
+
+  const handleViewDetails = async (activity) => {
+    setSelectedActivity(activity);
+    setDetailsLoading(true);
+    try {
+      const res = await fetch(`http://localhost/Agrilink-Agri-Marketplace/backend/admin/dashboard/get_activity_details.php?type=${activity.type}&id=${activity.id}`);
+      const data = await res.json();
+      if (data.success) {
+        setActivityDetails(data.details);
+      } else {
+        setActivityDetails({ error: data.message });
+      }
+    } catch (err) {
+      setActivityDetails({ error: 'Failed to fetch details.' });
+    } finally {
+      setDetailsLoading(false);
     }
-  ];
+  };
+
+  const handleCloseModal = () => {
+    setSelectedActivity(null);
+    setActivityDetails(null);
+    setDetailsLoading(false);
+  };
+  const [activities, setActivities] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const res = await fetch('http://localhost/Agrilink-Agri-Marketplace/backend/admin/dashboard/get_activity_feed.php');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.activities)) {
+          setActivities(data.activities.map(activity => ({
+            ...activity,
+            icon: activity.type === 'order' ? ShoppingCart : activity.type === 'product' ? Plus : activity.type === 'profile' ? Edit : activity.type === 'registration' ? User : Activity,
+            time_raw: activity.time_raw || activity.time // Store original time for grouping
+          })));
+        }
+      } catch (err) {
+        setActivities([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchActivities();
+  }, []);
+  // Group activities by type and week
+  const groupByWeekAndType = (activities) => {
+    const grouped = {};
+    activities.forEach(activity => {
+      // Use time_raw if available, else fallback to time
+  const week = dayjs(activity.time_raw || activity.time).startOf('week').format('[Week of] MMM D, YYYY');
+      if (!grouped[activity.type]) grouped[activity.type] = {};
+      if (!grouped[activity.type][week]) grouped[activity.type][week] = [];
+      grouped[activity.type][week].push(activity);
+    });
+    return grouped;
+  };
+
+  const grouped = groupByWeekAndType(activities);
 
   const getActivityColor = (type) => {
     switch (type) {
@@ -94,56 +109,105 @@ const ActivityMonitor = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-4 space-y-4">
-          {activities.map((activity) => {
-            const Icon = activity.icon;
-            // Color classes for badge and icon
-            let badgeClass = '';
-            let iconClass = '';
-            switch (activity.type) {
-              case 'order':
-              case 'product':
-                badgeClass = 'bg-green-600 text-white';
-                iconClass = 'text-green-600';
-                break;
-              case 'profile':
-                badgeClass = 'bg-blue-500 text-white';
-                iconClass = 'text-blue-500';
-                break;
-              case 'registration':
-                badgeClass = 'bg-yellow-500 text-white';
-                iconClass = 'text-yellow-500';
-                break;
-              default:
-                badgeClass = 'bg-gray-400 text-white';
-                iconClass = 'text-gray-400';
-            }
-            return (
-              <div key={activity.id} className="flex items-center gap-4 bg-white rounded-lg px-6 py-4 mb-3 border border-gray-200 shadow-sm">
-                <div className="flex items-center justify-center h-12 w-12 rounded-full bg-gray-100">
-                  <Icon className={`h-6 w-6 ${iconClass}`} />
+          {Object.entries(grouped).map(([type, weeks]) => (
+            <div key={type} className="mb-8">
+              <h3 className="text-lg font-bold mb-2 capitalize">{type}</h3>
+              {Object.entries(weeks).map(([week, acts]) => (
+                <div key={week} className="mb-4">
+                  <div className="text-md font-semibold text-green-700 mb-2">{week}</div>
+                  {acts.map(activity => {
+                    const Icon = activity.icon;
+                    let badgeClass = '';
+                    let iconClass = '';
+                    switch (activity.type) {
+                      case 'order':
+                      case 'product':
+                        badgeClass = 'bg-green-600 text-white';
+                        iconClass = 'text-green-600';
+                        break;
+                      case 'profile':
+                        badgeClass = 'bg-blue-500 text-white';
+                        iconClass = 'text-blue-500';
+                        break;
+                      case 'registration':
+                        badgeClass = 'bg-yellow-500 text-white';
+                        iconClass = 'text-yellow-500';
+                        break;
+                      default:
+                        badgeClass = 'bg-gray-400 text-white';
+                        iconClass = 'text-gray-400';
+                    }
+                    return (
+                      <div key={activity.id} className="flex items-center gap-4 bg-white rounded-lg px-6 py-4 mb-3 border border-gray-200 shadow-sm">
+                        <div className="flex items-center justify-center h-12 w-12 rounded-full bg-gray-100">
+                          <Icon className={`h-6 w-6 ${iconClass}`} />
+                        </div>
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className="text-base">
+                            {activity.user.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-foreground text-lg">
+                              {activity.user}
+                            </span>
+                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${badgeClass} capitalize`}>
+                              {activity.type === 'order' ? 'Order' : activity.type === 'product' ? 'Product' : activity.type === 'profile' ? 'Profile' : activity.type === 'registration' ? 'Registration' : activity.type}
+                            </span>
+                          </div>
+                          <p className="text-gray-500 text-sm">
+                            {activity.action}
+                          </p>
+                        </div>
+                        <div className="w-24 text-xs text-gray-400 whitespace-nowrap flex-shrink-0 text-right">{activity.time}</div>
+                        <button
+                          className="ml-4 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs font-semibold shadow"
+                          onClick={() => handleViewDetails(activity)}
+                        >
+                          View
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="text-base">
-                    {activity.user.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-foreground text-lg">
-                      {activity.user}
-                    </span>
-                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${badgeClass} capitalize`}>
-                      {activity.type === 'order' ? 'Order' : activity.type === 'product' ? 'Product' : activity.type === 'profile' ? 'Profile' : activity.type === 'registration' ? 'Registration' : activity.type}
-                    </span>
-                  </div>
-                  <p className="text-gray-500 text-sm">
-                    {activity.action}
-                  </p>
-                </div>
-                <div className="w-24 text-xs text-gray-400 whitespace-nowrap flex-shrink-0 text-right">{activity.time}</div>
+              ))}
+            </div>
+          ))}
+      {selectedActivity && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-green-50/50">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-3xl w-full relative border-t-8 border-green-600"
+            style={{ minHeight: '200px', maxHeight: '400px', overflowY: 'auto', boxSizing: 'border-box' }}>
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-2xl font-bold"
+              onClick={handleCloseModal}
+              aria-label="Close"
+            >
+              &times;
+            </button>
+            <h2 className="text-xl font-bold mb-4 text-green-700 flex items-center gap-2">
+              <selectedActivity.icon className="h-5 w-5 text-green-600" />
+              {selectedActivity.type.charAt(0).toUpperCase() + selectedActivity.type.slice(1)} Details
+            </h2>
+            {detailsLoading ? (
+              <div className="text-center text-gray-400">Loading details...</div>
+            ) : activityDetails && activityDetails.error ? (
+              <div className="text-red-500">{activityDetails.error}</div>
+            ) : (
+              <div className="space-y-2">
+                {Object.entries(activityDetails)
+                  .filter(([key]) => !['reset_token', 'reset_token_expires', 'password', 'card_last_four', 'transaction_id', 'profile_image', 'product_images'].includes(key))
+                  .map(([key, value]) => (
+                    <div key={key} className="flex">
+                      <span className="font-semibold w-40 text-gray-700">{key.replace(/_/g, ' ')}:</span>
+                      <span className="text-gray-900 break-all">{String(value)}</span>
+                    </div>
+                  ))}
               </div>
-            );
-          })}
+            )}
+          </div>
+        </div>
+      )}
         </CardContent>
       </Card>
     </div>

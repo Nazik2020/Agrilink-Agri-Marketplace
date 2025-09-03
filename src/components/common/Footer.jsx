@@ -84,24 +84,24 @@ const Footer = () => {
           <h3 className="text-[25px] semi-bold mb-4">Service</h3>
           <ul className="space-y-2  text-[17px] semibold">
             <li>
-              <a href="#" className="text-white hover:text-green-600">
-                Success Steps Education
-              </a>
+              <span className="text-white hover:text-green-600 cursor-default">
+                Secure Transactions
+              </span>
             </li>
             <li>
-              <a href="#" className="text-white hover:text-green-600">
-                Pathway to Progress
-              </a>
+              <span className="text-white hover:text-green-600 cursor-default">
+                Marketplace Access
+              </span>
             </li>
             <li>
-              <a href="#" className="text-white hover:text-green-600">
-                Skill Builders Academy
-              </a>
+              <span className="text-white hover:text-green-600 cursor-default">
+                Seller Analytics
+              </span>
             </li>
             <li>
-              <a href="#" className="text-white hover:text-green-600">
-                Academic Achievers
-              </a>
+              <span className="text-white hover:text-green-600 cursor-default">
+                Global Reach
+              </span>
             </li>
           </ul>
         </div>
@@ -111,7 +111,7 @@ const Footer = () => {
           <h3 className="text-[25px] semi-bold  mb-4">Quick Link</h3>
           <ul className="space-y-2 text-[17px] semibold">
             <li>
-              <a href="#" className="text-white hover:text-green-600">
+              <a href="about" className="text-white hover:text-green-600">
                 About Us
               </a>
             </li>
@@ -121,13 +121,13 @@ const Footer = () => {
               </a>
             </li>
             <li>
-              <a href="#" className="text-white hover:text-green-600">
+              <a href="faq" className="text-white hover:text-green-600">
                 FAQ
               </a>
             </li>
             <li>
-              <a href="#" className="text-white hover:text-green-600">
-                Blog Ang News
+              <a href="blog" className="text-white hover:text-green-600">
+                Blog And News
               </a>
             </li>
           </ul>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Badge } from './ui';
 import StatsCards from './StatsCards';
+import FAQManagement from './FAQManagement';
 import UserManagement from './UserManagement';
 import SendAlerts from './SendAlerts';
 import ContentModeration from './ContentModeration';
@@ -12,7 +13,8 @@ const navigation = [
   { id: 'user-management', name: 'User Management', component: UserManagement },
   { id: 'send-alerts', name: 'Send Alerts', component: SendAlerts },
   { id: 'content-moderation', name: 'Content Moderation', component: ContentModeration },
-  { id: 'activity-monitor', name: 'Activity Monitor', component: ActivityMonitor }
+  { id: 'activity-monitor', name: 'Activity Monitor', component: ActivityMonitor },
+  { id: 'faq-management', name: 'FAQ Management', component: FAQManagement }
 ];
 
 const Dashboard = () => {
@@ -42,7 +44,7 @@ const Dashboard = () => {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-3">
                 <Shield className="h-8 w-8 text-green-600" />
-                <h1 className="text-4xl font-bold text-foreground">Admin Dashboard</h1>
+                <h1 className="text-4xl font-bold text-green-700">Admin Dashboard</h1>
               </div>
               {/* Logout Button */}
               <button

@@ -687,7 +687,7 @@ const BuyNowModal = ({
                 <div className="mt-4 border-t border-green-200 pt-3 text-right space-y-1">
                   <div>
                     <span className="font-semibold">Subtotal:</span>{" "}
-                    ${subtotalValue.toFixed(2)}
+                    ${subtotal.toFixed(2)}
                   </div>
                   <div>
                     <span className="font-semibold">Shipping:</span> $

@@ -24,9 +24,8 @@ try {
 
     // PDO VERSION - Use this if your db.php creates a PDO connection
     if ($conn instanceof PDO) {
-        $sql = "DELETE FROM products WHERE id = :productId";
+        $sql = "UPDATE products SET status = 'deleted' WHERE id = :productId";
         $stmt = $conn->prepare($sql);
-        
         if (!$stmt) {
             echo json_encode([
                 "success" => false,
@@ -34,13 +33,11 @@ try {
             ]);
             exit;
         }
-
         $stmt->bindParam(':productId', $productId, PDO::PARAM_INT);
-        
         if ($stmt->execute()) {
             $rowsAffected = $stmt->rowCount();
             if ($rowsAffected > 0) {
-                echo json_encode(["success" => true, "message" => "Product deleted successfully"]);
+                echo json_encode(["success" => true, "message" => "Product marked as deleted (soft delete)"]);
             } else {
                 echo json_encode(["success" => false, "message" => "No product found with this ID"]);
             }
@@ -48,16 +45,15 @@ try {
             $errorInfo = $stmt->errorInfo();
             echo json_encode([
                 "success" => false,
-                "message" => "Failed to delete product",
+                "message" => "Failed to mark product as deleted",
                 "error" => $errorInfo[2]
             ]);
         }
     } 
     // MYSQLI VERSION - Use this if your db.php creates a MySQLi connection
     else {
-        $sql = "DELETE FROM products WHERE id = ?";
+        $sql = "UPDATE products SET status = 'deleted' WHERE id = ?";
         $stmt = $conn->prepare($sql);
-        
         if (!$stmt) {
             echo json_encode([
                 "success" => false,
@@ -66,23 +62,20 @@ try {
             ]);
             exit;
         }
-
         $stmt->bind_param("i", $productId);
-        
         if ($stmt->execute()) {
             if ($stmt->affected_rows > 0) {
-                echo json_encode(["success" => true, "message" => "Product deleted successfully"]);
+                echo json_encode(["success" => true, "message" => "Product marked as deleted (soft delete)"]);
             } else {
                 echo json_encode(["success" => false, "message" => "No product found with this ID"]);
             }
         } else {
             echo json_encode([
                 "success" => false,
-                "message" => "Failed to delete product",
+                "message" => "Failed to mark product as deleted",
                 "error" => $stmt->error
             ]);
         }
-        
         $stmt->close();
     }
 

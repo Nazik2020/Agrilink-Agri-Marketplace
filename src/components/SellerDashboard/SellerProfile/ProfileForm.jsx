@@ -1,4 +1,52 @@
 import React, { useState, useEffect } from "react";
+import { CheckCircle, XCircle, X } from 'lucide-react';
+// Custom PopupMessage Component
+const PopupMessage = ({ message, type, onClose }) => {
+  if (!message) return null;
+  const isSuccess = type === 'success';
+  const bgColor = isSuccess ? 'bg-green-50' : 'bg-red-50';
+  const borderColor = isSuccess ? 'border-green-200' : 'border-red-200';
+  const textColor = isSuccess ? 'text-green-800' : 'text-red-800';
+  const iconColor = isSuccess ? 'text-green-600' : 'text-red-600';
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-green-50/50 z-50">
+      <div className={`${bgColor} ${borderColor} border rounded-xl p-6 max-w-md w-full mx-4 shadow-lg`}>
+        <div className="flex items-start space-x-3">
+          <div className={`${iconColor} flex-shrink-0 mt-0.5`}>
+            {isSuccess ? (
+              <CheckCircle className="h-6 w-6" />
+            ) : (
+              <XCircle className="h-6 w-6" />
+            )}
+          </div>
+          <div className="flex-1">
+            <p className={`${textColor} text-sm font-medium leading-relaxed`}>
+              {message}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className={`${textColor} hover:opacity-70 transition-opacity flex-shrink-0`}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={onClose}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              isSuccess 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-red-600 hover:bg-red-700 text-white'
+            }`}
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 import axios from "axios";
 import ProfileFormField from "./ProfileFormField";
 import CountryDropdown from "./CountryDropdown";
@@ -60,13 +108,24 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const [popupMessage, setPopupMessage] = useState(null);
+  const [popupType, setPopupType] = useState('success');
+  const showPopup = (message, type = 'success') => {
+    setPopupMessage(message);
+    setPopupType(type);
+  };
+  const closePopup = () => {
+    setPopupMessage(null);
+    setPopupType('success');
+  };
+
   const handleSubmit = async () => {
     if (validateForm()) {
       // Get seller_id from localStorage
       const sellerId = window.localStorage.getItem("seller_id") || profile.id;
 
       if (!sellerId) {
-        alert("Seller ID not found. Please login again.");
+        showPopup("Seller ID not found. Please login again.", 'error');
         return;
       }
 
@@ -90,7 +149,7 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
           }
         );
         if (res.data.success) {
-          alert("Profile Saved Successfully!");
+          showPopup("Profile Saved Successfully!", 'success');
           // Always update sessionStorage seller object for sidebar (even if logo not changed)
           try {
             const seller = JSON.parse(sessionStorage.getItem("seller")) || {};
@@ -110,11 +169,11 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
             window.dispatchEvent(new Event("storage"));
           } catch (e) {}
         } else {
-          alert("Profile update failed! " + (res.data.message || ""));
+          showPopup("Profile update failed! " + (res.data.message || ""), 'error');
           console.log(res.data);
         }
       } catch (err) {
-        alert("Error updating profile");
+        showPopup("Error updating profile", 'error');
         console.log(err.response?.data || err.message);
       }
     }
@@ -266,6 +325,11 @@ const ProfileForm = ({ profile, onChange, onUpload }) => {
             Save Profile
           </button>
         </div>
+        <PopupMessage
+          message={popupMessage}
+          type={popupType}
+          onClose={closePopup}
+        />
       </div>
     </div>
   );

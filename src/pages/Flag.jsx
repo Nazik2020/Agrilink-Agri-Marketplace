@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+/*import React, { useState } from 'react';
 
 const Flag = () => {
   // Mock data for demonstration
@@ -56,7 +56,7 @@ const Flag = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -72,7 +72,7 @@ const Flag = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
+        {/* Stats Cards 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
@@ -117,7 +117,7 @@ const Flag = () => {
           </div>
         </div>
 
-        {/* Flags List */}
+        {/* Flags List 
         <div className="bg-white shadow rounded-lg">
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">Flagged Content</h2>
@@ -136,7 +136,7 @@ const Flag = () => {
                 <div key={flag.flag_id} className="px-6 py-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      {/* Flag Header */}
+                      {/* Flag Header 
                       <div className="flex items-center space-x-3 mb-3">
                         <span className="text-lg">🚩</span>
                         <div>
@@ -151,7 +151,7 @@ const Flag = () => {
                         </div>
                       </div>
 
-                      {/* Flag Details */}
+                      {/* Flag Details 
                       <div className="bg-gray-50 rounded-lg p-4 mb-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
@@ -167,7 +167,7 @@ const Flag = () => {
                         </div>
                       </div>
 
-                      {/* Category and Reason */}
+                      {/* Category and Reason 
                       <div className="space-y-3">
                         <div>
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
@@ -183,7 +183,7 @@ const Flag = () => {
                       </div>
                     </div>
 
-                    {/* Actions */}
+                    {/* Actions 
                     <div className="flex flex-col space-y-2 ml-6">
                       <button
                         onClick={() => handleFlagAction(flag.flag_id, 'resolve')}
@@ -194,4 +194,4 @@ const Flag = () => {
                       </button>
                       <button
                         onClick={() => handleFlagAction(flag.flag_id, 'dismiss')}
-                        className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-
+                        className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-*/

@@ -7,6 +7,20 @@ require 'db.php';
 
 $data = json_decode(file_get_contents("php://input"), true);
 
+
+// Validate required fields
+if (
+  empty($data['userName']) ||
+  empty($data['businessName']) ||
+  empty($data['businessDescription']) ||
+  empty($data['country']) ||
+  empty($data['email']) ||
+  empty($data['password'])
+) {
+  echo json_encode(["success" => false, "message" => "All fields are required."]);
+  exit;
+}
+
 $username = $data['userName'];
 $business_name = $data['businessName'];
 $business_description = $data['businessDescription'];

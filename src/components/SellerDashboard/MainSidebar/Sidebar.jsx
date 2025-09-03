@@ -1,131 +1,195 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { User, Plus, BarChart3, Wallet, Bell, LogOut,Store } from "lucide-react";
+import { User, Plus, BarChart3, Wallet, Bell, LogOut, Store } from "lucide-react";
 import axios from "axios";
-import Image from "../../../assets/SellerDashboard/seller.jpg"; // Adjust the path as necessary
+import Image from "../../../assets/SellerDashboard/seller.jpg";
 import { API_CONFIG } from "../../../config/api";
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Initialize seller data from sessionStorage
   const [sellerData, setSellerData] = useState(() => {
     try {
       const seller = JSON.parse(sessionStorage.getItem("seller"));
-      return seller
-        ? { ...seller, business_logo: seller.business_logo || null }
-        : { username: "Seller", business_logo: null };
-    } catch {
-      return { username: "Seller", business_logo: null };
+      console.log("Initial seller data from sessionStorage:", seller); // Debug log
+      return seller || { 
+        business_name: "Seller", 
+        username: "Seller", 
+        business_logo: null,
+        email: "",
+        id: null
+      };
+    } catch (error) {
+      console.error("Error parsing seller data:", error);
+      return { 
+        business_name: "Seller", 
+        username: "Seller", 
+        business_logo: null,
+        email: "",
+        id: null
+      };
     }
   });
-  // Used to force image refresh
+
+  // Force image refresh version
   const [logoVersion, setLogoVersion] = useState(Date.now());
 
-  const buildLogoUrl = (raw) => {
-    if (!raw) return null;
-    if (/^https?:\/\//i.test(raw)) return raw;
+  // Build logo URL helper function
+  const buildLogoUrl = (logoPath) => {
+    if (!logoPath) return null;
+    
+    // If it's already a full URL, return as is
+    if (/^https?:\/\//i.test(logoPath)) {
+      return `${logoPath}&v=${logoVersion}`;
+    }
+    
+    // Build URL from relative path
     const base = API_CONFIG.BASE_URL.replace(/\/$/, "");
-    const rel = String(raw).replace(/^\/?/, "");
-    return `${base}/${rel}?v=${logoVersion}`;
+    const relativePath = String(logoPath).replace(/^\/?/, "");
+    return `${base}/${relativePath}?v=${logoVersion}`;
   };
 
-  // Listen for sessionStorage changes to update instantly (profile image, username, etc)
+  // Get default profile image
+  const getDefaultProfileImage = () => {
+    return "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop";
+  };
+
+  // Listen for sessionStorage changes and custom events
   useEffect(() => {
     const updateSellerData = () => {
       try {
         const seller = JSON.parse(sessionStorage.getItem("seller"));
+        console.log("Updating seller data:", seller); // Debug log
+        
         if (seller) {
-          setSellerData((prev) => ({
-            ...prev,
-            ...seller,
-            business_logo: seller.business_logo || null,
-          }));
-          setLogoVersion(Date.now()); // force image refresh
+          setSellerData(seller);
+          setLogoVersion(Date.now()); // Force image refresh
         }
-      } catch {}
+      } catch (error) {
+        console.error("Error updating seller data:", error);
+      }
     };
+
+    // Listen for storage events
     window.addEventListener("storage", updateSellerData);
-    return () => window.removeEventListener("storage", updateSellerData);
+    
+    // Listen for custom user state changes
+    const handleUserStateChange = (event) => {
+      if (event.detail && event.detail.action === "login" && event.detail.user) {
+        console.log("User state changed:", event.detail.user); // Debug log
+        if (event.detail.user.role === "seller") {
+          setSellerData(event.detail.user);
+          setLogoVersion(Date.now());
+        }
+      }
+    };
+    
+    window.addEventListener("userStateChanged", handleUserStateChange);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("storage", updateSellerData);
+      window.removeEventListener("userStateChanged", handleUserStateChange);
+    };
   }, []);
 
-  // On mount, always sync with sessionStorage (in case of direct page load)
+  // On component mount, sync with current sessionStorage
   useEffect(() => {
-    try {
-      const seller = JSON.parse(sessionStorage.getItem("seller"));
-      if (seller) {
-        setSellerData((prev) => ({
-          ...prev,
-          ...seller,
-          business_logo: seller.business_logo || null,
-        }));
+    const syncWithSessionStorage = () => {
+      try {
+        const seller = JSON.parse(sessionStorage.getItem("seller"));
+        console.log("Syncing with sessionStorage on mount:", seller); // Debug log
+        
+        if (seller) {
+          setSellerData(seller);
+          setLogoVersion(Date.now());
+        }
+      } catch (error) {
+        console.error("Error syncing with sessionStorage:", error);
       }
-    } catch {}
+    };
+
+    syncWithSessionStorage();
   }, []);
 
   const handleLogout = () => {
+    // Clear all session data
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("seller");
+    localStorage.removeItem("seller_id");
+    
+    // Dispatch logout event
+    window.dispatchEvent(
+      new CustomEvent("userStateChanged", {
+        detail: { action: "logout" },
+      })
+    );
+    
     console.log("User logged out");
     navigate("/marketplace");
   };
 
   const menuItems = [
     { icon: User, label: "Profile", path: "/seller-dashboard/profile" },
-    { icon: Store, label: "My Store", path: "/seller-dashboard/my-store" }, 
+    { icon: Store, label: "My Store", path: "/seller-dashboard/my-store" },
     { icon: Plus, label: "Add Product", path: "/seller-dashboard/add-product" },
-    {
-      icon: BarChart3,
-      label: "Analytics",
-      path: "/seller-dashboard/analytics",
-    },
+    { icon: BarChart3, label: "Analytics", path: "/seller-dashboard/analytics" },
     { icon: Wallet, label: "Wallet", path: "/seller-dashboard/wallet" },
-    {
-      icon: Bell,
-      label: "Notifications",
-      path: "/seller-dashboard/notifications",
-    },
+    { icon: Bell, label: "Notifications", path: "/seller-dashboard/notifications" },
   ];
+
+  // Get current seller logo URL
+  const getSellerLogoUrl = () => {
+    const logoPath = sellerData.business_logo || sellerData.profile_picture;
+    return logoPath ? buildLogoUrl(logoPath) : getDefaultProfileImage();
+  };
+
+  // Get seller display name
+  const getSellerDisplayName = () => {
+    return sellerData.business_name || sellerData.name || sellerData.username || "Seller";
+  };
+
+  console.log("Current seller data:", sellerData); // Debug log
+  console.log("Current logo URL:", getSellerLogoUrl()); // Debug log
 
   return (
     <div className="w-90 bg-white shadow-lg min-h-screen p-6">
       {/* Profile Section */}
       <div className="flex flex-col items-center mb-8 mt-5">
         <div className="relative mb-4">
-          {(() => {
-            let seller = sellerData;
-            try {
-              const s = JSON.parse(sessionStorage.getItem("seller"));
-              if (s) seller = s;
-            } catch {}
-            const logoSrc = seller.business_logo
-              ? buildLogoUrl(seller.business_logo)
-              : "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop";
-            return (
-              <img
-                key={logoVersion + (seller.business_logo || "default")}
-                src={logoSrc}
-                alt={seller.username || "Seller Profile"}
-                className="w-30 h-30 rounded-full object-cover border-4 border-green-100 shadow-lg"
-                onError={(e) => {
-                  e.currentTarget.src =
-                    "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop";
-                }}
-              />
-            );
-          })()}
+          <img
+            key={`${sellerData.id}-${logoVersion}`}
+            src={getSellerLogoUrl()}
+            alt={`${getSellerDisplayName()} Profile`}
+            className="w-30 h-30 rounded-full object-cover border-4 border-green-100 shadow-lg"
+            onError={(e) => {
+              console.log("Image failed to load, using default"); // Debug log
+              e.currentTarget.src = getDefaultProfileImage();
+            }}
+            onLoad={() => {
+              console.log("Image loaded successfully"); // Debug log
+            }}
+          />
           <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
         </div>
-        <h3 className="text-xl font-bold text-green-600 mb-1" key={logoVersion}>
-          {(() => {
-            let seller = sellerData;
-            try {
-              const s = JSON.parse(sessionStorage.getItem("seller"));
-              if (s) seller = s;
-            } catch {}
-            return seller.business_name || seller.username || "Seller";
-          })()}
+        
+        <h3 className="text-xl font-bold text-green-600 mb-1">
+          {getSellerDisplayName()}
         </h3>
+        
         <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
           Seller
         </span>
+        
+        {/* Debug info - remove in production */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-2 text-xs text-gray-400 text-center">
+            ID: {sellerData.id || 'N/A'}<br/>
+            Email: {sellerData.email || 'N/A'}
+          </div>
+        )}
       </div>
 
       {/* Navigation Menu */}

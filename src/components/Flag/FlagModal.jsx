@@ -8,6 +8,7 @@ const FlagModal = ({
   onClose,
   onSuccess,
   open,
+  showPopup,
 }) => {
   const [category, setCategory] = useState("");
   const [reason, setReason] = useState("");
@@ -58,11 +59,11 @@ const FlagModal = ({
       if (response.data.success) {
         onSuccess();
       } else {
-        alert(response.data.message || "Error submitting flag");
+        if (showPopup) showPopup(response.data.message || "Error submitting flag", 'error');
       }
     } catch (error) {
       console.error("Error submitting flag:", error);
-      alert("Network error. Please try again.");
+      if (showPopup) showPopup("Network error. Please try again.", 'error');
     } finally {
       setIsSubmitting(false);
     }

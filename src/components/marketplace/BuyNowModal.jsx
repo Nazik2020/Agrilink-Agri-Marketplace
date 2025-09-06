@@ -70,10 +70,10 @@ const BuyNowModal = ({
   const totalAmount = subtotal + shipping + tax;
 
   const allowedCards = {
-    "4242424242424242": "success",
-    "4000000000000002": "Your card was declined.",
-    "4000000000009995": "Insufficient funds.",
-    "4000000000009987": "Card expired.",
+    4242424242424242: "success",
+    4000000000000002: "Your card was declined.",
+    4000000000009995: "Insufficient funds.",
+    4000000000009987: "Card expired.",
   };
 
   // Load customer data when modal opens
@@ -140,14 +140,12 @@ const BuyNowModal = ({
       }
 
       const response = await axios.post(
-        "http://localhost:8080/get_customer_billing_data.php",
+        "http://localhost/Agrilink-Agri-Marketplace/backend/get_customer_billing_data.php",
         {
           customer_id: customerId,
           customer_email: customerEmail,
         }
       );
-
-      console.log("Backend response:", response.data);
 
       console.log("Backend response:", response.data);
 
@@ -281,9 +279,7 @@ const BuyNowModal = ({
 
       // Check if card number is in allowed list
       if (!allowedCards.hasOwnProperty(cardNumber)) {
-        setError(
-          "Invalid card number. Please enter a valid Stripe test card number."
-        );
+        setError("Invalid card number. Please enter a valid card number.");
         setLoading(false);
         return;
       }
@@ -383,6 +379,29 @@ const BuyNowModal = ({
 
         if (isCartCheckout) {
           clearCart(); // Clear cart on successful payment
+        }
+
+        // Tell backend to close customized visibility if this was a customized product
+        try {
+          if (!isCartCheckout && product && product.is_customized && product.id) {
+            await axios.post(
+              `${API_BASE}/backend/RequestCustomization/close_after_purchase.php`,
+              { customized_product_id: product.id }
+            );
+          }
+          if (isCartCheckout && Array.isArray(cartItems)) {
+            const customizedIds = cartItems
+              .filter((it) => it.isCustomized && it.id)
+              .map((it) => it.id);
+            for (const cid of customizedIds) {
+              await axios.post(
+                `${API_BASE}/backend/RequestCustomization/close_after_purchase.php`,
+                { customized_product_id: cid }
+              );
+            }
+          }
+        } catch (e) {
+          console.warn('close_after_purchase notify failed', e);
         }
 
         setStep(3); // Go to success page
@@ -596,12 +615,10 @@ const BuyNowModal = ({
                           <span className="text-sm text-gray-600">
                             Qty: {item.quantity}
                           </span>
-                          <div className="font-semibold text-gray-800">
-                            $
-                            {(parseFloat(item.price) * item.quantity).toFixed(
-                              2
-                            )}
-                          </div>
+                          <br />
+                          <span className="font-semibold text-green-700">
+                            ${parseFloat(item.price * item.quantity).toFixed(2)}
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -654,7 +671,7 @@ const BuyNowModal = ({
                         return "/placeholder.svg";
                       })()}
                       alt={product?.name}
-                      className="w-16 h-16 object-cover rounded-lg border border-green-200"
+                      className="w-24 h-24 object-cover rounded-lg border border-green-200"
                     />
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-800">
@@ -663,369 +680,283 @@ const BuyNowModal = ({
                       <p className="text-gray-600">
                         ${unitPrice.toFixed(2)} each
                       </p>
+                      <label className="block mt-2">
+                        Quantity:
+                        <input
+                          type="number"
+                          name="quantity"
+                          min="1"
+                          max={product?.stock || 100}
+                          value={formData.quantity}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              quantity: Math.max(1, Number(e.target.value)),
+                            }))
+                          }
+                          className="w-20 ml-2 border border-gray-300 rounded px-2 py-1"
+                        />
+                      </label>
                     </div>
                     <div className="text-right">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Qty
+                      <span className="font-semibold text-green-700">
+                        ${singleProductTotal.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Summary totals */}
+                <div className="mt-4 border-t border-green-200 pt-3 text-right space-y-1">
+                  <div>
+                    <span className="font-semibold">Subtotal:</span> $
+                    {subtotal.toFixed(2)}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Shipping:</span> $
+                    {shipping.toFixed(2)}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Tax:</span> $
+                    {tax.toFixed(2)}
+                  </div>
+                  <div className="font-bold text-lg">
+                    Total: ${totalAmount.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Billing Information Form */}
+              <div className="mt-6">
+                <h3 className="font-bold text-lg mb-3 text-gray-800">
+                  Billing Information
+                </h3>
+                {error && (
+                  <div className="bg-red-100 text-red-700 p-2 rounded mb-4">
+                    {error}
+                  </div>
+                )}
+                {customerDataLoading ? (
+                  <p>Loading your profile information...</p>
+                ) : (
+                  <form className="space-y-4">
+                    <div>
+                      <label className="block font-semibold text-gray-700">
+                        Name
+                        <User
+                          className="inline-block ml-2 text-green-600"
+                          size={16}
+                        />
                       </label>
                       <input
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={formData.quantity}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            quantity: parseInt(e.target.value) || 1,
-                          }))
-                        }
-                        className="w-16 p-2 border border-gray-300 rounded text-center focus:ring-2 focus:ring-green-500 focus:border-green-600"
+                        type="text"
+                        name="billing_name"
+                        value={formData.billing_name}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                        placeholder="John Doe"
+                        disabled={!!customerData}
                       />
                     </div>
-                  </div>
-                )}
-
-                {!isCartCheckout && (
-                  <div className="border-t border-green-200 mt-4 pt-4 flex justify-between items-center">
-                    <span className="font-bold text-lg text-gray-800">
-                      Total:
-                    </span>
-                    <span className="font-bold text-xl text-green-600">
-                      ${totalAmount.toFixed(2)}
-                    </span>
-                  </div>
+                    <div>
+                      <label className="block font-semibold text-gray-700">
+                        Email
+                        <Mail
+                          className="inline-block ml-2 text-green-600"
+                          size={16}
+                        />
+                      </label>
+                      <input
+                        type="email"
+                        name="billing_email"
+                        value={formData.billing_email}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                        placeholder="john@example.com"
+                        disabled={!!customerData}
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-semibold text-gray-700">
+                        Address
+                        <MapPin
+                          className="inline-block ml-2 text-green-600"
+                          size={16}
+                        />
+                      </label>
+                      <input
+                        type="text"
+                        name="billing_address"
+                        value={formData.billing_address}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                        placeholder="123 Main St"
+                        disabled={!!customerData}
+                      />
+                    </div>
+                    <div className="flex space-x-4">
+                      <div className="flex-1">
+                        <label className="block font-semibold text-gray-700">
+                          Postal Code
+                        </label>
+                        <input
+                          type="text"
+                          name="billing_postal_code"
+                          value={formData.billing_postal_code}
+                          onChange={handleInputChange}
+                          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                          placeholder="12345"
+                          disabled={!!customerData}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block font-semibold text-gray-700">
+                          Country
+                        </label>
+                        <input
+                          type="text"
+                          name="billing_country"
+                          value={formData.billing_country}
+                          onChange={handleInputChange}
+                          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                          placeholder="United States"
+                          disabled={!!customerData}
+                        />
+                      </div>
+                    </div>
+                  </form>
                 )}
               </div>
 
-              {/* Billing Information */}
-              <div>
-                <h3 className="font-bold text-lg mb-4 text-gray-800 flex items-center">
-                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
-                    <span className="text-green-600 text-sm">📍</span>
-                  </div>
-                  Billing Information
-                  <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded-full">
-                    Auto-filled from Profile
-                  </span>
-                </h3>
-
-                {customerDataLoading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">
-                      Loading your billing information...
-                    </p>
-                  </div>
-                ) : customerData ? (
-                  <div className="space-y-4">
-                    {/* Customer Information Display */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
-                      <div className="flex items-center space-x-3">
-                        <User className="w-5 h-5 text-blue-600" />
-                        <div className="flex-1">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Full Name
-                          </label>
-                          <input
-                            type="text"
-                            value={formData.billing_name}
-                            readOnly
-                            disabled
-                            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-3">
-                        <Mail className="w-5 h-5 text-blue-600" />
-                        <div className="flex-1">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Email Address
-                          </label>
-                          <input
-                            type="email"
-                            value={formData.billing_email}
-                            readOnly
-                            disabled
-                            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-3">
-                        <MapPin className="w-5 h-5 text-blue-600" />
-                        <div className="flex-1">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Street Address
-                          </label>
-                          <input
-                            type="text"
-                            value={formData.billing_address}
-                            readOnly
-                            disabled
-                            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="flex items-center space-x-3">
-                          <MapPin className="w-5 h-5 text-blue-600" />
-                          <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Postal Code
-                            </label>
-                            <input
-                              type="text"
-                              value={formData.billing_postal_code}
-                              readOnly
-                              disabled
-                              className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="flex items-center space-x-3">
-                          <Globe className="w-5 h-5 text-blue-600" />
-                          <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Country
-                            </label>
-                            <input
-                              type="text"
-                              value={formData.billing_country}
-                              readOnly
-                              disabled
-                              className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Information Message */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <p className="text-sm text-blue-700 flex items-center">
-                        <svg
-                          className="w-4 h-4 mr-2"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Billing information is automatically filled from your
-                        profile and cannot be changed here. To update your
-                        information, please visit your profile page.
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-red-700 text-sm">
-                      Unable to load your billing information. Please ensure
-                      your profile is complete.
-                    </p>
-                  </div>
-                )}
+              {/* Navigation Buttons */}
+              <div className="flex justify-end mt-6 space-x-3">
+                <button
+                  onClick={handleClose}
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => setStep(2)}
+                  className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                  disabled={loading || !!error || customerDataLoading}
+                >
+                  Next
+                </button>
               </div>
-
-              <button
-                onClick={() => setStep(2)}
-                className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
-              >
-                <span>Continue to Payment</span>
-                <span>→</span>
-              </button>
             </div>
           )}
 
           {step === 2 && (
             <div className="space-y-4">
-              {/* Security Notice */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-3">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <Lock className="text-green-600" size={16} />
-                </div>
-                <div>
-                  <p className="font-bold text-green-800">🔒 Secure Payment</p>
-                  <p className="text-green-600 text-sm">
-                    Your payment information is encrypted and secure
-                  </p>
-                </div>
-              </div>
-
-              {/* Payment Form */}
-              <div>
-                <h3 className="font-bold text-lg mb-4 text-gray-800 flex items-center">
-                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
-                    <span className="text-green-600 text-sm">💳</span>
-                  </div>
-                  Payment Information
-                </h3>
-                <div className="space-y-4">
-                  <input
-                    type="text"
-                    name="card_name"
-                    placeholder="Cardholder Name"
-                    value={formData.card_name}
-                    onChange={handleInputChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-600 transition-all duration-200"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Card Number"
-                    value={formData.card_number}
-                    onChange={handleCardNumberChange}
-                    maxLength="19"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-600 transition-all duration-200"
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <input
-                      type="text"
-                      placeholder="MM/YY"
-                      value={formData.card_expiry}
-                      onChange={handleExpiryChange}
-                      maxLength="5"
-                      className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-600 transition-all duration-200"
-                    />
-                    <input
-                      type="text"
-                      name="card_cvc"
-                      placeholder="CVC"
-                      value={formData.card_cvc}
-                      onChange={handleInputChange}
-                      maxLength="4"
-                      className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-600 transition-all duration-200"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Order Summary (compact) */}
-              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                {isCartCheckout ? (
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium text-gray-700">
-                        {cartItems.length} items
-                      </span>
-                      <span className="font-bold text-xl text-green-600">
-                        ${totalAmount.toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {cartItems.map((item) => (
-                        <div
-                          key={item.product_id}
-                          className="flex justify-between"
-                        >
-                          <span>
-                            {item.product_name} × {item.quantity}
-                          </span>
-                          <span>
-                            $
-                            {(parseFloat(item.price) * item.quantity).toFixed(
-                              2
-                            )}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-700">
-                      {product?.name} × {formData.quantity}
-                    </span>
-                    <span className="font-bold text-xl text-green-600">
-                      ${totalAmount.toFixed(2)}
-                    </span>
-                  </div>
-                )}
-              </div>
-
+              <h3 className="font-bold text-lg mb-3 text-gray-800">
+                Payment Information
+              </h3>
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600">
+                <div className="bg-red-100 text-red-700 p-2 rounded mb-4">
                   {error}
                 </div>
               )}
 
-              <div className="flex space-x-3">
+              <form className="space-y-4">
+                <div>
+                  <label className="block font-semibold text-gray-700">
+                    Card Number
+                  </label>
+                  <input
+                    type="text"
+                    name="card_number"
+                    value={formData.card_number}
+                    onChange={handleCardNumberChange}
+                    maxLength={19}
+                    placeholder="Enter card number"
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                  />
+                </div>
+                <div className="flex space-x-4">
+                  <div className="flex-1">
+                    <label className="block font-semibold text-gray-700">
+                      Expiry Date (MM/YY)
+                    </label>
+                    <input
+                      type="text"
+                      name="card_expiry"
+                      value={formData.card_expiry}
+                      onChange={handleExpiryChange}
+                      maxLength={5}
+                      placeholder="MM/YY"
+                      className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block font-semibold text-gray-700">
+                      CVC
+                    </label>
+                    <input
+                      type="text"
+                      name="card_cvc"
+                      value={formData.card_cvc}
+                      onChange={handleInputChange}
+                      maxLength={4}
+                      placeholder="CVC"
+                      className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block font-semibold text-gray-700">
+                    Name on Card
+                  </label>
+                  <input
+                    type="text"
+                    name="card_name"
+                    value={formData.card_name}
+                    onChange={handleInputChange}
+                    placeholder="Enter name on card"
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                  />
+                </div>
+              </form>
+
+              {/* Navigation Buttons */}
+              <div className="flex justify-between mt-6">
                 <button
                   onClick={() => setStep(1)}
-                  className="flex-1 bg-white text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-200 border border-gray-300 hover:border-gray-400"
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+                  disabled={loading}
                 >
-                  ← Back
+                  Back
                 </button>
                 <button
                   onClick={handlePayment}
+                  className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
                   disabled={loading}
-                  className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50"
                 >
-                  {loading ? (
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                      <span>Processing...</span>
-                    </div>
-                  ) : (
-                    `💳 Pay $${totalAmount.toFixed(2)}`
-                  )}
+                  {loading ? "Processing..." : "Pay Now"}
                 </button>
               </div>
             </div>
           )}
 
           {step === 3 && (
-            <div className="text-center space-y-4">
-              <div className="flex justify-center">
-                <CheckCircle className="text-green-600" size={48} />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">
-                  Payment Successful!
-                </h3>
-                <p className="text-gray-600">
-                  Your order has been confirmed and will be processed soon.
-                </p>
-              </div>
-              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                <p className="font-semibold text-gray-800 mb-2">
-                  Order Details:
-                </p>
-                {isCartCheckout ? (
-                  <div className="space-y-2">
-                    {cartItems.map((item) => (
-                      <p key={item.product_id} className="text-gray-700">
-                        {item.product_name} × {item.quantity}
-                      </p>
-                    ))}
-                    {/* Force display of actual cart total */}
-                    <p className="font-bold text-xl text-green-600">
-                      Total: ${Number(cartTotal || totalAmount).toFixed(2)}
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-gray-700 mb-1">
-                      {product?.name} × {formData.quantity}
-                    </p>
-                    {/* Ensure product price is correctly displayed */}
-                    <p className="font-bold text-xl text-green-600">
-                      Total: $
-                      {(Number(product?.price) * formData.quantity).toFixed(2)}
-                    </p>
-                  </>
-                )}
-              </div>
+            <div className="text-center p-6 space-y-4">
+              <CheckCircle
+                size={48}
+                className="mx-auto text-green-600 animate-bounce"
+              />
+              <h3 className="text-2xl font-bold text-green-700">
+                Payment Successful!
+              </h3>
+              <p className="text-gray-700">
+                Thank you for your order. You will receive a confirmation
+                message shortly.
+              </p>
               <button
                 onClick={handleClose}
-                className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                className="mt-4 px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
               >
-                Continue Shopping
+                Close
               </button>
             </div>
           )}
@@ -1034,13 +965,7 @@ const BuyNowModal = ({
     </div>
   );
 
-  // Use createPortal to render the modal at the root level
-  try {
-    return createPortal(modalContent, document.body);
-  } catch (error) {
-    console.error("BuyNowModal render error:", error);
-    return null;
-  }
+  return createPortal(modalContent, document.body);
 };
 
 export default BuyNowModal;

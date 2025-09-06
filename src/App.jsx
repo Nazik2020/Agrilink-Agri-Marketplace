@@ -28,6 +28,7 @@ import AddProductPage from "./components/SellerDashboard/AddProduct/AddProductPa
 import AnalyticsPage from "./components/SellerDashboard/Analytics/AnalyticsPage";
 import WalletPage from "./components/SellerDashboard/Wallet/WalletPage";
 import NotificationsPage from "./components/SellerDashboard/Notifications/NotificationsPage";
+import MyStorePage from "./components/SellerDashboard/Mystore/MyStorePage"; 
 
 // Customer Dashboard
 import CustomerDashboard from "./pages/CustomerDashboard";
@@ -35,6 +36,7 @@ import CustomerProfilePage from "./components/CustomerDashboard/CustomerProfile/
 import WishlistPage from "./components/CustomerDashboard/CustomerWishlist/WishlistPage";
 import OrderHistoryPage from "./components/CustomerDashboard/CustomerOrderHistory/OrderHistoryPage";
 import CustomerNotificationsPage from "./components/CustomerDashboard/CustomerNotifications/NotificationsPage";
+import CustomizedProducts from "./pages/CustomizedProducts";
 
 function App() {
   const location = useLocation();
@@ -69,6 +71,7 @@ function App() {
               <Route path="/SellerSignup" element={<SellerSignup />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/admin-dashboard" element={<AdminDashboard />} />
+              <Route path="/customized-products" element={<CustomizedProducts />} />
 
               {/* Seller Dashboard with nested routes */}
               <Route path="/seller-dashboard" element={<SellerDashboard />}>
@@ -78,6 +81,7 @@ function App() {
                 <Route path="analytics" element={<AnalyticsPage />} />
                 <Route path="wallet" element={<WalletPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="my-store" element={<MyStorePage />} /> 
               </Route>
 
               {/* Customer Dashboard Routes */}

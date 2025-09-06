@@ -115,6 +115,23 @@ try {
                 ];
                 if ($decreaseResult['success']) {
                     error_log("ORDER SUCCESS: Order $orderId created and stock updated");
+                    // If this product is a customized product, mark request as delivered and deactivate customized product
+                    try {
+                        $chk = $pdo->prepare("SELECT customization_request_id FROM customized_products WHERE id = ? LIMIT 1");
+                        $chk->execute([$product_id]);
+                        $row = $chk->fetch(PDO::FETCH_ASSOC);
+                        if ($row && isset($row['customization_request_id'])) {
+                            $reqId = (int)$row['customization_request_id'];
+                            // Update request status to delivered
+                            $up1 = $pdo->prepare("UPDATE customization_requests SET status = 'delivered' WHERE id = ?");
+                            $up1->execute([$reqId]);
+                            // Deactivate customized product so customer sees original again
+                            $up2 = $pdo->prepare("UPDATE customized_products SET status = 'inactive' WHERE id = ?");
+                            $up2->execute([$product_id]);
+                        }
+                    } catch (Exception $e) {
+                        error_log("POST-ORDER CUSTOMIZED UPDATE FAILED: " . $e->getMessage());
+                    }
                     $ordersCreated[] = $orderId;
                 } else {
                     // Rollback order if stock update fails (optional: delete order)

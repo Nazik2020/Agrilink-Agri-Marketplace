@@ -12,10 +12,10 @@ const ProductCardWithWishlist = ({ product }) => {
     <div className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
       <div className="relative">
         {/* Product Image */}
-        <img 
-          src={product.product_images ? JSON.parse(product.product_images)[0] : '/placeholder.jpg'} 
+        <img
+          src={product.product_images ? JSON.parse(product.product_images)[0] : '/placeholder.jpg'}
           alt={product.product_name}
-          className="w-full h-48 object-cover rounded-lg"
+          className="w-full h-32 object-cover rounded-t-lg"
         />
         
         {/* Wishlist Button - positioned in top-right corner */}

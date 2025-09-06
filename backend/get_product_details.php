@@ -36,11 +36,33 @@ try {
         exit;
     }
     
-    // Process product images from JSON
+    // Helper to clean and format image paths
+    function format_image_url($image_path) {
+        // Remove any existing domain or leading slashes
+        $image_path = preg_replace('#^https?://[^/]+/#', '', $image_path);
+        $image_path = ltrim($image_path, '/');
+        if (!str_starts_with($image_path, 'uploads/')) {
+            $image_path = 'uploads/' . $image_path;
+        }
+        return "http://localhost/Agrilink-Agri-Marketplace/backend/get_image.php?path=" . urlencode($image_path);
+    }
+
+    // Process product images from JSON and convert to full URLs
     if ($product['product_images']) {
-        $product['product_images'] = json_decode($product['product_images'], true);
+        $image_paths = json_decode($product['product_images'], true);
+        if (is_array($image_paths)) {
+            $product['product_images'] = array_map('format_image_url', $image_paths);
+        } else {
+            $product['product_images'] = [];
+        }
     } else {
         $product['product_images'] = [];
+    }
+
+    // Format seller logo
+    $seller_logo_url = null;
+    if ($product['seller_logo']) {
+        $seller_logo_url = format_image_url($product['seller_logo']);
     }
     
     // Calculate average rating for this product
@@ -48,7 +70,7 @@ try {
     $avgStmt->execute([$product_id]);
     $avg = $avgStmt->fetch(PDO::FETCH_ASSOC);
     $average_rating = $avg && $avg['avg_rating'] !== null ? round($avg['avg_rating'], 2) : null;
-
+    
     // Format the response
     $response = [
         "success" => true,
@@ -64,12 +86,13 @@ try {
             "average_rating" => $average_rating,
             "stock" => isset($product['stock']) ? intval($product['stock']) : 0,
             "seller" => [
+                "id" => $product['seller_id'],
                 "name" => $product['seller_name'],
                 "description" => $product['seller_description'],
                 "contact" => $product['seller_contact'],
                 "email" => $product['seller_email'],
                 "address" => $product['seller_address'],
-                "logo" => $product['seller_logo']
+                "logo" => $seller_logo_url
             ]
         ]
     ];

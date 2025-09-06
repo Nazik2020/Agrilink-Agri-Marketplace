@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FaShoppingCart, FaStar } from "react-icons/fa";
+import { FaShoppingCart } from "react-icons/fa";
 import axios from "axios";
 import { useCart } from "../cart/CartContext";
 import StarRating from "./StarRating";
@@ -17,7 +17,7 @@ const Products = ({ displayCount = 8 }) => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/get_products.php?category=Products"
+          "http://localhost/Agrilink-Agri-Marketplace/backend/get_products.php?category=Products"
         );
         if (response.data.success) {
           setProducts(response.data.products);
@@ -77,14 +77,20 @@ const Products = ({ displayCount = 8 }) => {
   // Error state
   if (error) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-600 text-lg">{error}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600"
-        >
-          Try Again
-        </button>
+      <div className="text-center py-16">
+        <div className="max-w-md mx-auto">
+          <div className="text-6xl mb-6">❌</div>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">
+            Error Loading Products
+          </h3>
+          <p className="text-gray-600 text-lg mb-2">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
@@ -116,12 +122,11 @@ const Products = ({ displayCount = 8 }) => {
           className="bg-white rounded-2xl shadow-xl border border-gray-200 hover:shadow-2xl transition flex flex-col h-[370px] w-full max-w-xs mx-auto relative"
         >
           {/* Special Offer Badge */}
-          {product.special_offer &&
-            product.special_offer !== "No Special Offer" && (
-              <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
-                {product.special_offer}
-              </span>
-            )}
+          {product.special_offer && product.special_offer !== "No Special Offer" && (
+            <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
+              {product.special_offer}
+            </span>
+          )}
 
           {/* Wishlist Button */}
           <div className="absolute top-3 right-3 z-10">
@@ -129,15 +134,15 @@ const Products = ({ displayCount = 8 }) => {
           </div>
 
           <Link to={`/product/${product.id}`} className="block">
-            <img
-              src={
-                product.product_images && product.product_images.length > 0
-                  ? `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
-                  : "https://via.placeholder.com/300x200?text=No+Image"
-              }
-              alt={product.product_name}
-              className="w-full h-40 object-cover rounded-t-2xl"
-            />
+              <img
+                src={
+                  product.product_images && product.product_images.length > 0
+                    ? product.product_images[0]
+                    : "https://via.placeholder.com/300x200?text=No+Image"
+                }
+                alt={product.product_name}
+                className="w-full h-40 object-cover rounded-t-2xl"
+              />
           </Link>
 
           <div className="flex flex-col flex-1 px-4 pt-3 pb-4">

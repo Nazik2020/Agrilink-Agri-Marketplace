@@ -14,17 +14,82 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FaStar, FaArrowLeft, FaShoppingCart } from "react-icons/fa";
 import Footer from "../components/common/Footer";
 import CustomizationModal from "../components/marketplace/CustomizationModal";
+import CustomizationRequestForm from "../components/RequestCustomization/CustomizationRequestForm";
 import { useCart } from "../components/cart/CartContext";
 import StarRating from "../components/marketplace/StarRating";
 import SimpleWishlistButton from "../components/wishlist/SimpleWishlistButton";
 import { FlagButton } from "../components/Flag";
 import axios from "axios";
 import { API_BASE, buildImageUrl } from "../config/api";
+// Custom Popup Component (copied from AddProductForm)
+import { CheckCircle, XCircle, X } from "lucide-react";
+
+const PopupMessage = ({ message, type, onClose }) => {
+  if (!message) return null;
+  const isSuccess = type === 'success';
+  const bgColor = isSuccess ? 'bg-green-50' : 'bg-red-50';
+  const borderColor = isSuccess ? 'border-green-200' : 'border-red-200';
+  const textColor = isSuccess ? 'text-green-800' : 'text-red-800';
+  const iconColor = isSuccess ? 'text-green-600' : 'text-red-600';
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-green-50/50 z-50">
+      <div className={`${bgColor} ${borderColor} border rounded-xl p-6 max-w-md w-full mx-4 shadow-lg`}>
+        <div className="flex items-start space-x-3">
+          <div className={`${iconColor} flex-shrink-0 mt-0.5`}>
+            {isSuccess ? (
+              <CheckCircle className="h-6 w-6" />
+            ) : (
+              <XCircle className="h-6 w-6" />
+            )}
+          </div>
+          <div className="flex-1">
+            <p className={`${textColor} text-sm font-medium leading-relaxed`}>
+              {message}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className={`${textColor} hover:opacity-70 transition-opacity flex-shrink-0`}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={onClose}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              isSuccess 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-red-600 hover:bg-red-700 text-white'
+            }`}
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Function to fetch product details from backend
-const fetchProductDetails = async (productId) => {
+const fetchProductDetails = async (productId, customerId = null) => {
   try {
-    const url = `${API_BASE}get_product_details.php?id=${productId}`;
+    // First, check if there's a customized version for this customer
+    if (customerId) {
+      try {
+        const customizedUrl = `${API_BASE}/backend/RequestCustomization/get_customized_product_by_original.php?originalProductId=${productId}&customerId=${customerId}`;
+        const customizedResponse = await axios.get(customizedUrl);
+        if (customizedResponse.data.success) {
+          console.log("Found customized version for customer:", customizedResponse.data.product);
+          return customizedResponse.data.product;
+        }
+      } catch (customizedError) {
+        console.log("No customized version found, fetching original product");
+      }
+    }
+    
+    // If no customized version found, fetch the original product
+    const url = `${API_BASE}/backend/get_product_details.php?id=${productId}`;
     const response = await axios.get(url);
     if (response.data.success) {
       return response.data.product;
@@ -58,6 +123,14 @@ export function useProductDetailsRefresh(productId, setProduct) {
 }
 
 function ProductDetails() {
+  // Popup state
+  const [popupMessage, setPopupMessage] = useState(null);
+  const [popupType, setPopupType] = useState('success');
+  const showPopup = (message, type = 'success') => {
+    setPopupMessage(message);
+    setPopupType(type);
+  };
+  const closePopup = () => setPopupMessage(null);
   const navigate = useNavigate();
   const { id } = useParams(); // Get product ID from URL
   const { addToCart } = useCart();
@@ -67,6 +140,7 @@ function ProductDetails() {
   const [mainImg, setMainImg] = useState("");
   // Removed quantity state; quantity is now managed in the cart only
   const [showCustomize, setShowCustomize] = useState(false);
+  const [showCustomizationRequest, setShowCustomizationRequest] = useState(false);
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
   const [reviews, setReviews] = useState([]);
@@ -89,7 +163,9 @@ function ProductDetails() {
       );
       // e.detail.productId can be used to filter, but here we always refresh
       if (id) {
-        fetchProductDetails(id)
+        const currentUser = getCurrentUser();
+        const customerId = currentUser && currentUser.role === "customer" ? currentUser.id : null;
+        fetchProductDetails(id, customerId)
           .then((data) => setProduct(data))
           .catch((error) =>
             console.error(
@@ -107,7 +183,11 @@ function ProductDetails() {
   useEffect(() => {
     if (id) {
       setLoading(true);
-      fetchProductDetails(id)
+      // Get current user to check for customized version
+      const currentUser = getCurrentUser();
+      const customerId = currentUser && currentUser.role === "customer" ? currentUser.id : null;
+      
+      fetchProductDetails(id, customerId)
         .then((data) => {
           setProduct(data);
           // Normalize images (array or comma string)
@@ -135,7 +215,7 @@ function ProductDetails() {
     }
   }, [id]);
 
-  // Add to Cart logic (unchanged)
+  // Add to Cart logic (updated to handle customized products)
   const handleAddToCart = () => {
     if (product && product.stock > 0) {
       addToCart({
@@ -146,6 +226,8 @@ function ProductDetails() {
         price: product.price,
         quantity: 1, // Always add 1, user can adjust in cart
         maxQuantity: 100, // Default max quantity since we don't have this field
+        isCustomized: product.is_customized || false,
+        originalProductId: product.original_product_id || product.id,
       });
     }
   };
@@ -160,7 +242,7 @@ function ProductDetails() {
   const fetchReviews = async (productId) => {
     try {
       const response = await axios.get(
-        `${API_BASE}review_and_ratings/get_reviews.php?product_id=${productId}`
+        `${API_BASE}/backend/review_and_ratings/get_reviews.php?product_id=${productId}`
       );
       if (response.data && response.data.reviews) {
         // No filtering: show all reviews, including multiple from same user
@@ -195,7 +277,7 @@ function ProductDetails() {
   // Submit review to backend
   const handleSubmitReview = async () => {
     if (!customerId) {
-      alert("You must be logged in as a customer to submit a review.");
+      showPopup("You must be logged in as a customer to submit a review.", 'error');
       return;
     }
     if (reviewText.trim()) {
@@ -215,13 +297,15 @@ function ProductDetails() {
           setReviewSuccess(true);
           fetchReviews(id); // Refresh reviews from backend
           // Refresh product details to update average rating
-          fetchProductDetails(id).then((data) => setProduct(data));
+          const currentUser = getCurrentUser();
+          const customerId = currentUser && currentUser.role === "customer" ? currentUser.id : null;
+          fetchProductDetails(id, customerId).then((data) => setProduct(data));
           setTimeout(() => setReviewSuccess(false), 3000);
         } else {
-          alert(response.data.message || "Failed to add review.");
+          showPopup(response.data.message || "Failed to add review.", 'error');
         }
       } catch (err) {
-        alert("Error submitting review.");
+        showPopup("Error submitting review.", 'error');
       }
     }
   };
@@ -239,9 +323,15 @@ function ProductDetails() {
     setEditReviewRating(5);
   };
 
+  // Handle customization request submission
+  const handleCustomizationRequest = (data) => {
+    showPopup("Customization request submitted successfully! The seller will review your request.", 'success');
+    setShowCustomizationRequest(false);
+  };
+
   const handleSaveEdit = async (reviewId) => {
     if (!editReviewText.trim()) {
-      alert("Review cannot be empty.");
+      showPopup("Review cannot be empty.", 'error');
       return;
     }
     try {
@@ -261,18 +351,20 @@ function ProductDetails() {
         setEditReviewRating(5);
         fetchReviews(id);
         // Refresh product details to update average rating
-        fetchProductDetails(id).then((data) => setProduct(data));
+        const currentUser = getCurrentUser();
+        const customerId = currentUser && currentUser.role === "customer" ? currentUser.id : null;
+        fetchProductDetails(id, customerId).then((data) => setProduct(data));
       } else {
-        alert(response.data.message || "Failed to update review.");
+        showPopup(response.data.message || "Failed to update review.", 'error');
       }
     } catch (err) {
-      alert("Error updating review.");
+      showPopup("Error updating review.", 'error');
     }
   };
 
   const handleDeleteReview = async (reviewId) => {
     if (!customerId) {
-      alert("You must be logged in as a customer to delete your review.");
+      showPopup("You must be logged in as a customer to delete your review.", 'error');
       return;
     }
     try {
@@ -286,12 +378,14 @@ function ProductDetails() {
       if (response.data.success) {
         fetchReviews(id); // Refresh reviews from backend
         // Refresh product details to update average rating
-        fetchProductDetails(id).then((data) => setProduct(data));
+        const currentUser = getCurrentUser();
+        const customerId = currentUser && currentUser.role === "customer" ? currentUser.id : null;
+        fetchProductDetails(id, customerId).then((data) => setProduct(data));
       } else {
-        alert(response.data.message || "Failed to delete review.");
+        showPopup(response.data.message || "Failed to delete review.", 'error');
       }
     } catch (err) {
-      alert("Error deleting review.");
+      showPopup("Error deleting review.", 'error');
     }
   };
 
@@ -354,7 +448,7 @@ function ProductDetails() {
   }
 
   return (
-    <div className="bg-[#fafbfc] min-h-screen relative">
+  <div className="bg-[#fafbfc] min-h-screen relative">
       <div className="max-w-7xl mx-auto px-4 py-2 mt-20">
         <div className="flex flex-col md:flex-row gap-10">
           {/* SECTION: Product Image and Thumbnails */}
@@ -423,7 +517,14 @@ function ProductDetails() {
             <div className="mb-2 text-green-700 font-semibold text-lg">
               {product.category}
             </div>
-            <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl font-bold">{product.name}</h1>
+              {product.is_customized && (
+                <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+                  Customized for You
+                </span>
+              )}
+            </div>
             {/* Average Rating */}
             <div className="mb-2">
               <StarRating rating={product.average_rating} />
@@ -454,6 +555,14 @@ function ProductDetails() {
               </span>
             </div>
             <p className="text-gray-700 mb-6 text-lg">{product.description}</p>
+            
+            {/* Customization Description */}
+            {product.is_customized && product.customization_description && (
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h3 className="font-semibold text-blue-800 mb-2">Customization Details:</h3>
+                <p className="text-blue-700">{product.customization_description}</p>
+              </div>
+            )}
 
             {/* SECTION: Product Details */}
             <div className="mb-6 space-y-3">
@@ -481,7 +590,9 @@ function ProductDetails() {
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-lg">Seller Information</h3>
-                <FlagButton sellerId={product.seller.id} size="sm" />
+                {product && product.seller && (
+                  <FlagButton sellerId={product.seller.id} productId={product.id} size="sm" />
+                )}
               </div>
               <div className="space-y-2">
                 <div>
@@ -540,17 +651,39 @@ function ProductDetails() {
             {/* Only show customization button for logged-in customers */}
             {currentUser && currentUser.role === "customer" ? (
               <button
-                className="w-full border border-gray-300 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 cursor-pointer"
-                onClick={() => setShowCustomize(true)}
+                disabled={product.stock === 0}
+                onClick={() => {
+                  if (product.stock > 0) {
+                    setShowCustomizationRequest(true);
+                  }
+                }}
+                aria-disabled={product.stock === 0}
+                title={product.stock === 0 ? "Out of Stock - Customization Unavailable" : "Request Customization"}
+                className={`w-full border border-gray-300 py-3 rounded-lg text-lg font-semibold transition
+                  ${
+                    product.stock === 0
+                      ? "opacity-50 cursor-not-allowed pointer-events-none bg-gray-100 text-gray-500"
+                      : "hover:bg-gray-100 cursor-pointer"
+                  }`}
               >
                 Request Customization
               </button>
             ) : (
               <button
-                className="w-full border border-gray-300 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 cursor-pointer"
-                onClick={() =>
-                  alert("Please login as a customer to request customization.")
-                }
+                disabled={product.stock === 0}
+                onClick={() => {
+                  if (product.stock > 0) {
+                    alert("Please login as a customer to request customization.");
+                  }
+                }}
+                aria-disabled={product.stock === 0}
+                title={product.stock === 0 ? "Out of Stock - Customization Unavailable" : "Please login as a customer to request customization"}
+                className={`w-full border border-gray-300 py-3 rounded-lg text-lg font-semibold transition
+                  ${
+                    product.stock === 0
+                      ? "opacity-50 cursor-not-allowed pointer-events-none bg-gray-100 text-gray-500"
+                      : "hover:bg-gray-100 cursor-pointer"
+                  }`}
               >
                 Request Customization
               </button>
@@ -567,11 +700,13 @@ function ProductDetails() {
                 <span className="text-sm text-gray-600">
                   Report this product:
                 </span>
-                <FlagButton
-                  sellerId={product.seller.id}
-                  productId={product.id}
-                  size="md"
-                />
+                {product && product.seller && (
+                  <FlagButton
+                    sellerId={product.seller.id}
+                    productId={product.id}
+                    size="md"
+                  />
+                )}
               </div>
             </div>
             <div className="bg-white rounded-xl shadow p-6 mb-6">
@@ -725,6 +860,28 @@ function ProductDetails() {
       <CustomizationModal
         open={showCustomize}
         onClose={() => setShowCustomize(false)}
+      />
+      
+      {/* Customization Request Form Modal */}
+      {showCustomizationRequest && (
+        <CustomizationRequestForm
+          product={{
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            category: product.category,
+            seller: { id: product.seller.id, name: product.seller.name }
+          }}
+          onClose={() => setShowCustomizationRequest(false)}
+          onSubmit={handleCustomizationRequest}
+        />
+      )}
+      
+      {/* Custom Popup Message */}
+      <PopupMessage
+        message={popupMessage}
+        type={popupType}
+        onClose={closePopup}
       />
     </div>
   );

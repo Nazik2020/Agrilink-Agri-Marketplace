@@ -17,7 +17,7 @@ const Fertilizer = ({ displayCount = 8 }) => {
       try {
         console.log("Fertilizer component: Fetching products...");
         const response = await axios.get(
-          "http://localhost:8080/get_products.php?category=Fertilizer"
+          "http://localhost/Agrilink-Agri-Marketplace/backend/get_products.php?category=Fertilizer"
         );
         console.log("Fertilizer component: Response received:", response.data);
 
@@ -159,8 +159,8 @@ const Fertilizer = ({ displayCount = 8 }) => {
               <img
                 src={
                   product.product_images && product.product_images.length > 0
-                    ? `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
-                    : "/placeholder.svg"
+                    ? product.product_images[0]
+                    : "https://via.placeholder.com/300x200?text=Image+Not+Found"
                 }
                 alt={product.product_name}
                 className="w-full h-40 object-cover rounded-t-2xl"

@@ -17,7 +17,7 @@ const Allproducts = ({ displayCount = 8 }) => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/get_products.php"
+          "http://localhost/Agrilink-Agri-Marketplace/backend/get_products.php"
         );
         if (response.data.success) {
           setProducts(response.data.products);
@@ -150,7 +150,7 @@ const Allproducts = ({ displayCount = 8 }) => {
             <img
               src={
                 product.product_images && product.product_images.length > 0
-                  ? `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
+                  ? product.product_images[0]
                   : "https://via.placeholder.com/300x200?text=No+Image"
               }
               alt={product.product_name}

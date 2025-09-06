@@ -28,24 +28,6 @@ if (!in_array($category, $valid_categories)) {
 }
 
 try {
-    // Check if customer already flagged this seller/product
-    $checkSql = "SELECT flag_id FROM flags WHERE flagged_by_customer_id = ? AND seller_id = ?";
-    $checkParams = [$flagged_by_customer_id, $seller_id];
-    
-    if ($product_id) {
-        $checkSql .= " AND product_id = ?";
-        $checkParams[] = $product_id;
-    } else {
-        $checkSql .= " AND product_id IS NULL";
-    }
-    
-    $checkStmt = $conn->prepare($checkSql);
-    $checkStmt->execute($checkParams);
-    
-    if ($checkStmt->fetch()) {
-        echo json_encode(["success" => false, "message" => "You have already flagged this content"]);
-        exit;
-    }
 
     // Insert the flag
     $stmt = $conn->prepare("INSERT INTO flags (flagged_by_customer_id, seller_id, product_id, category, reason) VALUES (?, ?, ?, ?, ?)");

@@ -17,7 +17,7 @@ const Seeds = ({ displayCount = 8 }) => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:8080/get_products.php?category=Seeds"
+          "http://localhost/Agrilink-Agri-Marketplace/backend/get_products.php?category=Seeds"
         );
         if (response.data.success) {
           setProducts(response.data.products);
@@ -105,9 +105,7 @@ const Seeds = ({ displayCount = 8 }) => {
           <p className="text-gray-600 text-lg mb-2">
             We currently don't have any seeds in stock.
           </p>
-          <p className="text-gray-500">
-            Check back later for new seed listings!
-          </p>
+          <p className="text-gray-500">Check back later for new seed listings!</p>
         </div>
       </div>
     );
@@ -137,7 +135,7 @@ const Seeds = ({ displayCount = 8 }) => {
             <img
               src={
                 product.product_images && product.product_images.length > 0
-                  ? `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
+                  ? product.product_images[0]
                   : "https://via.placeholder.com/300x200?text=No+Image"
               }
               alt={product.product_name}

@@ -1,11 +1,39 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { Upload, X, Check } from "lucide-react";
 
-const ProductImageUploader = ({ onUpload, imageFiles = [], maxImages = 5 }) => {
+const ProductImageUploader = forwardRef(({ onUpload, imageFiles = [], maxImages = 5 }, ref) => {
   const [uploadedFiles, setUploadedFiles] = useState(imageFiles);
   const [previewUrls, setPreviewUrls] = useState([]);
   const [error, setError] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
+
+  // Expose clearImages function to parent component via ref
+  useImperativeHandle(ref, () => ({
+    clearImages: () => {
+      clearAllImages();
+    }
+  }));
+
+  // Function to clear all images
+  const clearAllImages = () => {
+    // Revoke all existing URLs to prevent memory leaks
+    previewUrls.forEach(url => URL.revokeObjectURL(url));
+    
+    // Clear state
+    setUploadedFiles([]);
+    setPreviewUrls([]);
+    setError("");
+    setIsDragOver(false);
+    
+    // Reset file input
+    const fileInput = document.getElementById("productImageInput");
+    if (fileInput) {
+      fileInput.value = "";
+    }
+    
+    // Notify parent component
+    onUpload([]);
+  };
 
   // Validate image type and size
   const validateFiles = (files) => {
@@ -65,6 +93,11 @@ const ProductImageUploader = ({ onUpload, imageFiles = [], maxImages = 5 }) => {
   };
 
   const removeFile = (idx) => {
+    // Revoke the URL for the removed file
+    if (previewUrls[idx]) {
+      URL.revokeObjectURL(previewUrls[idx]);
+    }
+    
     const updatedFiles = uploadedFiles.filter((_, i) => i !== idx);
     setUploadedFiles(updatedFiles);
     setError("");
@@ -72,12 +105,24 @@ const ProductImageUploader = ({ onUpload, imageFiles = [], maxImages = 5 }) => {
   };
 
   useEffect(() => {
+    // Revoke old URLs
+    previewUrls.forEach(url => URL.revokeObjectURL(url));
+    
+    // Create new URLs
     const urls = uploadedFiles.map((file) => URL.createObjectURL(file));
     setPreviewUrls(urls);
+    
     return () => {
       urls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [uploadedFiles]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -182,6 +227,8 @@ const ProductImageUploader = ({ onUpload, imageFiles = [], maxImages = 5 }) => {
       </div>
     </div>
   );
-};
+});
+
+ProductImageUploader.displayName = 'ProductImageUploader';
 
 export default ProductImageUploader;

@@ -44,7 +44,7 @@ const SendAlerts = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">
+        <h2 className="text-2xl font-bold  text-green-700 mb-2">
           Send System Alerts
         </h2>
         <p className="text-muted-foreground">

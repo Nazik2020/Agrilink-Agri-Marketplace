@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { User, Heart, ShoppingBag, Bell, LogOut } from "lucide-react";
+import { User, Heart, ShoppingBag, Bell, LogOut, Package } from "lucide-react";
 import customer from "../../../assets/CustomerDashboard/3412435.jpg";
 import { API_CONFIG } from "../../../config/api";
 
@@ -48,7 +48,7 @@ const CustomerSidebar = () => {
 
   const handleLogout = () => {
     console.log("Customer logged out");
-    navigate("/login");
+    navigate("/marketplace");
   };
 
   const menuItems = [
@@ -58,6 +58,11 @@ const CustomerSidebar = () => {
       icon: ShoppingBag,
       label: "Order History",
       path: "/customer-dashboard/orders",
+    },
+    {
+      icon: Package,
+      label: "Customized Products",
+      path: "/customized-products",
     },
     {
       icon: Bell,

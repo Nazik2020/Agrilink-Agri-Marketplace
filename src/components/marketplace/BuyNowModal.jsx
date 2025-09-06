@@ -70,10 +70,10 @@ const BuyNowModal = ({
   const totalAmount = subtotal + shipping + tax;
 
   const allowedCards = {
-    "4242424242424242": "success",
-    "4000000000000002": "Your card was declined.",
-    "4000000000009995": "Insufficient funds.",
-    "4000000000009987": "Card expired.",
+    4242424242424242: "success",
+    4000000000000002: "Your card was declined.",
+    4000000000009995: "Insufficient funds.",
+    4000000000009987: "Card expired.",
   };
 
   // Load customer data when modal opens
@@ -279,9 +279,7 @@ const BuyNowModal = ({
 
       // Check if card number is in allowed list
       if (!allowedCards.hasOwnProperty(cardNumber)) {
-        setError(
-          "Invalid card number. Please enter a valid Stripe test card number."
-        );
+        setError("Invalid card number. Please enter a valid card number.");
         setLoading(false);
         return;
       }
@@ -381,6 +379,29 @@ const BuyNowModal = ({
 
         if (isCartCheckout) {
           clearCart(); // Clear cart on successful payment
+        }
+
+        // Tell backend to close customized visibility if this was a customized product
+        try {
+          if (!isCartCheckout && product && product.is_customized && product.id) {
+            await axios.post(
+              `${API_BASE}/backend/RequestCustomization/close_after_purchase.php`,
+              { customized_product_id: product.id }
+            );
+          }
+          if (isCartCheckout && Array.isArray(cartItems)) {
+            const customizedIds = cartItems
+              .filter((it) => it.isCustomized && it.id)
+              .map((it) => it.id);
+            for (const cid of customizedIds) {
+              await axios.post(
+                `${API_BASE}/backend/RequestCustomization/close_after_purchase.php`,
+                { customized_product_id: cid }
+              );
+            }
+          }
+        } catch (e) {
+          console.warn('close_after_purchase notify failed', e);
         }
 
         setStep(3); // Go to success page
@@ -656,7 +677,9 @@ const BuyNowModal = ({
                       <h4 className="font-semibold text-gray-800">
                         {product?.name}
                       </h4>
-                      <p className="text-gray-600">${unitPrice.toFixed(2)} each</p>
+                      <p className="text-gray-600">
+                        ${unitPrice.toFixed(2)} each
+                      </p>
                       <label className="block mt-2">
                         Quantity:
                         <input
@@ -686,15 +709,16 @@ const BuyNowModal = ({
                 {/* Summary totals */}
                 <div className="mt-4 border-t border-green-200 pt-3 text-right space-y-1">
                   <div>
-                    <span className="font-semibold">Subtotal:</span>{" "}
-                    ${subtotal.toFixed(2)}
+                    <span className="font-semibold">Subtotal:</span> $
+                    {subtotal.toFixed(2)}
                   </div>
                   <div>
                     <span className="font-semibold">Shipping:</span> $
                     {shipping.toFixed(2)}
                   </div>
                   <div>
-                    <span className="font-semibold">Tax:</span> ${tax.toFixed(2)}
+                    <span className="font-semibold">Tax:</span> $
+                    {tax.toFixed(2)}
                   </div>
                   <div className="font-bold text-lg">
                     Total: ${totalAmount.toFixed(2)}
@@ -719,7 +743,10 @@ const BuyNowModal = ({
                     <div>
                       <label className="block font-semibold text-gray-700">
                         Name
-                        <User className="inline-block ml-2 text-green-600" size={16} />
+                        <User
+                          className="inline-block ml-2 text-green-600"
+                          size={16}
+                        />
                       </label>
                       <input
                         type="text"
@@ -734,7 +761,10 @@ const BuyNowModal = ({
                     <div>
                       <label className="block font-semibold text-gray-700">
                         Email
-                        <Mail className="inline-block ml-2 text-green-600" size={16} />
+                        <Mail
+                          className="inline-block ml-2 text-green-600"
+                          size={16}
+                        />
                       </label>
                       <input
                         type="email"
@@ -749,7 +779,10 @@ const BuyNowModal = ({
                     <div>
                       <label className="block font-semibold text-gray-700">
                         Address
-                        <MapPin className="inline-block ml-2 text-green-600" size={16} />
+                        <MapPin
+                          className="inline-block ml-2 text-green-600"
+                          size={16}
+                        />
                       </label>
                       <input
                         type="text"
@@ -837,7 +870,7 @@ const BuyNowModal = ({
                     value={formData.card_number}
                     onChange={handleCardNumberChange}
                     maxLength={19}
-                    placeholder="4242 4242 4242 4242"
+                    placeholder="Enter card number"
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
                   />
                 </div>
@@ -852,7 +885,7 @@ const BuyNowModal = ({
                       value={formData.card_expiry}
                       onChange={handleExpiryChange}
                       maxLength={5}
-                      placeholder="12/34"
+                      placeholder="MM/YY"
                       className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
                     />
                   </div>
@@ -866,7 +899,7 @@ const BuyNowModal = ({
                       value={formData.card_cvc}
                       onChange={handleInputChange}
                       maxLength={4}
-                      placeholder="123"
+                      placeholder="CVC"
                       className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
                     />
                   </div>
@@ -880,7 +913,7 @@ const BuyNowModal = ({
                     name="card_name"
                     value={formData.card_name}
                     onChange={handleInputChange}
-                    placeholder="John Doe"
+                    placeholder="Enter name on card"
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
                   />
                 </div>
@@ -916,8 +949,8 @@ const BuyNowModal = ({
                 Payment Successful!
               </h3>
               <p className="text-gray-700">
-                Thank you for your order. You will receive a confirmation email
-                shortly.
+                Thank you for your order. You will receive a confirmation
+                message shortly.
               </p>
               <button
                 onClick={handleClose}

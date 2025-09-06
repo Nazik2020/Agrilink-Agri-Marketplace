@@ -51,17 +51,28 @@ class Cart {
             
             error_log("Cart ID: " . $cartId);
 
-            // If price not provided, get it from products table
+            // If price not provided, get it from products or customized_products table
             if ($price === null) {
-                $stmt = $this->conn->prepare("SELECT price FROM products WHERE id = ?");
+                // First check if it's a customized product
+                $stmt = $this->conn->prepare("SELECT price FROM customized_products WHERE id = ?");
                 $stmt->execute([$productId]);
-                $product = $stmt->fetch(PDO::FETCH_ASSOC);
-                if (!$product) {
-                    error_log("Product not found with ID: " . $productId);
-                    return ["success" => false, "message" => "Product not found"];
+                $customizedProduct = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if ($customizedProduct) {
+                    $price = $customizedProduct['price'];
+                    error_log("Retrieved price from customized_products table: " . $price);
+                } else {
+                    // Check regular products table
+                    $stmt = $this->conn->prepare("SELECT price FROM products WHERE id = ?");
+                    $stmt->execute([$productId]);
+                    $product = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if (!$product) {
+                        error_log("Product not found with ID: " . $productId);
+                        return ["success" => false, "message" => "Product not found"];
+                    }
+                    $price = $product['price'];
+                    error_log("Retrieved price from products table: " . $price);
                 }
-                $price = $product['price'];
-                error_log("Retrieved price from database: " . $price);
             }
 
             // Check if item already exists in cart
@@ -113,6 +124,7 @@ class Cart {
      */
     public function getCartItems($customerId) {
         try {
+            // Get regular products
             $stmt = $this->conn->prepare("
                 SELECT 
                     ci.cart_item_id,
@@ -125,7 +137,8 @@ class Cart {
                     p.product_images,
                     p.category,
                     p.seller_id as seller_id,
-                    s.business_name as seller_name
+                    s.business_name as seller_name,
+                    'regular' as product_type
                 FROM cart c
                 JOIN cart_items ci ON c.cart_id = ci.cart_id
                 JOIN products p ON ci.product_id = p.id
@@ -134,7 +147,41 @@ class Cart {
                 ORDER BY ci.added_at DESC
             ");
             $stmt->execute([$customerId]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $regularProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Get customized products
+            $stmt = $this->conn->prepare("
+                SELECT 
+                    ci.cart_item_id,
+                    ci.product_id,
+                    ci.quantity,
+                    ci.price,
+                    ci.added_at,
+                    cp.product_name,
+                    cp.product_description,
+                    cp.product_images,
+                    cp.category,
+                    cp.seller_id as seller_id,
+                    s.business_name as seller_name,
+                    'customized' as product_type,
+                    cp.customization_description
+                FROM cart c
+                JOIN cart_items ci ON c.cart_id = ci.cart_id
+                JOIN customized_products cp ON ci.product_id = cp.id
+                LEFT JOIN sellers s ON cp.seller_id = s.id
+                WHERE c.customer_id = ?
+                ORDER BY ci.added_at DESC
+            ");
+            $stmt->execute([$customerId]);
+            $customizedProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Combine and sort by added_at
+            $allProducts = array_merge($regularProducts, $customizedProducts);
+            usort($allProducts, function($a, $b) {
+                return strtotime($b['added_at']) - strtotime($a['added_at']);
+            });
+
+            return $allProducts;
 
         } catch (PDOException $e) {
             error_log("Error in getCartItems: " . $e->getMessage());

@@ -36,6 +36,7 @@ import CustomerProfilePage from "./components/CustomerDashboard/CustomerProfile/
 import WishlistPage from "./components/CustomerDashboard/CustomerWishlist/WishlistPage";
 import OrderHistoryPage from "./components/CustomerDashboard/CustomerOrderHistory/OrderHistoryPage";
 import CustomerNotificationsPage from "./components/CustomerDashboard/CustomerNotifications/NotificationsPage";
+import CustomizedProducts from "./pages/CustomizedProducts";
 
 function App() {
   const location = useLocation();
@@ -70,6 +71,7 @@ function App() {
               <Route path="/SellerSignup" element={<SellerSignup />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/admin-dashboard" element={<AdminDashboard />} />
+              <Route path="/customized-products" element={<CustomizedProducts />} />
 
               {/* Seller Dashboard with nested routes */}
               <Route path="/seller-dashboard" element={<SellerDashboard />}>

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, ChevronLeft, ChevronRight, CheckCircle, X } from "lucide-react";
 import ConfirmDeleteModal from "../MyStore/ConfirmDeleteModal";
-import EditProductModal from "../MyStore/EditProductModal"; 
+import EditProductModal from "../MyStore/EditProductModal";
+import CustomizationRequestsSection from "./CustomizationRequestsSection"; 
 
 // Helper to get first image from product_images field
 const getFirstImage = (images) => {
@@ -416,6 +417,8 @@ export default function MyStorePage() {
               </div>
             ))}
           </div>
+        ) : activeTab === "customization" ? (
+          <CustomizationRequestsSection sellerId={seller?.id} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
             {paginatedProducts.map((product) => (

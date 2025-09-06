@@ -208,7 +208,7 @@ const WithdrawModal = ({
               value={cardholderName}
               onChange={(e) => setCardholderName(e.target.value)}
               className="w-full border rounded-lg px-4 py-2 mb-2"
-              placeholder="Seller Name"
+              placeholder="Enter seller name"
             />
             <input
               type="text"

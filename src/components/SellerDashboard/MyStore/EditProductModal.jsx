@@ -79,8 +79,10 @@ const EditProductModal = ({ product, onClose, onUpdate }) => {
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showSpecialOfferDropdown, setShowSpecialOfferDropdown] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [popupMessage, setPopupMessage] = useState(null);
   const [popupType, setPopupType] = useState('success');
+  const [fullProductData, setFullProductData] = useState(null);
 
   const categoryDropdownRef = useRef();
   const specialOfferDropdownRef = useRef();
@@ -102,14 +104,58 @@ const EditProductModal = ({ product, onClose, onUpdate }) => {
 
   useEffect(() => {
     if (product) {
-      setFormData({
-        productName: product.product_name || '',
-        productDescription: product.product_description || '',
-        price: product.price || '',
-        stock: product.stock || '',
-        category: product.category || '',
-        specialOffer: product.special_offer || 'No Special Offer'
-      });
+      // Fetch full product details to get all fields
+      setIsLoadingDetails(true);
+      const fetchFullProductDetails = async () => {
+        try {
+          const response = await fetch(
+            `http://localhost/Agrilink-Agri-Marketplace/backend/get_product_details.php?id=${product.id}`
+          );
+          const data = await response.json();
+          
+          if (data.success && data.product) {
+            const fullProduct = data.product;
+            setFullProductData(fullProduct);
+            
+            console.log('Full product data loaded:', fullProduct);
+            
+            // Pre-populate form with complete product data
+            setFormData({
+              productName: fullProduct.name || '',
+              productDescription: fullProduct.description || '',
+              price: fullProduct.price || '',
+              stock: fullProduct.stock || '',
+              category: fullProduct.category || '',
+              specialOffer: fullProduct.special_offer || 'No Special Offer'
+            });
+          } else {
+            // Fallback to basic product data if full details fetch fails
+            setFormData({
+              productName: product.product_name || '',
+              productDescription: product.product_description || '',
+              price: product.price || '',
+              stock: product.stock || '',
+              category: product.category || '',
+              specialOffer: product.special_offer || 'No Special Offer'
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching full product details:', error);
+          // Fallback to basic product data
+          setFormData({
+            productName: product.product_name || '',
+            productDescription: product.product_description || '',
+            price: product.price || '',
+            stock: product.stock || '',
+            category: product.category || '',
+            specialOffer: product.special_offer || 'No Special Offer'
+          });
+        } finally {
+          setIsLoadingDetails(false);
+        }
+      };
+      
+      fetchFullProductDetails();
     }
   }, [product]);
 
@@ -243,11 +289,14 @@ const EditProductModal = ({ product, onClose, onUpdate }) => {
         <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
-            <h2 className="text-2xl font-bold text-green-600">Edit Product</h2>
+            <div>
+              <h2 className="text-2xl font-bold text-green-600">Edit Product</h2>
+              <p className="text-sm text-gray-600 mt-1">All fields are pre-populated with current product data</p>
+            </div>
             <button
               onClick={handleCancel}
               className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
-              disabled={isLoading}
+              disabled={isLoading || isLoadingDetails}
             >
               <X className="h-6 w-6" />
             </button>
@@ -255,6 +304,19 @@ const EditProductModal = ({ product, onClose, onUpdate }) => {
 
           {/* Form Content */}
           <div className="p-6 space-y-6">
+            {isLoadingDetails && (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                <span className="ml-3 text-gray-600">Loading product details...</span>
+              </div>
+            )}
+            {!isLoadingDetails && !fullProductData && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <p className="text-yellow-800 text-sm">
+                  ⚠️ Some product details may not be available. Please verify all information before saving.
+                </p>
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Left Column */}
               <div className="space-y-6">
@@ -268,7 +330,7 @@ const EditProductModal = ({ product, onClose, onUpdate }) => {
                     name="productName"
                     value={formData.productName}
                     onChange={handleInputChange}
-                    disabled={isLoading}
+                    disabled={isLoading || isLoadingDetails}
                     className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300 disabled:bg-gray-50 disabled:cursor-not-allowed"
                     placeholder="Enter product name"
                   />
@@ -289,7 +351,7 @@ const EditProductModal = ({ product, onClose, onUpdate }) => {
                     onChange={handleInputChange}
                     step="0.01"
                     min="0"
-                    disabled={isLoading}
+                    disabled={isLoading || isLoadingDetails}
                     className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300 disabled:bg-gray-50 disabled:cursor-not-allowed"
                     placeholder="Enter price"
                   />
@@ -309,7 +371,7 @@ const EditProductModal = ({ product, onClose, onUpdate }) => {
                     value={formData.stock}
                     onChange={handleInputChange}
                     min="0"
-                    disabled={isLoading}
+                    disabled={isLoading || isLoadingDetails}
                     className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300 disabled:bg-gray-50 disabled:cursor-not-allowed"
                     placeholder="Enter quantity"
                   />
@@ -329,11 +391,11 @@ const EditProductModal = ({ product, onClose, onUpdate }) => {
                   <div className="relative">
                     <button
                       type="button"
-                      onClick={() => !isLoading && setShowCategoryDropdown(!showCategoryDropdown)}
+                      onClick={() => !isLoading && !isLoadingDetails && setShowCategoryDropdown(!showCategoryDropdown)}
                       className={`w-full px-4 py-2 border rounded-xl text-left transition-all duration-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center justify-between disabled:bg-gray-50 disabled:cursor-not-allowed ${
                         errors.category ? "border-red-500" : "border-gray-300"
                       }`}
-                      disabled={isLoading}
+                      disabled={isLoading || isLoadingDetails}
                     >
                       <span className={formData.category ? "text-gray-900" : "text-gray-500"}>
                         {formData.category || "Select a Category"}
@@ -375,9 +437,9 @@ const EditProductModal = ({ product, onClose, onUpdate }) => {
                   <div className="relative">
                     <button
                       type="button"
-                      onClick={() => !isLoading && setShowSpecialOfferDropdown(!showSpecialOfferDropdown)}
+                      onClick={() => !isLoading && !isLoadingDetails && setShowSpecialOfferDropdown(!showSpecialOfferDropdown)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-xl text-left transition-all duration-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center justify-between disabled:bg-gray-50 disabled:cursor-not-allowed"
-                      disabled={isLoading}
+                      disabled={isLoading || isLoadingDetails}
                     >
                       <span className={formData.specialOffer ? "text-gray-900" : "text-gray-500"}>
                         {formData.specialOffer || "No Special Offer"}
@@ -420,7 +482,7 @@ const EditProductModal = ({ product, onClose, onUpdate }) => {
                 value={formData.productDescription}
                 onChange={handleInputChange}
                 rows="4"
-                disabled={isLoading}
+                disabled={isLoading || isLoadingDetails}
                 className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300 resize-none disabled:bg-gray-50 disabled:cursor-not-allowed"
                 placeholder="Describe your product in detail"
               />
@@ -434,14 +496,14 @@ const EditProductModal = ({ product, onClose, onUpdate }) => {
           <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
             <button
               onClick={handleCancel}
-              disabled={isLoading}
+              disabled={isLoading || isLoadingDetails}
               className="px-6 py-2 border border-gray-300 rounded-xl text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              disabled={isLoading}
+              disabled={isLoading || isLoadingDetails}
               className="px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-colors"
             >
               {isLoading ? (

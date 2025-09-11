@@ -125,7 +125,11 @@ const CustomerProfilePage = () => {
             postalCode: data.profile.postal_code || "",
           }));
           if (data.profile.profile_image) {
-            setProfileImage(data.profile.profile_image);
+            let imgUrl = data.profile.profile_image;
+            if (!/^https?:\/\//i.test(imgUrl)) {
+              imgUrl = `http://localhost/Agrilink-Agri-Marketplace/backend/get_image.php?path=${encodeURIComponent(imgUrl)}`;
+            }
+            setProfileImage(imgUrl);
           }
         }
         setLoading(false);

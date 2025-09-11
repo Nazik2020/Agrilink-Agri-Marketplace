@@ -86,12 +86,12 @@ class CustomizedProduct {
             $sql = "SELECT cp.*, s.business_name as seller_name
                     FROM customized_products cp
                     JOIN sellers s ON cp.seller_id = s.id
-                    WHERE cp.customer_id = ? AND cp.status = 'active'
+                    WHERE cp.customer_id = ? AND cp.status = 'active' AND cp.stock > 0
                     ORDER BY cp.created_at DESC";
-            
+
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([$customerId]);
-            
+
             return [
                 'success' => true,
                 'products' => $stmt->fetchAll(PDO::FETCH_ASSOC)

@@ -117,6 +117,11 @@ const CustomizationRequestForm = ({ product, onClose, onSubmit }) => {
           </button>
         </div>
 
+        {/* Important Notice */}
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-900 p-4 mb-4 rounded-md">
+          <strong>Important Notice:</strong> If your customization request is accepted, you must purchase the <u>full quantity</u> you requested. Please ensure you are ready to buy the total amount before submitting your request.
+        </div>
+
         {/* Form Content */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Product Info */}

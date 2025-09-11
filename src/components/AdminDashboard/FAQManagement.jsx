@@ -1,15 +1,110 @@
 import React, { useEffect, useState } from "react";
+import { Trash2 } from "lucide-react";
 // ...existing code...
 
 const FAQManagement = () => {
+  // Custom PopupMessage (from ContentModeration)
+  const PopupMessage = ({ message, type, onClose, onConfirm, showConfirm }) => {
+    if (!message) return null;
+    const isSuccess = type === 'success';
+    const bgColor = isSuccess ? 'bg-green-50' : 'bg-red-50';
+    const borderColor = isSuccess ? 'border-green-200' : 'border-red-200';
+    const textColor = isSuccess ? 'text-green-800' : 'text-red-800';
+    const iconColor = isSuccess ? 'text-green-600' : 'text-red-600';
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-green-50/50 z-50">
+        <div className={`${bgColor} ${borderColor} border rounded-xl p-6 max-w-md w-full mx-4 shadow-lg`}>
+          <div className="flex items-start space-x-3">
+            <div className={`${iconColor} flex-shrink-0 mt-0.5`}>
+              {isSuccess ? (
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4" /></svg>
+              ) : (
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+              )}
+            </div>
+            <div className="flex-1">
+              <p className={`${textColor} text-sm font-medium leading-relaxed`}>
+                {message}
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className={`${textColor} hover:opacity-70 transition-opacity flex-shrink-0`}
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+          <div className="mt-4 flex justify-end">
+            {showConfirm ? (
+              <button
+                onClick={onConfirm}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-red-600 hover:bg-red-700 text-white`}
+              >
+                OK
+              </button>
+            ) : (
+              <button
+                onClick={onClose}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  isSuccess 
+                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                    : 'bg-red-600 hover:bg-red-700 text-white'
+                }`}
+              >
+                OK
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const [popupMessage, setPopupMessage] = useState(null);
+  const [popupType, setPopupType] = useState('success');
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const showPopup = (message, type = 'success') => {
+    setPopupMessage(message);
+    setPopupType(type);
+  };
+  const closePopup = () => {
+    setPopupMessage(null);
+    setPopupType('success');
+    setConfirmDeleteId(null);
+  };
+
+  const confirmDelete = () => {
+    if (confirmDeleteId) {
+      fetch("http://localhost/Agrilink-Agri-Marketplace/backend/faq/delete_faq.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ faq_id: confirmDeleteId })
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setFaqs(prev => prev.filter(faq => faq.id !== confirmDeleteId));
+            showPopup("FAQ deleted successfully.", "success");
+          } else {
+            showPopup(data.message || "Failed to delete FAQ.", "error");
+          }
+        })
+        .catch(() => showPopup("Error deleting FAQ.", "error"));
+      setConfirmDeleteId(null);
+    }
+  };
+
+  const handleDeleteFaq = (faqId) => {
+    setConfirmDeleteId(faqId);
+    showPopup("Are you sure you want to delete this FAQ?", "error");
+  };
   const [faqs, setFaqs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editAnswers, setEditAnswers] = useState({});
   const [editCategories, setEditCategories] = useState({});
   const [categories, setCategories] = useState([]);
-  const [successMsg, setSuccessMsg] = useState("");
-  const [showPopup, setShowPopup] = useState(false);
+  // Removed duplicate showPopup state and successMsg
 
   useEffect(() => {
     fetchFaqs();
@@ -46,8 +141,6 @@ const FAQManagement = () => {
 
   // Save both answer and category together
   const handleSaveFaq = (faq) => {
-    setSuccessMsg("");
-    setError(null);
     // First update answer, then category
     fetch("http://localhost/Agrilink-Agri-Marketplace/backend/faq/answer_faq.php", {
       method: "POST",
@@ -66,23 +159,18 @@ const FAQManagement = () => {
             .then((res) => res.json())
             .then((catData) => {
               if (catData.success) {
-                setSuccessMsg("FAQ updated successfully.");
-                setShowPopup(true);
-                setTimeout(() => {
-                  setShowPopup(false);
-                  setSuccessMsg("");
-                }, 2000);
+                showPopup("FAQ updated successfully.", "success");
                 fetchFaqs();
               } else {
-                setError(catData.message || "Failed to update category.");
+                showPopup(catData.message || "Failed to update category.", "error");
               }
             })
-            .catch(() => setError("Error updating category."));
+            .catch(() => showPopup("Error updating category.", "error"));
         } else {
-          setError(data.message || "Failed to update answer.");
+          showPopup(data.message || "Failed to update answer.", "error");
         }
       })
-      .catch(() => setError("Error updating answer."));
+      .catch(() => showPopup("Error updating answer.", "error"));
   };
 
   return (
@@ -148,12 +236,19 @@ const FAQManagement = () => {
                     </div>
                   </td>
                   <td className="border p-2">
-                    <div className="flex justify-center items-center">
+                    <div className="flex justify-center items-center gap-2">
                       <button
                         className="bg-green-600 text-white px-4 py-1 rounded cursor-pointer hover:bg-green-700"
                         onClick={() => handleSaveFaq(faq)}
                       >
                         Save
+                      </button>
+                      <button
+                        className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 flex items-center"
+                        title="Delete FAQ"
+                        onClick={() => handleDeleteFaq(faq.id)}
+                      >
+                        <Trash2 className="w-6 h-6" />
                       </button>
                     </div>
                   </td>
@@ -162,24 +257,13 @@ const FAQManagement = () => {
           </tbody>
         </table>
       )}
-      {/* Popup message for success */}
-      {showPopup && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: '#22c55e',
-          color: 'white',
-          padding: '12px 32px',
-          borderRadius: '8px',
-          fontWeight: 'bold',
-          zIndex: 1000,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-        }}>
-          {successMsg}
-        </div>
-      )}
+      <PopupMessage
+        message={popupMessage}
+        type={popupType}
+        onClose={closePopup}
+        onConfirm={confirmDelete}
+        showConfirm={!!confirmDeleteId && popupType === 'error'}
+      />
     </div>
   );
 };

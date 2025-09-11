@@ -62,7 +62,7 @@ const CustomerSidebar = () => {
     {
       icon: Package,
       label: "Customized Products",
-      path: "/customized-products",
+      path: "/customer-dashboard/customized-products",
     },
     {
       icon: Bell,

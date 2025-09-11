@@ -72,23 +72,9 @@ const PopupMessage = ({ message, type, onClose }) => {
 };
 
 // Function to fetch product details from backend
-const fetchProductDetails = async (productId, customerId = null) => {
+const fetchProductDetails = async (productId) => {
   try {
-    // First, check if there's a customized version for this customer
-    if (customerId) {
-      try {
-        const customizedUrl = `${API_BASE}/backend/RequestCustomization/get_customized_product_by_original.php?originalProductId=${productId}&customerId=${customerId}`;
-        const customizedResponse = await axios.get(customizedUrl);
-        if (customizedResponse.data.success) {
-          console.log("Found customized version for customer:", customizedResponse.data.product);
-          return customizedResponse.data.product;
-        }
-      } catch (customizedError) {
-        console.log("No customized version found, fetching original product");
-      }
-    }
-    
-    // If no customized version found, fetch the original product
+    // Always fetch the original product for marketplace view
     const url = `${API_BASE}/backend/get_product_details.php?id=${productId}`;
     const response = await axios.get(url);
     if (response.data.success) {

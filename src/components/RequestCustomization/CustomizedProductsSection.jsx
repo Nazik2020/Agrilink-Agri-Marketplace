@@ -2,11 +2,113 @@ import React, { useState, useEffect } from 'react';
 import { Package, Star, ShoppingCart, Heart } from 'lucide-react';
 import { useCart } from '../cart/CartContext';
 
+// PopupMessage and ProductDetailsModal styled like ContentModeration
+function PopupMessage({ message, type, onClose }) {
+  if (!message) return null;
+  const isSuccess = type === 'success';
+  const bgColor = isSuccess ? 'bg-green-50' : 'bg-red-50';
+  const borderColor = isSuccess ? 'border-green-200' : 'border-red-200';
+  const textColor = isSuccess ? 'text-green-800' : 'text-red-800';
+  const iconColor = isSuccess ? 'text-green-600' : 'text-red-600';
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-green-50/50 z-50">
+      <div className={`${bgColor} ${borderColor} border rounded-xl p-6 max-w-md w-full mx-4 shadow-lg`}>
+        <div className="flex items-start space-x-3">
+          <div className={`${iconColor} flex-shrink-0 mt-0.5`}>
+            {/* Success or error icon */}
+            <span style={{fontWeight:'bold',fontSize:'1.5em'}}>{isSuccess ? '✔️' : '❌'}</span>
+          </div>
+          <div className="flex-1">
+            <p className={`${textColor} text-sm font-medium leading-relaxed`}>
+              {message}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className={`${textColor} hover:opacity-70 transition-opacity flex-shrink-0`}
+          >
+            ×
+          </button>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={onClose}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              isSuccess 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-red-600 hover:bg-red-700 text-white'
+            }`}
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProductDetailsModal({ open, product, onClose }) {
+  if (!open || !product) return null;
+  // Get image URL from product.product_images (same logic as product card)
+  let imgUrl = "https://via.placeholder.com/300x200?text=No+Image";
+  if (product.product_images) {
+    let arr = Array.isArray(product.product_images)
+      ? product.product_images
+      : String(product.product_images)
+          .replace(/[\[\]"]/g, "")
+          .split(",");
+    let img = arr[0] && arr[0].trim();
+    if (img) {
+      if (!/^https?:\/\//.test(img)) {
+        img = `http://localhost/Agrilink-Agri-Marketplace/backend/${img}`;
+      }
+      imgUrl = img;
+    }
+  }
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-green-50/50">
+  <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full p-10 relative">
+        <button
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          ×
+        </button>
+        <h2 className="text-xl font-bold mb-2">Product Details</h2>
+        <div className="flex flex-col items-center mb-4">
+          <div className="w-full flex justify-center items-center" style={{minHeight: '220px'}}>
+            <img
+              src={imgUrl}
+              alt="Product"
+              className="max-h-56 max-w-full object-contain rounded-lg mb-2 bg-gray-100"
+              style={{background: '#f3f4f6'}}
+              onError={e => {e.target.src = "https://via.placeholder.com/300x200?text=No+Image";}}
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <div><span className="font-semibold">Product Name:</span> {product.product_name}</div>
+          <div><span className="font-semibold">Description:</span> {product.product_description}</div>
+          <div><span className="font-semibold">Customization Details:</span> {product.customization_details || product.customization_description || 'N/A'}</div>
+          <div><span className="font-semibold">Price:</span> Rs. {product.price}</div>
+          <div><span className="font-semibold">Quantity:</span> {product.stock}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const CustomizedProductsSection = ({ customerId }) => {
   const [customizedProducts, setCustomizedProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const { addToCart } = useCart();
+  const [viewProduct, setViewProduct] = useState(null);
+  // Fix: define handleViewProduct inside component
+  const handleViewProduct = (product) => {
+    setViewProduct(product);
+  };
 
   useEffect(() => {
     if (customerId) {
@@ -85,29 +187,36 @@ const CustomizedProductsSection = ({ customerId }) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Your Customized Products</h2>
+        <h2 className="text-3xl font-bold text-green-600 mb-5">Your Customized Products</h2>
         <p className="text-sm text-gray-600">
           {customizedProducts.length} customized product{customizedProducts.length !== 1 ? 's' : ''}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-6">
         {customizedProducts.map((product) => (
-          <div key={product.id} className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+          <div key={product.id} className="bg-white rounded-xl border border-white-200 p-6 shadow-sm hover:shadow-md transition-shadow">
             {/* Product Image */}
-            <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center h-48 mb-4">
-              {product.product_images ? (
-                <img
-                  src={`http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images}`}
-                  alt={product.product_name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.src = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPgogIDx0ZXh0IHg9IjEwMCIgeT0iMTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSIgZmlsbD0iIzljYTNhZiIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE2Ij5ObyBJbWFnZTwvdGV4dD4KICA8L3N2Zz4K";
-                  }}
-                />
-              ) : (
-                <Package className="h-12 w-12 text-gray-400" />
-              )}
+            <div className="w-full flex justify-center items-center rounded-lg overflow-hidden h-56 mb-4 bg-white-100">
+              <img
+                src={(function() {
+                  if (!product.product_images) return "https://via.placeholder.com/300x200?text=No+Image";
+                  let arr = Array.isArray(product.product_images)
+                    ? product.product_images
+                    : String(product.product_images)
+                        .replace(/[\[\]"]/g, "")
+                        .split(",");
+                  let img = arr[0] && arr[0].trim();
+                  if (img && !/^https?:\/\//.test(img)) {
+                    img = `http://localhost/Agrilink-Agri-Marketplace/backend/${img}`;
+                  }
+                  return img || "https://via.placeholder.com/300x200?text=No+Image";
+                })()}
+                alt={product.product_name}
+                className="max-h-52 max-w-full object-contain rounded-lg bg-gray-100"
+                style={{background: '#f3f4f6'}}
+                onError={e => {e.target.src = "https://via.placeholder.com/300x200?text=No+Image";}}
+              />
             </div>
 
             {/* Product Info */}
@@ -151,51 +260,33 @@ const CustomizedProductsSection = ({ customerId }) => {
                 </span>
               </div>
 
-              {/* Customization Description */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <h4 className="text-sm font-medium text-blue-800 mb-1">
-                  Customization Details:
-                </h4>
-                <p className="text-sm text-blue-700">
-                  {product.customization_description}
-                </p>
-              </div>
-
-              {/* Product Description */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-800 mb-1">
-                  Product Description:
-                </h4>
-                <p className="text-sm text-gray-600 line-clamp-3">
-                  {product.product_description}
-                </p>
-              </div>
+              {/* Customization details and product description removed from grid. Only shown in popup. */}
 
               {/* Action Buttons */}
-              <div className="flex space-x-2 pt-2">
+              <div className="flex flex-col gap-2 mt-4">
                 <button
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition"
                   onClick={() => handleAddToCart(product)}
-                  disabled={product.stock === 0}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-                    product.stock > 0
-                      ? 'bg-green-600 text-white hover:bg-green-700'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
                 >
-                  <ShoppingCart className="h-4 w-4" />
                   Add to Cart
                 </button>
                 <button
-                  onClick={() => handleAddToWishlist(product)}
-                  className="flex items-center justify-center p-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
+                  onClick={() => handleViewProduct(product)}
                 >
-                  <Heart className="h-4 w-4" />
+                  View
                 </button>
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      <ProductDetailsModal
+        open={!!viewProduct}
+        product={viewProduct}
+        onClose={() => setViewProduct(null)}
+      />
     </div>
   );
 };

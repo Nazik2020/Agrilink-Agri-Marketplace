@@ -42,9 +42,9 @@ try {
         exit;
     }
 
-    // Insert withdrawal
-    $stmt = $conn->prepare("INSERT INTO withdrawals (seller_id, amount, withdrawal_date, status) VALUES (?, ?, NOW(), 'completed')");
-    $stmt->execute([$seller_id, $final_amount]);
+    // Insert withdrawal with commission
+    $stmt = $conn->prepare("INSERT INTO withdrawals (seller_id, amount, commission, withdrawal_date, status) VALUES (?, ?, ?, NOW(), 'completed')");
+    $stmt->execute([$seller_id, $final_amount, $commission]);
 
     echo json_encode(['success' => true, 'message' => 'Withdrawal completed', 'commission' => $commission, 'withdrawn_amount' => $final_amount]);
 } catch (Exception $e) {

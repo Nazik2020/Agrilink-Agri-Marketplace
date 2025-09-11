@@ -1,7 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Mail, Phone, MapPin } from 'lucide-react';
 
 const ContactInfo = () => {
+  const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
+  const [status, setStatus] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setStatus(null);
+    // Only send name, email, message to backend
+    try {
+      const res = await fetch('http://localhost/Agrilink-Agri-Marketplace/backend/contact/send_contact_email.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: form.name, email: form.email, message: form.message })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStatus({ type: 'success', message: 'Your message has been sent!' });
+        setForm({ name: '', email: '', phone: '', message: '' });
+      } else {
+        setStatus({ type: 'error', message: data.message || 'Failed to send message.' });
+      }
+    } catch (err) {
+      setStatus({ type: 'error', message: 'Network error. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="bg-white py-16 px-4 min-w-screen">
       <div className="max-w-7xl mx-auto">
@@ -67,7 +99,7 @@ const ContactInfo = () => {
               <h2 className="text-2xl font-bold text-gray-800">Contact Us</h2>
             </div>
 
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label htmlFor="name" className="block text-base font-medium text-gray-700 mb-2">
                   Your Name
@@ -76,8 +108,11 @@ const ContactInfo = () => {
                   type="text"
                   id="name"
                   name="name"
+                  value={form.name}
+                  onChange={handleChange}
                   placeholder="Enter your name"
                   className="w-full px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                  required
                 />
               </div>
 
@@ -89,8 +124,11 @@ const ContactInfo = () => {
                   type="email"
                   id="email"
                   name="email"
+                  value={form.email}
+                  onChange={handleChange}
                   placeholder="Enter your email"
                   className="w-full px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
+                  required
                 />
               </div>
 
@@ -102,6 +140,8 @@ const ContactInfo = () => {
                   type="tel"
                   id="phone"
                   name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
                   placeholder="Enter your phone number"
                   className="w-full px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
                 />
@@ -115,23 +155,30 @@ const ContactInfo = () => {
                   id="message"
                   name="message"
                   rows="5"
+                  value={form.message}
+                  onChange={handleChange}
                   placeholder="Enter your message"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 resize-none"
+                  required
                 ></textarea>
               </div>
 
               <button
                 type="submit"
                 className="w-full bg-green-600 text-white py-2 px-6 rounded-full font-semibold hover:bg-green-700  shadow-lg hover:shadow-xl"
+                disabled={loading}
               >
-                Submit
+                {loading ? 'Sending...' : 'Submit'}
               </button>
+              {status && (
+                <div className={`mt-4 text-center text-sm font-medium ${status.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>{status.message}</div>
+              )}
             </form>
           </div>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default ContactInfo;

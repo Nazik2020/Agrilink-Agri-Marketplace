@@ -37,6 +37,7 @@ import WishlistPage from "./components/CustomerDashboard/CustomerWishlist/Wishli
 import OrderHistoryPage from "./components/CustomerDashboard/CustomerOrderHistory/OrderHistoryPage";
 import CustomerNotificationsPage from "./components/CustomerDashboard/CustomerNotifications/NotificationsPage";
 import CustomizedProducts from "./pages/CustomizedProducts";
+import CustomizedProductsSection from "./components/RequestCustomization/CustomizedProductsSection";
 
 function App() {
   const location = useLocation();
@@ -90,6 +91,7 @@ function App() {
                 <Route path="profile" element={<CustomerProfilePage />} />
                 <Route path="wishlist" element={<WishlistPage />} />
                 <Route path="orders" element={<OrderHistoryPage />} />
+                <Route path="customized-products" element={<CustomizedProductsSection customerId={sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user')).id : null} />} />
                 <Route
                   path="notifications"
                   element={<CustomerNotificationsPage />}

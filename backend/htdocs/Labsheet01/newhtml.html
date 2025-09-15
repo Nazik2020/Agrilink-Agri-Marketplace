@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <form action="process.php" method="GET">
+            <h1> Enter your details </h1>
+             Name:<input type="text" name="name"><br>
+            Email:<input type="email" name="email"><!-- comment --><br>
+            Date of Birth:<input type="date" name="dob"><br>
+            Gender:
+            <input type="radio" name="gender" value="female">female
+            <input type="radio" name ="gender" value="male">male<br>
+           
+            Country:
+            <select name="country">
+                <option value="Australia">Australia</option><!-- comment -->
+                <option value="canada">Canada</option><!-- comment -->
+                <option value="america">America</option><!-- comment -->
+            </select><!-- comment --><br>
+            Prefered color:<br>
+            <input type="checkbox" name="colors[]" value="red">Red
+            <input type="checkbox" name="colors[]" value="pink">Pink
+            <input type="checkbox" name ="colors[]" value="green">green
+          
+            <input type="checkbox" name="color[]" value="red">Red
+            <br><br>
+         Comment:
+         <textarea name="comment" rows="4" cols="40"></textarea><br>
+         <input type="submit" value="submit"><br>
+            
+             
+        </form>
+    </body>
+</html>

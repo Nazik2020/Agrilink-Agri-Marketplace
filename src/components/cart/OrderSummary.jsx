@@ -3,7 +3,7 @@ import { Receipt, Truck, CreditCard } from 'lucide-react';
 import { useCart } from '../../components/cart/CartContext';
 
 const OrderSummary = () => {
-  const { totalItems, subtotal, shipping, tax, total } = useCart();
+  const { totalItems, subtotal, shipping, tax, total, handleBuyNow } = useCart();
 
   return (
     <div className="p-6 bg-gray-50 h-full">
@@ -42,7 +42,10 @@ const OrderSummary = () => {
           </div>
         </div>
 
-        <button className="w-full bg-green-500 hover:bg-green-700 text-white font-semibold py-2 px-1 rounded-lg flex items-center justify-center mb-4">
+        <button 
+          className="w-full bg-green-500 hover:bg-green-700 text-white font-semibold py-2 px-1 rounded-lg flex items-center justify-center mb-4"
+          onClick={handleBuyNow}
+        >
           <CreditCard className="w-5 h-5 mr-2" />
           Proceed to Checkout
         </button>

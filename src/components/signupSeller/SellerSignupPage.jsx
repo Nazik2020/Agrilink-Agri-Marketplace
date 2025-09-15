@@ -44,7 +44,8 @@ const SellerSignupPage = () => {
     if (!formData.businessDescription.trim()) {
       newErrors.businessDescription = "Business description is required";
     } else if (formData.businessDescription.length < 10) {
-      newErrors.businessDescription = "Business description must be at least 10 characters";
+      newErrors.businessDescription =
+        "Business description must be at least 10 characters";
     }
     if (!formData.country.trim()) {
       newErrors.country = "Country is required";
@@ -65,7 +66,8 @@ const SellerSignupPage = () => {
       newErrors.confirmPassword = "Passwords do not match";
     }
     if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = "You must agree to the Terms of Service and Privacy Policy";
+      newErrors.agreeToTerms =
+        "You must agree to the Terms of Service and Privacy Policy";
     }
 
     return newErrors;
@@ -84,14 +86,17 @@ const SellerSignupPage = () => {
     setIsLoading(true);
 
     try {
-      const res = await axios.post("http://localhost/backend/SignupSeller.php", {
-        userName: formData.userName,
-        businessName: formData.businessName,
-        businessDescription: formData.businessDescription,
-        country: formData.country,
-        email: formData.email,
-        password: formData.password,
-      });
+      const res = await axios.post(
+        "http://localhost/Agrilink-Agri-Marketplace/backend/SignupSeller.php",
+        {
+          userName: formData.userName,
+          businessName: formData.businessName,
+          businessDescription: formData.businessDescription,
+          country: formData.country,
+          email: formData.email,
+          password: formData.password,
+        }
+      );
 
       setMessage(res.data.message);
 

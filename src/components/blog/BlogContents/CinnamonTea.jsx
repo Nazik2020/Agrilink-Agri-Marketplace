@@ -3,7 +3,12 @@ import cinnaImg from "../../../assets/blog/cinnaImg.png";
 import cinnamonteaImg from "../../../assets/blog/cinnamonteaImg.png";
 
 const CinnamonTea = () => (
+<<<<<<< HEAD
   <div className="p-6">
+=======
+  <div className="w-full flex justify-center">
+    <div className="w-full max-w-screen-xl px-6">
+>>>>>>> 547fde602467591e1d73f6e6bb63cf4e2cfcc7e4
     <h1 className="text-3xl font-bold mb-4 text-green-800">Cinnamon Tea</h1>
     <h3 className="text-lg font-semibold mb-2 text-gray-900">What is Cinnamon?</h3>
     <p className="mb-4 text-gray-800">
@@ -96,6 +101,10 @@ Historically, cinnamon has been prized since ancient times. It was once consider
       Cinnamon tea is a delicious and health-boosting drink that fits perfectly into a wellness lifestyle. With its antioxidants, blood sugar balancing, and anti-inflammatory properties, this ancient spice proves that great things come in small (and spicy) packages.
     </p>
   </div>
+<<<<<<< HEAD
+=======
+  </div>
+>>>>>>> 547fde602467591e1d73f6e6bb63cf4e2cfcc7e4
 );
 
 export default CinnamonTea;

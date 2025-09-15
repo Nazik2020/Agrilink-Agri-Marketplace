@@ -1,0 +1,52 @@
+<?php
+class Student{
+    private $name;
+    
+    //constructer to a set the student's name
+    public function __construct($name){
+        $this->name = $name;
+}
+//method for study
+public function study(){
+    echo "{$this->name} is studying.<br>";
+}
+}
+//lecture class
+class Lecturer{
+    private $name;
+    
+ //constructer to the hold the name 
+    public function __construct($name){
+        $this->name=$name;
+    }
+    //method for teach
+    public function teach(){
+        echo "{$this->name} is teaching.<br>";
+    }
+            
+}
+class Course{
+    private $name;
+
+
+//create a construct for 
+public function __construct($name){
+    $this->name=$name;
+}
+
+//method
+public function start(){
+    echo "{$this->name} has started.<br>";
+}
+}
+//create istances 
+$senuja=new Student("senuja");
+$Dr.kasun=new Lecturer("Dr.Kasun");
+$Computer_science=new Course("computer science");
+
+//cal methos to display 
+$senuja->study();
+$Dr.Kasun->teach();
+$Computer_science->start();
+
+    ?>

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import cinamonImg from "../../assets/blog/cinamonImg.png";
 import teaImg from "../../assets/blog/teaImg.png";
 import cinnamonteaImg from "../../assets/blog/cinnamonteaImg.png";
@@ -41,6 +42,23 @@ import Spice from "./BlogContents/Spice";
 import Sustainability from "./BlogContents/Sustainability";
 import Tomato from "./BlogContents/Tomato";
 import { Subtitles } from "lucide-react";
+=======
+import cinamonImg from "../../assets/blog/cinamonImg.png"
+import teaImg from "../../assets/blog/teaImg.png"
+import fertilizer1 from "../../assets/blog/fertilizer1.png"
+import cofee1 from "../../assets/blog/cofee1.png"
+import spice1 from "../../assets/blog/spice1.png"
+import sus1 from "../../assets/blog/sus1.png"
+import tom1 from "../../assets/blog/tom1.png"
+
+import CinnamonTea from "./BlogContents/CinnamonTea"
+import OrganicTeaFarming from "./BlogContents/OrganicTeaFarming"
+import Farming from "./BlogContents/Farming"
+import FertilizerArticle from "./BlogContents/Fertilizer"
+import Spice from "./BlogContents/Spice"
+import Sustainability from "./BlogContents/Sustainability"
+import Tomato from "./BlogContents/Tomato"
+>>>>>>> 547fde602467591e1d73f6e6bb63cf4e2cfcc7e4
 
 const SamplePosts = [
   {
@@ -59,12 +77,16 @@ const SamplePosts = [
     title: "Organic Tea Farming Practices",
     excerpt:
       "This blog is your guide to the fascinating world of organic tea farming and its environmental, health, and flavor benefits...",
+<<<<<<< HEAD
     // content: <OrganicTeaFarming />,
     content: {
       title: "Organic Tea Farming Practices",
       Subtitles: ["str1", "str2", "str3"],
       content: "This blog is your guide to the fascinating world of organic tea farming and it"
     },
+=======
+    content: <OrganicTeaFarming />,
+>>>>>>> 547fde602467591e1d73f6e6bb63cf4e2cfcc7e4
     category: "Sustainability",
     date: "March 12, 2024",
     readTime: "7 min read",
@@ -113,7 +135,12 @@ const SamplePosts = [
     date: "March 4, 2024",
     readTime: "12 min read",
     image: sus1,
+<<<<<<< HEAD
   
+=======
+  },
+  {
+>>>>>>> 547fde602467591e1d73f6e6bb63cf4e2cfcc7e4
     id: "7",
     title: "The Power of Organic Tomatoes: A Healthier Harvest for You and the Planet",
     excerpt:
@@ -124,6 +151,12 @@ const SamplePosts = [
     readTime: "15 min read",
     image: tom1,
   },
+<<<<<<< HEAD
 ];
 
 export default SamplePosts;
+=======
+]
+
+export default SamplePosts
+>>>>>>> 547fde602467591e1d73f6e6bb63cf4e2cfcc7e4

@@ -1,0 +1,77 @@
+
+<?php
+
+// Product Class
+class Product {
+    private $name;
+    private $price;
+
+    public function __construct($name, $price) {
+        $this->name = $name;
+        $this->price = $price;
+    }
+
+    public function getDetails() {
+        return $this->name . " ($" . $this->price . ")";
+    }
+
+    public function getName() {
+        return $this->name;
+    }
+}
+
+// Customer Class
+class Customer {
+    private $name;
+    private $email;
+
+    public function __construct($name, $email) {
+        $this->name = $name;
+        $this->email = $email;
+    }
+
+    public function placeOrder($product) {
+        echo $this->name . " has placed an order for " . $product->getName() . ".<br>";
+    }
+
+    public function getName() {
+        return $this->name;
+    }
+
+    public function getEmail() {
+        return $this->email;
+    }
+
+    public function __destruct() {
+        echo "<br>Good bye, " . $this->name . "! Thank you for shopping with us.";
+    }
+}
+
+// Order Class
+class Order {
+    private $customer;
+    private $product;
+
+    public function __construct($customer, $product) {
+        $this->customer = $customer;
+        $this->product = $product;
+    }
+
+    public function getOrderDetails() {
+        echo "Order Details:<br>";
+        echo "Customer Name: " . $this->customer->getName() . "<br>";
+        echo "Customer Email: " . $this->customer->getEmail() . "<br>";
+        echo "Product: " . $this->product->getDetails() . "<br>";
+    }
+}
+
+// Creating instances
+$product = new Product("iPhone", 999);
+$customer = new Customer("Senuja", "senuja@live.me.com");
+$order = new Order($customer, $product);
+
+// Calling methods
+$customer->placeOrder($product);
+$order->getOrderDetails();
+
+?>

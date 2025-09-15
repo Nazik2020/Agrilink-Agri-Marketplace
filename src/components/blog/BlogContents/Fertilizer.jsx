@@ -1,6 +1,10 @@
 import React from "react";
 import fertilizer1 from "../../../assets/blog/fertilizer1.png";
+<<<<<<< HEAD
 import fertilizer2 from "../../../assets/blog/fertilizer2.png";
+=======
+import fertilizer2 from "../../../assets/blog/ferlotizer2.png";
+>>>>>>> 547fde602467591e1d73f6e6bb63cf4e2cfcc7e4
 import fertilizer3 from "../../../assets/blog/fertilizer3.png";
 import agri from "../../../assets/blog/agri.png";
 import spice1 from "../../../assets/blog/spice1.png";
@@ -39,8 +43,13 @@ const Fertilizer = () => (
       alt="Various types of fertilizers available online" 
       className="mb-4 rounded-lg" 
       style={{ height: "220px", width: "auto" }}
+<<<<<<< HEAD
       onError={(e) => console.error("Error loading fertilizer2:", e)}
       onLoad={() => console.log("fertilizer2 loaded successfully")}
+=======
+      onError={(e) => console.error("Error loading ferlotizer2:", e)}
+      onLoad={() => console.log("ferlotizer2 loaded successfully")}
+>>>>>>> 547fde602467591e1d73f6e6bb63cf4e2cfcc7e4
     />
     <ul className="list-disc list-inside mb-4 text-gray-800">
       <li>Urea – High in nitrogen; used early in crop growth</li>

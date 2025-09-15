@@ -12,6 +12,10 @@ $full_name = $data['fullName'] ?? '';
 $username = $data['userName'] ?? '';
 $email = $data['email'] ?? '';
 $password = $data['password'] ?? '';
+$address = $data['address'] ?? '';
+$contactno = $data['contactno'] ?? '';
+$country = $data['country'] ?? '';
+$postal_code = $data['postal_code'] ?? '';
 
 if (empty($full_name) || empty($username) || empty($email) || empty($password)) {
     echo json_encode(["success" => false, "message" => "Missing required fields"]);

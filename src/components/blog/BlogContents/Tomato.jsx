@@ -21,7 +21,19 @@ const Tomato = () => {
       <p className="mb-4 text-gray-800">
         Let's dig deep into the roots of organic tomato farming and discover why this humble fruit (yes, tomato is a fruit!) is leading a quiet revolution in sustainable agriculture.
       </p>
+<<<<<<< HEAD
       
+=======
+      <img 
+        src={tom1} 
+        alt="Organic tomato farm" 
+        className="mb-4 rounded-lg" 
+        style={{ height: "220px", width: "auto" }}
+        onError={(e) => console.error("Error loading tom1:", e)}
+        onLoad={() => console.log("tom1 loaded successfully")}
+      />
+
+>>>>>>> 547fde602467591e1d73f6e6bb63cf4e2cfcc7e4
       <h3 className="text-lg font-semibold mb-2 text-gray-900">🌱 What Makes a Tomato "Organic"?</h3>
       <p className="mb-4 text-gray-800">
         To be labeled <strong>organic</strong>, a tomato must be grown under specific conditions:

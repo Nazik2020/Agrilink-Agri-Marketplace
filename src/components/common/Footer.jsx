@@ -1,8 +1,29 @@
 // src/components/Footer.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import TermsAndConditions from "./TermsAndConditions";
+import PrivacyPolicy from "./PrivacyPolicy";
 
 const Footer = () => {
   const [isHovered, setIsHovered] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const navigate = useNavigate();
+
+  const handleTermsClick = (e) => {
+    e.preventDefault();
+    setShowTerms(true);
+  };
+
+  const handlePrivacyClick = (e) => {
+    e.preventDefault();
+    setShowPrivacy(true);
+  };
+
+  const handleContactClick = (e) => {
+    e.preventDefault();
+    navigate("/contact");
+  };
 
   return (
     <footer
@@ -167,15 +188,23 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto mt-6 border-t border-gray-700 pt-4 text-center text-sm text-gray-400">
         <p>
           © Agrilink 2024. All Rights Reserved |{" "}
-          <a href="#" className="text-gray-300 hover:text-green-600">
+          <a 
+            href="#" 
+            className="text-gray-300 hover:text-green-600 cursor-pointer"
+            onClick={handleTermsClick}
+          >
             Terms & Condition
           </a>{" "}
           |{" "}
-          <a href="#" className="text-gray-300 hover:text-green-600">
+          <a 
+            href="#" 
+            className="text-gray-300 hover:text-green-600 cursor-pointer"
+            onClick={handlePrivacyClick}
+          >
             Privacy Policy
           </a>{" "}
           |{" "}
-          <a href="#" className="text-gray-300 hover:text-green-600">
+          <a href="#" className="text-gray-300 hover:text-green-600" onClick={handleContactClick}>
             Contact Us
           </a>
         </p>
@@ -188,6 +217,10 @@ const Footer = () => {
           </a>
         </p>
       </div>
+
+      {/* Popup Components */}
+      <TermsAndConditions isOpen={showTerms} onClose={() => setShowTerms(false)} />
+      <PrivacyPolicy isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} />
     </footer>
   );
 };

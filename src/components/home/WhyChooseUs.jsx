@@ -1,12 +1,19 @@
+import { useNavigate } from "react-router-dom";
 import whyChooseUsImage from "../../assets/landing_page/whychoosus.jpg";
 
 const WhyChooseUs = () => {
+  const navigate = useNavigate();
+
+  const handleReadMore = () => {
+    navigate("/about");
+  };
+
   return (
     <section className="bg-white py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#14452F] mb-4">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#14452F] mb-4">
             Why Choose Us
           </h2>
           {/* <p className="text-xl text-green-600 font-medium">
@@ -26,17 +33,17 @@ const WhyChooseUs = () => {
           </div>
 
           {/* Right Text Section */}
-          <div className="w-full lg:w-1/2 space-y-6 font-['libertinus-mono-regular'] text-2xl">
-            <h2 className="text-5xl text-[#14452F] font-medium">
+          <div className="w-full lg:w-1/2 space-y-6 text-lg">
+            <h2 className="text-4xl text-[#14452F] font-medium">
               Farming with passion, the feeding purpose
             </h2>
-            <p className=" font-['libertinus-mono-regular'] text-2xl text-gray-500">
+            <p className="text-xl text-gray-500">
               AgriLink connects farmers with global buyers, making agriculture
               smarter and more accessible.
             </p>
 
             {/* Bullet Points */}
-            <div className="space-y-4">
+            <div className="space-y-4 text-lg">
               <div className="flex items-start">
                 <div className="bg-green-600 rounded-full w-6 h-6 flex items-center justify-center mt-1 mr-4 flex-shrink-0">
                   <svg
@@ -109,7 +116,10 @@ const WhyChooseUs = () => {
             </div>
 
             {/* Read More Button */}
-            <button className="mt-6 px-6 py-3 border-2 border-green-600 rounded-full text-green-600 font-medium hover:bg-green-600 hover:text-white transition">
+            <button
+              onClick={handleReadMore}
+              className="mt-6 px-5 py-2 border-2 border-green-600 rounded-full text-green-600 font-medium hover:bg-green-600 hover:text-white transition"
+            >
               Read More →
             </button>
           </div>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> form registration</title>
+    </head>
+    <body>
+        <form method="post" action=" ">
+            <label>Name:</label><!-- comment -->
+            <input type="text" name="name"><br><br> -->
+            <label> Email</label>
+            <input type="text" name="email"><br><br>
+            <label>Phone_no</label><!-- comment -->
+            <input type="text" name="phone"><br><br>
+            <input type="submit" name="sumit"><!-- comment -->
+        </form><!-- comment -->
+      <?php
+      //validate the email
+      if(empty($_POST['email'])){
+          $emailErr="emil is requied";
+          
+      }
+      //sanitize the email
+      elseif(!filter_var($_POST["email"],FILTER_VALIDATE_EMAIL)){
+          $emailErr="invalid email format";
+      }
+      else{
+          $email=htmlspeacialchars($_POST["email"]);
+      }
+      //sanitize the phone number 
+      
+      

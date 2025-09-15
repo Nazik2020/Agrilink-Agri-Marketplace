@@ -1,0 +1,107 @@
+
+<?php
+// Initialize attendee array (simulate database in session)
+session_start();
+if (!isset($_SESSION['attendees'])) {
+    $_SESSION['attendees'] = [];
+}
+
+// Handle form submission
+$name = $email = $contact = "";
+$nameErr = $emailErr = $contactErr = "";
+$successMsg = "";
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $valid = true;
+
+    // Validate name
+    if (empty($_POST["name"])) {
+        $nameErr = "Name is required";
+        $valid = false;
+    } else {
+        $name = htmlspecialchars($_POST["name"]);
+    }
+
+    // Validate email
+    if (empty($_POST["email"])) {
+        $emailErr = "Email is required";
+        $valid = false;
+    } elseif (!filter_var($_POST["email"], FILTER_VALIDATE_EMAIL)) {
+        $emailErr = "Invalid email format";
+        $valid = false;
+    } else {
+        $email = htmlspecialchars($_POST["email"]);
+    }
+
+    // Validate contact number
+    if (empty($_POST["contact"])) {
+        $contactErr = "Contact number is required";
+        $valid = false;
+    } else {
+        $contact = htmlspecialchars($_POST["contact"]);
+    }
+
+    // If all valid, store in session array
+    if ($valid) {
+        $attendee = [
+            "name" => $name,
+            "email" => $email,
+            "contact" => $contact
+        ];
+        $_SESSION['attendees'][] = $attendee;
+        $successMsg = "Registration successful!";
+        
+        // Clear inputs after submission
+        $name = $email = $contact = "";
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Registration</title>
+    <style>
+        .error { color: red; }
+        .success { color: green; }
+        body { font-family: Arial; margin: 30px; }
+    </style>
+</head>
+<body>
+
+<h2>Conference Registration Form</h2>
+<form method="POST" action="">
+    Name: <input type="text" name="name" value="<?= $name ?>"> 
+    <span class="error"><?= $nameErr ?></span><br><br>
+
+    Email: <input type="text" name="email" value="<?= $email ?>"> 
+    <span class="error"><?= $emailErr ?></span><br><br>
+
+    Contact Number: <input type="text" name="contact" value="<?= $contact ?>"> 
+    <span class="error"><?= $contactErr ?></span><br><br>
+
+    <input type="submit" value="Register">
+</form>
+
+<?php if ($successMsg): ?>
+    <p class="success"><?= $successMsg ?></p>
+<?php endif; ?>
+
+<hr>
+<h3>Registered Attendees</h3>
+<?php if (!empty($_SESSION['attendees'])): ?>
+    <ul>
+        <?php foreach ($_SESSION['attendees'] as $attendee): ?>
+            <li>
+                <strong><?= htmlspecialchars($attendee['name']) ?></strong><br>
+                Email: <?= htmlspecialchars($attendee['email']) ?><br>
+                Contact: <?= htmlspecialchars($attendee['contact']) ?>
+            </li><br>
+        <?php endforeach; ?>
+    </ul>
+<?php else: ?>
+    <p>No attendees registered yet.</p>
+<?php endif; ?>
+
+</body>
+</html>

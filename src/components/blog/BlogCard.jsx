@@ -9,6 +9,9 @@ const BlogCard = ({ post, isReversed = false }) => {
   console.log("Post image src (if string):", typeof post.image === 'string' ? post.image : 'Not a string');
   console.log("=== END BLOG CARD DEBUG ===");
   
+import { Link } from "react-router-dom"
+
+const BlogCard = ({ post, isReversed = false }) => {
   return (
     <div className="mb-8">
       <div
@@ -36,6 +39,26 @@ const BlogCard = ({ post, isReversed = false }) => {
             <div className="w-full h-44 bg-gray-200 flex items-center justify-center text-gray-500">
               No Image Available
             </div>
+        } group shadow-lg hover:shadow-xl`}
+      >
+        {/* Image Section */}
+<div
+  className="relative w-full md:w-96 flex-shrink-0 overflow-hidden"
+  style={{ minHeight: 180 }}
+>
+  {post.image ? (
+    <img
+      src={post.image}
+      alt={post.title}
+      className="w-full h-full object-cover object-center"
+      onError={(e) => {
+        e.target.style.display = "none"
+      }}
+    />
+  ) : (
+    <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">
+      No Image Available
+    </div>
           )}
 
           {/* Category Badge */}
@@ -47,6 +70,7 @@ const BlogCard = ({ post, isReversed = false }) => {
 
           {/* Overlay */}
           {/* <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300"></div> */}
+          
         </div>
 
         {/* Content Section */}
@@ -72,6 +96,22 @@ const BlogCard = ({ post, isReversed = false }) => {
           <Link to={`/blog/${post.id}`}>
             <button className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 ease-in-out w-fit hover:shadow-xl hover:-translate-y-1 transform group-hover:scale-105">
               Read More
+          {/* Make title clickable too */}
+          <Link to={`/blog/${post.id}`} className="block">
+            <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-green-700 transition-colors duration-300 leading-tight cursor-pointer">
+              {post.title}
+            </h3>
+          </Link>
+
+          <p className="text-gray-600 mb-4 line-clamp-3 leading-relaxed">{post.excerpt}</p>
+
+          {/* Read More Button */}
+          <Link to={`/blog/${post.id}`} className="inline-block">
+            <button className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 ease-in-out w-fit hover:shadow-xl hover:-translate-y-1 transform group-hover:scale-105 flex items-center space-x-2">
+              <span>Read More</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </button>
           </Link>
         </div>
@@ -81,3 +121,7 @@ const BlogCard = ({ post, isReversed = false }) => {
 };
 
 export default BlogCard;
+  )
+}
+
+export default BlogCard

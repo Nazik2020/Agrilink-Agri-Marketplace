@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Survey Form</title>
+</head>
+<body>
+    <h2>User Survey</h2>
+    <form action="submit_survey.php" method="POST">
+        <label>Name: *</label><br>
+        <input type="text" name="name" required><br><br>
+
+        <label>Email: *</label><br>
+        <input type="email" name="email" required><br><br>
+
+        <label>Gender: *</label><br>
+        <input type="radio" name="gender" value="Male" required> Male
+        <input type="radio" name="gender" value="Female"> Female<br><br>
+
+        <label>Languages Known:</label><br>
+        <input type="checkbox" name="languages[]" value="English"> English
+        <input type="checkbox" name="languages[]" value="French"> French
+        <input type="checkbox" name="languages[]" value="Spanish"> Spanish<br><br>
+
+        <label>Country: *</label><br>
+        <select name="country" required>
+            <option value="">Select Country</option>
+            <option value="USA">USA</option>
+            <option value="India">India</option>
+            <option value="Sri Lanka">Sri Lanka</option>
+        </select><br><br>
+
+        <input type="submit" value="Submit Survey">
+    </form>
+</body>
+</html>

@@ -44,17 +44,11 @@ export default function RightSection() {
     setIsLoading(true);
     try {
       const res = await axios.post(
-        "http://localhost/backend/forgot_password.php",
+        "http://localhost/Agrilink-Agri-Marketplace/backend/forgot_password.php",
         formData
       );
       if (res.data.success) {
         setMessage(res.data.message);
-        // For development, show the reset link
-        if (res.data.resetLink) {
-          setTimeout(() => {
-            setMessage(`${res.data.message}\n\nFor testing: ${res.data.resetLink}`);
-          }, 1000);
-        }
       } else {
         setMessage(res.data.message);
       }

@@ -1,5 +1,6 @@
 // Import images using Vite's new URL syntax
 import cinamonImg from "../../assets/blog/cinamonImg.png";
+import cinamonImg from "../../assets/blog/cinnamonImg.png";
 import teaImg from "../../assets/blog/teaImg.png";
 import cinnamonteaImg from "../../assets/blog/cinnamonteaImg.png";
 import cinnaImg from "../../assets/blog/cinnaImg.png";

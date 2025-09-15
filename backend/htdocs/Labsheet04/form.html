@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Event Registration</title>
+</head>
+<body>
+
+<h2>Event Registration Form</h2>
+
+
+
+<form method="POST" action="register.php">
+    Name: <br>
+    <input type="text" name="name" value="<?= htmlspecialchars($name) ?>"><br><br>
+
+    Email: <br>
+    <input type="text" name="email" value="<?= htmlspecialchars($email) ?>"><br><br>
+
+    Contact Number: <br>
+    <input type="text" name="contact" value="<?= htmlspecialchars($contact) ?>"><br><br>
+
+    <input type="submit" value="Register">
+</form>
+
+
+</body>
+</html>

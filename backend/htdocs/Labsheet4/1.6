@@ -1,0 +1,93 @@
+
+<?php
+// Product class
+class Product {
+    private $name;
+    private $price;
+
+    // Constructor
+    public function __construct($name, $price) {
+        $this->name = $name;
+        $this->price = $price;
+    }
+
+    // Method to return product details
+    public function getDetails() {
+        return $this->name . " ($" . $this->price . ")";
+    }
+
+    // Getter for name (optional, for external use)
+    public function getName() {
+        return $this->name;
+    }
+}
+
+// Customer class
+class Customer {
+    private $name;
+    private $email;
+
+    // Constructor
+    public function __construct($name, $email) {
+        $this->name = $name;
+        $this->email = $email;
+    }
+
+    // Method to place an order
+    public function placeOrder($product) {
+        echo "{$this->name} has placed an order for {$product->getName()}." . PHP_EOL;
+    }
+
+    // Getters (used by Order class)
+    public function getName() {
+        return $this->name;
+    }
+
+    public function getEmail() {
+        return $this->email;
+    }
+
+    // Destructor
+    public function __destruct() {
+        echo "Good bye, {$this->name}! Thank you for shopping with us." . PHP_EOL;
+    }
+}
+
+// Order class
+class Order {
+    private $customer;
+    private $product;
+
+    // Constructor
+    public function __construct($customer, $product) {
+        $this->customer = $customer;
+        $this->product = $product;
+    }
+
+    // Method to print order details
+    public function getOrderDetails() {
+        echo "Order Details:" . PHP_EOL;
+        echo "Customer Name: " . $this->customer->getName() <br>
+        echo "Customer Email: " . $this->customer->getEmail() <br>
+        echo "Product: " . $this->product->getDetails() <br>
+    }
+}
+
+// ====== Create Instances and Use Methods ======
+
+// Create a product
+$product = new Product("iPhone", 999);
+
+// Create a customer
+$customer = new Customer("Senuja", "senuja@live.me.com");
+
+// Customer places an order
+$customer->placeOrder($product);
+
+// Create an order
+$order = new Order($customer, $product);
+
+// Show order details
+$order->getOrderDetails();
+
+?>

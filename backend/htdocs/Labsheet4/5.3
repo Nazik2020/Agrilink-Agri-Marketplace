@@ -1,0 +1,53 @@
+
+<?php
+class Patient{
+    private $name;
+    
+    //crate a constructer 
+    public function __construct($name){
+        $this->name=$name;
+    }
+    //method  to admit
+    public function admit(){
+    echo "{$this->name} has beeen admitted tot he hospital"};
+    }
+    public function getName(){
+        return $this->name;
+    }  
+}
+//create a Doctor 
+class Doctor{
+    private $name;
+ 
+  //cerate a contructer
+    public function __construct($name){
+        $this->name=$name;
+    }
+    //method 
+    public function exeminePatient{patientName}{
+        echo "{$this->name} is exemining the patient {$patientName}";
+    }
+}
+class MedicalRecord(){
+    private $patientName;
+    
+    //create a constructer for name
+    public function __construct($patientName){
+        $this->patientName=$patientName;
+    }
+    //method 
+    public function recordData($Data){
+         echo "data has been recorded in {$this->patientName} is exeminig patient{$patietname}.<br>"
+    }
+}
+//create instances
+// Create instances
+$patient = new Patient("Senuja Nimsith");
+$doctor = new Doctor("Dr. Warnakulasooriya");
+$medicalRecord = new MedicalRecord($patient->getName());
+
+// Call methods
+$patient->admit();
+$doctor->examinePatient($patient->getName());
+$medicalRecord->recordData("Blood pressure, temperature, and diagnosis.");
+?>

@@ -32,7 +32,7 @@ const BuyNowModal = ({
   } = useCart();
 
   // State management - ALL HOOKS MUST BE AT THE TOP
-  const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Success
+  const [step, setStep] = useState(1); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [stripeKey, setStripeKey] = useState("");
@@ -98,7 +98,6 @@ const BuyNowModal = ({
       document.body.style.overflow = "unset";
     }
 
-    // Cleanup function to restore scroll when component unmounts
     return () => {
       document.body.style.overflow = "unset";
     };
@@ -109,9 +108,7 @@ const BuyNowModal = ({
 
   // Add safety checks for props
   if (!onClose || typeof onClose !== "function") {
-    console.error(
-      "BuyNowModal: onClose prop is required and must be a function"
-    );
+    
     return null;
   }
 
@@ -126,8 +123,6 @@ const BuyNowModal = ({
     setCustomerDataLoading(true);
 
     try {
-      // Call backend API to get REAL customer signup data
-      // Get customer email from session storage for fallback
       const userString = sessionStorage.getItem("user");
       let customerEmail = null;
       if (userString) {
@@ -135,7 +130,6 @@ const BuyNowModal = ({
           const user = JSON.parse(userString);
           customerEmail = user.email;
         } catch (e) {
-          console.error("Error parsing user from session:", e);
         }
       }
 
@@ -158,7 +152,6 @@ const BuyNowModal = ({
         const customerInfo = response.data.customerInfo;
         setCustomerData(customerInfo);
 
-        // Auto-populate form with REAL signup data
         setFormData((prev) => ({
           ...prev,
           billing_name: customerInfo.name || customerInfo.full_name || "",
@@ -172,14 +165,12 @@ const BuyNowModal = ({
         setError("");
         console.log("✅ Successfully loaded real customer data:", customerInfo);
       } else {
-        // Backend returned success:false - show error and block checkout
         setError(
           "Unable to load your profile information. Please complete your profile before checkout."
         );
         setCustomerData(null);
       }
     } catch (error) {
-      console.error("❌ Error loading customer data:", error);
 
       // Show error and prevent checkout if no profile found
       setError(
@@ -199,7 +190,6 @@ const BuyNowModal = ({
   };
 
   const loadStripeConfig = async () => {
-    // Skip backend call - use mock key directly
     setStripeKey("pk_test_mock_key_for_development");
     console.log("Using mock Stripe key - payment will work");
   };

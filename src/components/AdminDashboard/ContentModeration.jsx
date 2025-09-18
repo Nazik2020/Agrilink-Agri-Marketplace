@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from './ui';
 import { Eye, Trash2, Flag, CheckCircle, XCircle, X } from 'lucide-react';
-// import { useToast } from './hooks/use-toast';
+
 // Custom PopupMessage Component
 const PopupMessage = ({ message, type, onClose }) => {
   if (!message) return null;
@@ -33,18 +33,7 @@ const PopupMessage = ({ message, type, onClose }) => {
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="mt-4 flex justify-end">
-          <button
-            onClick={onClose}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              isSuccess 
-                ? 'bg-green-600 hover:bg-green-700 text-white' 
-                : 'bg-red-600 hover:bg-red-700 text-white'
-            }`}
-          >
-            OK
-          </button>
-        </div>
+        {/* OK button removed as requested */}
       </div>
     </div>
   );
@@ -132,6 +121,44 @@ function FlagDetailsModal({ open, flag, onClose }) {
   );
 }
 
+function ProductDetailsModal({ open, product, onClose }) {
+  if (!open || !product) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full p-8 relative">
+        <button
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
+          onClick={onClose}
+          aria-label="Close"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        <h2 className="text-2xl font-bold mb-4">Product Details</h2>
+        <div className="space-y-2">
+          <div><span className="font-semibold">Product Name:</span> {product.product_name}</div>
+          <div><span className="font-semibold">Product ID:</span> {product.id}</div>
+          <div><span className="font-semibold">Seller ID:</span> {product.seller_id}</div>
+          <div><span className="font-semibold">Seller:</span> {product.seller_name}</div>
+          <div><span className="font-semibold">Category:</span> {product.category}</div>
+          <div><span className="font-semibold">Description:</span> {product.product_description}</div>
+          <div><span className="font-semibold">Price:</span> {product.price}</div>
+          <div><span className="font-semibold">Status:</span> {product.status}</div>
+          {product.product_images && product.product_images.length > 0 && (
+            <div>
+              <span className="font-semibold">Images:</span>
+              <div className="flex gap-2 mt-2">
+                {product.product_images.map((img, idx) => (
+                  <img key={idx} src={img} alt="Product" className="h-20 w-20 object-cover rounded" />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 const FILTERS = [
   { id: 'flags', label: 'Flagged Content' },
@@ -139,7 +166,6 @@ const FILTERS = [
 ];
 
 const ContentModeration = () => {
-  // const { toast } = useToast();
   const [popupMessage, setPopupMessage] = useState(null);
   const [popupType, setPopupType] = useState('success');
   const showPopup = (message, type = 'success') => {
@@ -148,7 +174,7 @@ const ContentModeration = () => {
   };
   const closePopup = () => {
     setPopupMessage(null);
-    setPopupType('success'); // Reset type to default to avoid lingering error/success state
+    setPopupType('success'); 
   };
   const [flaggedContent, setFlaggedContent] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -157,7 +183,11 @@ const ContentModeration = () => {
   const [removedAds, setRemovedAds] = useState([]);
   const [removedLoading, setRemovedLoading] = useState(false);
   const [removedError, setRemovedError] = useState(null);
-  // Configure API base via Vite env (define VITE_API_BASE_URL in .env)
+  const [viewProduct, setViewProduct] = useState(null);
+  // Pagination state for removed ads
+  const [removedPage, setRemovedPage] = useState(1);
+  const REMOVED_PAGE_SIZE = 8;
+
   const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
   const fetchFlags = async () => {
@@ -169,9 +199,7 @@ const ContentModeration = () => {
       let data;
       const text = await res.text();
       try { data = JSON.parse(text); } catch { data = { success: false, message: 'Invalid JSON', raw: text }; }
-      if (!res.ok) {
-        console.error('Flags fetch failed', { status: res.status, data });
-      }
+      
       if (data.success) {
         const mapped = data.flags.map(f => ({
           id: f.flag_id,
@@ -186,7 +214,7 @@ const ContentModeration = () => {
           product_description: f.product_description,
           dismissed_at: f.dismissed_at,
           removed_at: f.removed_at,
-          productId: f.product_id // <-- ensure correct mapping
+          productId: f.product_id 
         }));
         setFlaggedContent(mapped);
         if (mapped.length === 0) setError('No flags submitted yet.');
@@ -194,7 +222,6 @@ const ContentModeration = () => {
         setError((data && data.message) ? data.message : 'Failed to load flags');
       }
     } catch (e) {
-      console.error('Network / parsing error while fetching flags', e);
       setError('Failed to fetch flags from server');
     } finally {
       setLoading(false);
@@ -212,6 +239,7 @@ const ContentModeration = () => {
       try { data = JSON.parse(text); } catch { data = { success: false, message: 'Invalid JSON', raw: text }; }
       if (data.success) {
         setRemovedAds(data.products || []);
+        setRemovedPage(1); // Reset to first page on fetch
         if ((data.products || []).length === 0) setRemovedError('No removed ads found.');
       } else {
         setRemovedError(data.message || 'Failed to load removed ads');
@@ -242,9 +270,9 @@ const ContentModeration = () => {
       const text = await res.text();
       let data;
       try { data = JSON.parse(text); } catch { data = { success: false, message: 'Invalid JSON', raw: text }; }
-      if (!res.ok) {
-        console.error('Update flag failed', { status: res.status, data });
-      }
+      // if (!res.ok) {
+      //   console.error('Update flag failed', { status: res.status, data });
+      // }
       if (data.success) {
         // Refresh flag list after update
         await fetchFlags();
@@ -362,30 +390,103 @@ const ContentModeration = () => {
           {!removedLoading && removedError && <p className="text-red-500">{removedError}</p>}
           {!removedLoading && !removedError && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {removedAds.map(product => (
-                <div key={product.id} className="bg-white border border-gray-300 shadow-sm rounded-xl p-4 flex flex-col">
-                  <div className="w-full flex justify-center items-center mb-4">
-                    {product.product_images && product.product_images.length > 0 ? (
-                      <img src={product.product_images[0]} alt="Product" className="h-48 w-full object-cover rounded-lg" />
-                    ) : (
-                      <div className="h-48 w-full bg-gray-100 flex items-center justify-center rounded-lg text-gray-400">No Image</div>
-                    )}
-                  </div>
-                  <div className="flex-1 flex flex-col">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-lg font-bold">{product.product_name}</span>
-                      <span className="bg-gray-500 text-white rounded-full px-2 py-1 text-xs font-semibold">Removed</span>
+              {/* Pagination logic for removed ads */}
+              {(() => {
+                const startIdx = (removedPage - 1) * REMOVED_PAGE_SIZE;
+                const endIdx = startIdx + REMOVED_PAGE_SIZE;
+                const paginatedAds = removedAds.slice(startIdx, endIdx);
+                return paginatedAds.map(product => (
+                  <div key={product.id} className="bg-white border border-gray-300 shadow-sm rounded-xl p-4 flex flex-col">
+                    <div className="w-full flex justify-center items-center mb-4">
+                      {product.product_images && product.product_images.length > 0 ? (
+                        <img src={product.product_images[0]} alt="Product" className="h-48 w-full object-cover rounded-lg" />
+                      ) : (
+                        <div className="h-48 w-full bg-gray-100 flex items-center justify-center rounded-lg text-gray-400">No Image</div>
+                      )}
                     </div>
-                    <div className="text-sm mb-1"><span className="font-semibold">Product ID:</span> {product.id}</div>
-                    <div className="text-sm mb-1"><span className="font-semibold">Seller ID:</span> {product.seller_id}</div>
-                    <div className="text-sm mb-1"><span className="font-semibold">Seller:</span> {product.seller_name}</div>
-                    <div className="text-sm mb-1"><span className="font-semibold">Category:</span> {product.category}</div>
-                    <div className="text-sm mb-1"><span className="font-semibold">Description:</span> {product.product_description}</div>
-                    <div className="text-sm mb-1"><span className="font-semibold">Price:</span> {product.price}</div>
-                    <div className="text-sm mb-1"><span className="font-semibold">Status:</span> {product.status}</div>
+                    <div className="flex-1 flex flex-col">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg font-bold">{product.product_name}</span>
+                        <span className="bg-gray-500 text-white rounded-full px-2 py-1 text-xs font-semibold">Removed</span>
+                      </div>
+                      <div className="text-sm mb-1"><span className="font-semibold">Product ID:</span> {product.id}</div>
+                      <div className="text-sm mb-1"><span className="font-semibold">Seller ID:</span> {product.seller_id}</div>
+                      <div className="text-sm mb-1"><span className="font-semibold">Seller:</span> {product.seller_name}</div>
+                      <div className="text-sm mb-1"><span className="font-semibold">Category:</span> {product.category}</div>
+                      {/* Description, Price, and Status removed from card. Only shown in Product Details modal. */}
+                      <div className="mt-2 flex justify-end gap-2">
+                        <button
+                          className="px-4 py-1 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700"
+                          onClick={() => setViewProduct(product)}
+                        >Product Details</button>
+                        <button
+                          className="px-2 py-1 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 flex items-center"
+                          title="Delete Permanently"
+                          onClick={async () => {
+                            // Replace alert with popup message for confirmation
+                            setPopupMessage('Are you sure you want to permanently delete this product? This action cannot be undone.');
+                            setPopupType('error');
+                            // Wait for user confirmation using a custom modal
+                            const confirmDelete = await new Promise(resolve => {
+                              const handleConfirm = () => {
+                                closePopup();
+                                resolve(true);
+                              };
+                              const handleCancel = () => {
+                                closePopup();
+                                resolve(false);
+                              };
+                              setPopupMessage(
+                                <div>
+                                  <div className="mb-4">Are you sure you want to permanently delete this product? This action cannot be undone.</div>
+                                  <div className="flex gap-4 justify-end">
+                                    <button className="px-4 py-2 rounded bg-gray-300 text-gray-700 font-semibold mr-2" onClick={handleCancel}>Cancel</button>
+                                    <button className="px-4 py-2 rounded bg-red-600 text-white font-semibold" onClick={handleConfirm}>Delete</button>
+                                  </div>
+                                </div>
+                              );
+                            });
+                            if (confirmDelete) {
+                              try {
+                                const res = await fetch(`${API_BASE}/backend/admin/content_moderation/delete_product_permanent.php`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                  body: `productId=${encodeURIComponent(product.id)}`
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                  showPopup('Product permanently deleted.', 'success');
+                                  setRemovedAds(prev => prev.filter(p => p.id !== product.id));
+                                } else {
+                                  showPopup(data.message || 'Failed to delete product.', 'error');
+                                }
+                              } catch (e) {
+                                showPopup('Network error. Could not delete product.', 'error');
+                              }
+                            }
+                          }}
+                        ><Trash2 className="h-5 w-5 mr-1" /> </button>
+                      </div>
+                    </div>
                   </div>
+                ));
+              })()}
+              {/* Pagination controls */}
+              {removedAds.length > REMOVED_PAGE_SIZE && (
+                <div className="flex justify-center items-center gap-2 mt-6">
+                  <button
+                    className="px-3 py-1 rounded bg-gray-200 text-gray-700 font-semibold disabled:opacity-50"
+                    onClick={() => setRemovedPage(p => Math.max(1, p - 1))}
+                    disabled={removedPage === 1}
+                  >Previous</button>
+                  <span className="px-2">Page {removedPage} of {Math.ceil(removedAds.length / REMOVED_PAGE_SIZE)}</span>
+                  <button
+                    className="px-3 py-1 rounded bg-gray-200 text-gray-700 font-semibold disabled:opacity-50"
+                    onClick={() => setRemovedPage(p => Math.min(Math.ceil(removedAds.length / REMOVED_PAGE_SIZE), p + 1))}
+                    disabled={removedPage === Math.ceil(removedAds.length / REMOVED_PAGE_SIZE)}
+                  >Next</button>
                 </div>
-              ))}
+              )}
             </div>
           )}
         </>
@@ -394,6 +495,11 @@ const ContentModeration = () => {
         open={!!viewFlag}
         flag={viewFlag}
         onClose={() => setViewFlag(null)}
+      />
+      <ProductDetailsModal
+        open={!!viewProduct}
+        product={viewProduct}
+        onClose={() => setViewProduct(null)}
       />
       <ConfirmRemoveModal
         open={!!removeAd}

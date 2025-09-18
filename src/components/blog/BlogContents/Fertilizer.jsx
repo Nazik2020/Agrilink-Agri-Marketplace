@@ -1,9 +1,8 @@
 import React from "react";
-import fertilizer1 from "../../../assets/blog/fertilizer1.png";
+
 import fertilizer2 from "../../../assets/blog/ferlotizer2.png";
 import fertilizer3 from "../../../assets/blog/fertilizer3.png";
 import agri from "../../../assets/blog/agri.png";
-import spice1 from "../../../assets/blog/spice1.png";
 
 const Fertilizer = () => (
   <div className="p-6">
@@ -39,7 +38,7 @@ const Fertilizer = () => (
       alt="Various types of fertilizers available online" 
       className="mb-4 rounded-lg" 
       style={{ height: "220px", width: "auto" }}
-      onError={(e) => console.error("Error loading ferlotizer2:", e)}
+  onError={undefined}
       onLoad={() => console.log("ferlotizer2 loaded successfully")}
     />
     <ul className="list-disc list-inside mb-4 text-gray-800">
@@ -101,7 +100,7 @@ const Fertilizer = () => (
       alt="Organic and sustainable fertilizer options" 
       className="mb-4 rounded-lg" 
       style={{ height: "220px", width: "auto" }}
-      onError={(e) => console.error("Error loading fertilizer3:", e)}
+  onError={undefined}
       onLoad={() => console.log("fertilizer3 loaded successfully")}
     />
     <ul className="list-disc list-inside mb-4 text-gray-800">
@@ -121,7 +120,7 @@ const Fertilizer = () => (
       alt="Smart farming in action with agricultural technology" 
       className="mb-4 rounded-lg" 
       style={{ height: "220px", width: "auto" }}
-      onError={(e) => console.error("Error loading agri:", e)}
+  onError={undefined}
       onLoad={() => console.log("agri loaded successfully")}
     />
     <p className="mb-4 text-gray-800">

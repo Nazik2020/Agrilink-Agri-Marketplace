@@ -5,12 +5,7 @@ import spice3 from "../../../assets/blog/spice3.png";
 import spice4 from "../../../assets/blog/spice4.png";
 
 const Spice = () => {
-  // Debug logging
-  console.log("Spice component loaded");
-  console.log("spice1 import:", spice1);
-  console.log("spice2 import:", spice2);
-  console.log("spice3 import:", spice3);
-  console.log("spice4 import:", spice4);
+
 
   return (
     <div className="p-6">
@@ -26,7 +21,7 @@ const Spice = () => {
         alt="Assorted spices" 
         className="mb-4 rounded-lg" 
         style={{ height: "220px", width: "auto" }}
-        onError={(e) => console.error("Error loading spice1:", e)}
+  onError={undefined}
         onLoad={() => console.log("spice1 loaded successfully")}
       />
       <p className="mb-4 text-gray-800">
@@ -42,7 +37,7 @@ const Spice = () => {
         alt="Spice market display" 
         className="mb-4 rounded-lg" 
         style={{ height: "220px", width: "auto" }}
-        onError={(e) => console.error("Error loading spice2:", e)}
+  onError={undefined}
         onLoad={() => console.log("spice2 loaded successfully")}
       />
 
@@ -70,7 +65,7 @@ const Spice = () => {
         alt="Indian spices collection" 
         className="mb-4 rounded-lg" 
         style={{ height: "220px", width: "auto" }}
-        onError={(e) => console.error("Error loading spice3:", e)}
+  onError={undefined}
         onLoad={() => console.log("spice3 loaded successfully")}
       />
 
@@ -88,7 +83,7 @@ const Spice = () => {
         alt="Modern spice processing" 
         className="mb-4 rounded-lg" 
         style={{ height: "220px", width: "auto" }}
-        onError={(e) => console.error("Error loading spice4:", e)}
+  onError={undefined}
         onLoad={() => console.log("spice4 loaded successfully")}
       />
 

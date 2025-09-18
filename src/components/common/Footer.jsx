@@ -1,4 +1,4 @@
-// src/components/Footer.jsx
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TermsAndConditions from "./TermsAndConditions";

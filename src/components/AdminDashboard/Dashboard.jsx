@@ -39,6 +39,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background pt-10">
       <div className="border-b bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
           {/* Header section */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
@@ -46,6 +47,7 @@ const Dashboard = () => {
                 <Shield className="h-8 w-8 text-green-600" />
                 <h1 className="text-4xl font-bold text-green-700">Admin Dashboard</h1>
               </div>
+
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
@@ -57,10 +59,12 @@ const Dashboard = () => {
             </div>
             <p className="text-lg text-muted-foreground">Monitor and manage Agrilink platform activities</p>
           </div>
+
           {/* Stats cards always at the top */}
           <div className="mt-8 mb-8">
             <StatsCards />
           </div>
+          
           {/* Tab navigation below stats cards */}
           <div className="flex w-full mt-6">
             <nav className="flex flex-row flex-wrap gap-x-4 w-full justify-center">

@@ -38,12 +38,46 @@ try {
     }
     
     $customizationRequest = new CustomizationRequest($conn);
-    
     $result = $customizationRequest->updateStatus(
         $input['request_id'],
         $input['status']
     );
-    
+
+    // If status update successful, send notification to customer
+    if ($result['success']) {
+        // Get request details for notification
+        $requestDetails = $customizationRequest->getRequestById($input['request_id']);
+        if ($requestDetails['success']) {
+            $req = $requestDetails['request'];
+            $customerId = $req['customer_id'];
+            $productName = $req['product_name'];
+            $sellerName = $req['seller_name'];
+            if ($input['status'] === 'accepted') {
+                $notificationData = [
+                    'customer_id' => $customerId,
+                    'title' => 'Customization Request Accepted',
+                    'message' => 'Your customization request for product "' . $productName . '" has been accepted by seller ' . $sellerName . '. Please wait, we will let you know once the product is available.',
+                    'type' => 'customization_request_accepted',
+                    'related_id' => $input['request_id']
+                ];
+            } else {
+                $notificationData = [
+                    'customer_id' => $customerId,
+                    'title' => 'Customization Request Declined',
+                    'message' => 'Your customization request for product "' . $productName . '" has been declined by seller ' . $sellerName . '.',
+                    'type' => 'customization_request_declined',
+                    'related_id' => $input['request_id']
+                ];
+            }
+            $ch = curl_init('http://localhost/Agrilink-Agri-Marketplace/backend/notifications/add_customer_notification.php');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($notificationData));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            curl_exec($ch);
+            curl_close($ch);
+        }
+    }
     echo json_encode($result);
     
 } catch (Exception $e) {

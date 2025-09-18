@@ -30,12 +30,13 @@ const CustomerSidebar = () => {
             setProfileImage(buildImgUrl(user.profile_image));
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        // Error parsing user from sessionStorage
+      }
     };
 
     loadFromSession();
 
-    // Listen for profile updates (e.g., after upload) and login/logout
     const handleStorage = () => loadFromSession();
     const handleUserState = () => loadFromSession();
     window.addEventListener("storage", handleStorage);
@@ -47,7 +48,7 @@ const CustomerSidebar = () => {
   }, []);
 
   const handleLogout = () => {
-    console.log("Customer logged out");
+    // Customer logged out
     navigate("/marketplace");
   };
 

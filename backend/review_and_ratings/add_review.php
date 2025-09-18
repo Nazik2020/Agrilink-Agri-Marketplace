@@ -1,4 +1,3 @@
-
 <?php
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
@@ -47,20 +46,26 @@ try {
 
     $review = new Review($conn);
     try {
-        // Allow multiple reviews: always add a new review
-        $result = $review->addReview($productId, $customerId, $rating, $comment);
+        // If review exists, update it; otherwise, add new
+        if ($review->reviewExists($productId, $customerId)) {
+            $result = $review->updateReview($productId, $customerId, $rating, $comment);
+            $action = "updated";
+        } else {
+            $result = $review->addReview($productId, $customerId, $rating, $comment);
+            $action = "submitted";
+        }
         if ($result) {
             // Calculate new average rating
             $avgRating = $review->getAverageRating($productId);
             echo json_encode([
                 "success" => true,
-                "message" => "Review submitted successfully.",
+                "message" => "Review $action successfully.",
                 "average_rating" => $avgRating
             ]);
         } else {
             echo json_encode([
                 "success" => false,
-                "message" => "Failed to add review."
+                "message" => "Failed to $action review."
             ]);
         }
     } catch (PDOException $e) {

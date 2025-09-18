@@ -10,7 +10,7 @@ const CustomerProfilePage = () => {
     address: "",
     contactNumber: "",
     country: "",
-    postalCode: "", // <-- Add this line
+    postalCode: "", 
   });
 
   const [profileImage, setProfileImage] = useState(null);
@@ -33,9 +33,9 @@ const CustomerProfilePage = () => {
       newErrors.contactNumber = "Contact Number must be 7-15 digits";
     if (!formData.country.trim()) newErrors.country = "Country is required";
     if (!formData.postalCode.trim())
-      newErrors.postalCode = "Postal Code is required"; // <-- Add this line
+      newErrors.postalCode = "Postal Code is required"; 
     else if (!/^[A-Za-z0-9\- ]{3,10}$/.test(formData.postalCode))
-      newErrors.postalCode = "Postal Code is invalid"; // <-- Add this line
+      newErrors.postalCode = "Postal Code is invalid"; 
     return newErrors;
   };
 
@@ -49,7 +49,7 @@ const CustomerProfilePage = () => {
         const user = JSON.parse(userString);
         email = user.email;
       } catch (error) {
-        console.error("Error parsing user from localStorage:", error);
+        // Error parsing user from localStorage
       }
     }
     if (!email) {
@@ -61,7 +61,6 @@ const CustomerProfilePage = () => {
       return;
     }
 
-    // Backend expects JSON body with email → use POST helper
     fetchProfile(email);
   }, []);
 
@@ -78,13 +77,11 @@ const CustomerProfilePage = () => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Show preview immediately (left frame)
       setProfileImage(URL.createObjectURL(file));
       setProfileImageFile(file);
     }
   };
 
-  // Helper to get the original email robustly
   const getOriginalEmail = () => {
     const userString = sessionStorage.getItem("user");
     let email = null;
@@ -93,7 +90,6 @@ const CustomerProfilePage = () => {
         const user = JSON.parse(userString);
         email = user.email;
       } catch (error) {
-        console.error("Error parsing user from localStorage:", error);
       }
     }
     if (!email) {
@@ -209,8 +205,9 @@ const CustomerProfilePage = () => {
                 ? data.profile_image_path
                 : `${base}/${rel}`;
               sessionStorage.setItem("user", JSON.stringify(user));
-              // Trigger storage event for sidebar/nav update
+              // Trigger events for sidebar/nav update (large and mobile)
               window.dispatchEvent(new Event("storage"));
+              window.dispatchEvent(new Event("userStateChanged"));
             }
           } catch (e) {}
           // Always re-fetch profile to update image and data

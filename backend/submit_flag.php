@@ -32,11 +32,33 @@ try {
     // Insert the flag
     $stmt = $conn->prepare("INSERT INTO flags (flagged_by_customer_id, seller_id, product_id, category, reason) VALUES (?, ?, ?, ?, ?)");
     $stmt->execute([$flagged_by_customer_id, $seller_id, $product_id, $category, $reason]);
+    $flag_id = $conn->lastInsertId();
+
+    // Notify seller about the flag (no customer details)
+    try {
+        $notificationData = [
+            'seller_id' => $seller_id,
+            'title' => 'Product Flagged',
+            'message' => 'Your product (ID: ' . $product_id . ') has been flagged for "' . $category . '". Reason: ' . $reason,
+            'type' => 'product_flagged',
+            'related_id' => $flag_id
+        ];
+        $ch = curl_init('http://localhost/Agrilink-Agri-Marketplace/backend/notifications/add_notification.php');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($notificationData));
+        $result = curl_exec($ch);
+        curl_close($ch);
+        error_log('Seller notified about product flag: ' . $result);
+    } catch (Exception $e) {
+        error_log('Failed to notify seller about product flag: ' . $e->getMessage());
+    }
 
     echo json_encode([
         "success" => true, 
         "message" => "Flag submitted successfully",
-        "flag_id" => $conn->lastInsertId()
+        "flag_id" => $flag_id
     ]);
 
 } catch (PDOException $e) {

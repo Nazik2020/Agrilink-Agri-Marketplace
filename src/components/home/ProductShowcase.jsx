@@ -37,7 +37,7 @@ const ProductShowcase = () => {
           setError("Failed to fetch products");
         }
       } catch (error) {
-        console.error("Error fetching products:", error);
+  // Error fetching products
         setError("Error loading products");
       } finally {
         setLoading(false);

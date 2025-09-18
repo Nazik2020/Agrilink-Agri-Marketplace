@@ -13,9 +13,7 @@ const CartItem = ({ item }) => {
 
   const totalPrice = parseFloat(item.price) * item.quantity;
 
-  // Get product image
   const getProductImage = (productImages) => {
-    // If already an array, use directly
     let imagesArr = [];
     if (!productImages) {
       return "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop";
@@ -43,7 +41,7 @@ const CartItem = ({ item }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="flex flex-col sm:flex-row gap-4">
-        {/* Product Image */}
+  {/* Product Image */}
         <div className="w-full sm:w-32 h-32 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
           <img
             src={getProductImage(item.product_images)}
@@ -52,7 +50,7 @@ const CartItem = ({ item }) => {
           />
         </div>
 
-        {/* Product Details */}
+  {/* Product Details */}
         <div className="flex-1">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1">

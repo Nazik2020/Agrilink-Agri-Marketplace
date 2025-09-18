@@ -75,6 +75,26 @@ try {
         $updateStockStmt->execute([$order['quantity'], $order['product_id']]);
         
         $message = "Order confirmed successfully";
+            // Notify customer: order is ready to be delivered
+            try {
+                $notificationData = [
+                    'customer_id' => $order['customer_id'],
+                    'title' => 'Order Ready for Delivery',
+                    'message' => 'Your order #' . $orderId . ' for ' . $order['product_name'] . ' (Qty: ' . $order['quantity'] . ') is ready to be delivered.',
+                    'type' => 'order_ready',
+                    'related_id' => $orderId
+                ];
+                $ch = curl_init('http://localhost/Agrilink-Agri-Marketplace/backend/notifications/add_customer_notification.php');
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($notificationData));
+                $result = curl_exec($ch);
+                curl_close($ch);
+                error_log('Customer notified: order ready for delivery: ' . $result);
+            } catch (Exception $e) {
+                error_log('Failed to notify customer: order ready for delivery: ' . $e->getMessage());
+            }
         
     } else { // $action === 'cancel'
         // Update order status to cancelled
@@ -88,6 +108,26 @@ try {
         
         // No stock update needed for cancellation since stock wasn't reduced yet
         $message = "Order cancelled successfully";
+            // Notify customer: order cancelled
+            try {
+                $notificationData = [
+                    'customer_id' => $order['customer_id'],
+                    'title' => 'Order Cancelled',
+                    'message' => 'Your order #' . $orderId . ' for ' . $order['product_name'] . ' has been cancelled due to special reasons. Please contact the seller for more information.',
+                    'type' => 'order_cancelled',
+                    'related_id' => $orderId
+                ];
+                $ch = curl_init('http://localhost/Agrilink-Agri-Marketplace/backend/notifications/add_customer_notification.php');
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($notificationData));
+                $result = curl_exec($ch);
+                curl_close($ch);
+                error_log('Customer notified: order cancelled: ' . $result);
+            } catch (Exception $e) {
+                error_log('Failed to notify customer: order cancelled: ' . $e->getMessage());
+            }
     }
     
     // Commit transaction

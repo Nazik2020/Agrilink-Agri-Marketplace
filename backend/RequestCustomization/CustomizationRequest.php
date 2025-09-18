@@ -42,7 +42,7 @@ class CustomizationRequest {
                     FROM customization_requests cr
                     JOIN products p ON cr.product_id = p.id
                     JOIN customers c ON cr.customer_id = c.id
-                    WHERE cr.seller_id = ?
+                    WHERE cr.seller_id = ? AND (cr.status_of_request IS NULL OR cr.status_of_request != 'deleted')
                     ORDER BY cr.created_at DESC";
             
             $stmt = $this->conn->prepare($sql);
@@ -70,7 +70,7 @@ class CustomizationRequest {
                     FROM customization_requests cr
                     JOIN products p ON cr.product_id = p.id
                     JOIN sellers s ON cr.seller_id = s.id
-                    WHERE cr.customer_id = ?
+                    WHERE cr.customer_id = ? AND (cr.status_of_request IS NULL OR cr.status_of_request != 'deleted')
                     ORDER BY cr.created_at DESC";
             
             $stmt = $this->conn->prepare($sql);

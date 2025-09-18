@@ -14,7 +14,7 @@ const OrderHistoryPage = () => {
       const userString = sessionStorage.getItem("user");
       if (userString) {
         const user = JSON.parse(userString);
-        // Check both 'role' and 'user_type' for backwards compatibility
+        // Check both 'role' and 'user_type' 
         if (user.role === "customer" || user.user_type === "customer") {
           return user.id;
         }
@@ -25,7 +25,7 @@ const OrderHistoryPage = () => {
     return null; // Return null if no valid customer found
   };
 
-  // Test server connection
+
   const testServerConnection = async () => {
     const testUrls = [
       "http://localhost/Agrilink-Agri-Marketplace/backend/test_server.php",
@@ -100,65 +100,12 @@ const OrderHistoryPage = () => {
         return;
       } else {
         setError(response.data.message || "Failed to fetch orders");
+        setOrderItems([]);
       }
-      setOrderItems([
-        {
-          productId: "PRD-001",
-          orderId: "ORD-001",
-          productName: "Organic Tomatoes",
-          date: "2024-01-15",
-          quantity: 2,
-          totalAmount: 24.99,
-        },
-        {
-          productId: "PRD-002",
-          orderId: "ORD-001",
-          productName: "Fresh Spinach",
-          date: "2024-01-15",
-          quantity: 1,
-          totalAmount: 18.5,
-        },
-        {
-          productId: "PRD-003",
-          orderId: "ORD-002",
-          productName: "Premium Carrots",
-          date: "2024-01-12",
-          quantity: 3,
-          totalAmount: 19.5,
-        },
-        {
-          productId: "PRD-004",
-          orderId: "ORD-002",
-          productName: "Organic Lettuce",
-          date: "2024-01-12",
-          quantity: 2,
-          totalAmount: 14.25,
-        },
-        {
-          productId: "PRD-005",
-          orderId: "ORD-003",
-          productName: "Bell Peppers",
-          date: "2024-01-10",
-          quantity: 4,
-          totalAmount: 28.0,
-        },
-      ]);
-      setError(null);
     } catch (err) {
       console.error("Error:", err);
-      setError("Showing demo data");
-
-      // Fallback demo data
-      setOrderItems([
-        {
-          productId: "PRD-001",
-          orderId: "ORD-001",
-          productName: "Demo Product",
-          date: "2024-01-15",
-          quantity: 1,
-          totalAmount: 15.99,
-        },
-      ]);
+      setError("Failed to fetch orders");
+      setOrderItems([]);
     } finally {
       setLoading(false);
       setRefreshing(false);

@@ -16,9 +16,7 @@ const WhyChooseUs = () => {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#14452F] mb-4">
             Why Choose Us
           </h2>
-          {/* <p className="text-xl text-green-600 font-medium">
-            Farming with passion, the feeding purpose
-          </p> */}
+        
         </div>
 
         {/* Content */}
@@ -84,24 +82,7 @@ const WhyChooseUs = () => {
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
-                    {/* <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <p className="text-gray-500">
-                  Wallet & revenue tracking for sellers{" "}
-                </p>
-              </div>
-              <div className="flex items-start">
-                <div className="bg-green-600 rounded-full w-6 h-6 flex items-center justify-center mt-1 mr-4 flex-shrink-0">
-                  <svg
-                    className="w-3 h-3 text-white"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  > */}
+                    
                     <path
                       fillRule="evenodd"
                       d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"

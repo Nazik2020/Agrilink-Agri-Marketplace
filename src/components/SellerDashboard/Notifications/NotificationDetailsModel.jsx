@@ -73,21 +73,21 @@ const NotificationDetailsModal = ({ notification, isOpen, onClose, onAccept, onR
                 <p className="text-sm text-gray-500">Contact Number</p>
                 <p className="font-medium text-gray-900 flex items-center">
                   <Phone className="w-4 h-4 mr-1 text-green-600" />
-                  +94 77 123 4567
+                  {notification.contactNumber || 'N/A'}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Email Address</p>
                 <p className="font-medium text-gray-900 flex items-center">
                   <Mail className="w-4 h-4 mr-1 text-green-600" />
-                  customer@email.com
+                  {notification.email || 'N/A'}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Location</p>
                 <p className="font-medium text-gray-900 flex items-center">
                   <MapPin className="w-4 h-4 mr-1 text-green-600" />
-                  Colombo, Sri Lanka
+                  {notification.location || 'N/A'}
                 </p>
               </div>
             </div>
@@ -102,22 +102,22 @@ const NotificationDetailsModal = ({ notification, isOpen, onClose, onAccept, onR
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-500">Product Name</p>
-                <p className="font-medium text-gray-900">{notification.product}</p>
+                <p className="font-medium text-gray-900">{notification.productName || notification.product || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Requested Quantity</p>
-                <p className="font-medium text-gray-900">50 kg</p>
+                <p className="font-medium text-gray-900">{notification.requestedQuantity || 'N/A'}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Delivery Date</p>
                 <p className="font-medium text-gray-900 flex items-center">
                   <Calendar className="w-4 h-4 mr-1 text-green-600" />
-                  March 15, 2024
+                  {notification.deliveryDate || 'N/A'}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Budget Range</p>
-                <p className="font-medium text-gray-900">$200 - $300</p>
+                <p className="font-medium text-gray-900">{notification.budgetRange || 'N/A'}</p>
               </div>
             </div>
           </div>
@@ -132,19 +132,19 @@ const NotificationDetailsModal = ({ notification, isOpen, onClose, onAccept, onR
               <div>
                 <p className="text-sm text-gray-500">Special Requirements</p>
                 <p className="font-medium text-gray-900">
-                  Organic certification required, pesticide-free, locally sourced within 50km radius
+                  {notification.specialRequirements || 'N/A'}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Quantity Needed</p>
                 <p className="font-medium text-gray-900">
-                  Eco-friendly packaging, biodegradable materials preferred
+                  {notification.quantityNeeded || 'N/A'}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Additional Notes</p>
                 <p className="font-medium text-gray-900">
-                  Customer is looking for a long-term supplier relationship. Quality is more important than price.
+                  {notification.additionalNotes || 'N/A'}
                 </p>
               </div>
             </div>
@@ -159,11 +159,11 @@ const NotificationDetailsModal = ({ notification, isOpen, onClose, onAccept, onR
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Request Submitted</span>
-                <span className="text-sm font-medium text-gray-900">{notification.timestamp}</span>
+                <span className="text-sm font-medium text-gray-900">{notification.timestamp || 'N/A'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Response Deadline</span>
-                <span className="text-sm font-medium text-gray-900">2 days remaining</span>
+                <span className="text-sm font-medium text-gray-900">{notification.responseDeadline || 'N/A'}</span>
               </div>
             </div>
           </div>

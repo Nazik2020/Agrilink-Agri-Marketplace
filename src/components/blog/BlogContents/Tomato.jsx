@@ -26,8 +26,8 @@ const Tomato = () => {
         alt="Organic tomato farm" 
         className="mb-4 rounded-lg" 
         style={{ height: "220px", width: "auto" }}
-        onError={(e) => console.error("Error loading tom1:", e)}
-        onLoad={() => console.log("tom1 loaded successfully")}
+        onError={undefined}
+        onLoad={undefined}
       />
 
       <h3 className="text-lg font-semibold mb-2 text-gray-900">🌱 What Makes a Tomato "Organic"?</h3>
@@ -83,8 +83,8 @@ const Tomato = () => {
         alt="Tomato farming process" 
         className="mb-4 rounded-lg" 
         style={{ height: "220px", width: "auto" }}
-        onError={(e) => console.error("Error loading tom2:", e)}
-        onLoad={() => console.log("tom2 loaded successfully")}
+  onError={undefined}
+  onLoad={undefined}
       />
 
       <h3 className="text-lg font-semibold mb-2 text-gray-900">🧪 Health Benefits of Organic Tomatoes</h3>
@@ -133,8 +133,8 @@ const Tomato = () => {
         alt="Smallholder tomato farmers" 
         className="mb-4 rounded-lg" 
         style={{ height: "220px", width: "auto" }}
-        onError={(e) => console.error("Error loading tom3:", e)}
-        onLoad={() => console.log("tom3 loaded successfully")}
+  onError={undefined}
+  onLoad={undefined}
       />
 
       <h3 className="text-lg font-semibold mb-2 text-gray-900">🛒 Choosing Organic Tomatoes as a Consumer</h3>
@@ -184,8 +184,8 @@ const Tomato = () => {
         alt="Global organic tomato market" 
         className="mb-4 rounded-lg" 
         style={{ height: "220px", width: "auto" }}
-        onError={(e) => console.error("Error loading tom4:", e)}
-        onLoad={() => console.log("tom4 loaded successfully")}
+  onError={undefined}
+  onLoad={undefined}
       />
 
       <h3 className="text-lg font-semibold mb-2 text-gray-900">🌟 Conclusion: A Tomato with a Purpose</h3>

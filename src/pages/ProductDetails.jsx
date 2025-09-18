@@ -269,7 +269,7 @@ function ProductDetails() {
     if (reviewText.trim()) {
       try {
         const response = await axios.post(
-          `${API_BASE}review_and_ratings/add_review.php`,
+          `${API_BASE}/backend/review_and_ratings/add_review.php`,
           {
             product_id: id,
             customer_id: customerId,
@@ -323,7 +323,7 @@ function ProductDetails() {
     try {
       // To edit, you may want to call a dedicated edit_review.php, but for now, just add a new review (as per backend logic)
       const response = await axios.post(
-        `${API_BASE}review_and_ratings/add_review.php`,
+        `${API_BASE}/backend/review_and_ratings/add_review.php`,
         {
           product_id: id,
           customer_id: customerId,
@@ -355,7 +355,7 @@ function ProductDetails() {
     }
     try {
       const response = await axios.post(
-        `${API_BASE}review_and_ratings/delete_review.php`,
+        `${API_BASE}/backend/review_and_ratings/delete_review.php`,
         {
           review_id: reviewId,
           customer_id: customerId,

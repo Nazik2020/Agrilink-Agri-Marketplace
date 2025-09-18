@@ -56,13 +56,32 @@ class CustomizedProduct {
             $customizedProductId = $this->conn->lastInsertId();
             
             // After creating the customized product, mark the request as 'customized'
-            // so that the seller UI hides the "Create Customized Product" button.
             try {
                 $updateReq = $this->conn->prepare("UPDATE customization_requests SET status = 'customized' WHERE id = ?");
                 $updateReq->execute([$requestId]);
             } catch (PDOException $e) {
-                // Non-fatal: log but continue
                 error_log('Failed to update customization request status to customized: ' . $e->getMessage());
+            }
+
+            // Send notification to customer that their customized product is available
+            try {
+                $notificationUrl = 'http://localhost/Agrilink-Agri-Marketplace/backend/notifications/add_customer_notification.php';
+                $payload = [
+                    'customer_id' => $request['customer_id'],
+                    'title' => 'Your Customization Product is Ready!',
+                    'message' => 'Your new customization product "' . $customizationData['product_name'] . '" is now available under Customized Products. You can buy it now.',
+                    'type' => 'customized_product_available',
+                    'related_id' => $customizedProductId
+                ];
+                $ch = curl_init($notificationUrl);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                $response = curl_exec($ch);
+                curl_close($ch);
+            } catch (Exception $e) {
+                error_log('Failed to send customized product notification: ' . $e->getMessage());
             }
 
             return [

@@ -5,6 +5,42 @@ import React, {
   useEffect,
   useState,
 } from "react";
+
+// PopupMessage component for cart alerts
+const PopupMessage = ({ message, type, onClose }) => {
+  if (!message) return null;
+  const isSuccess = type === 'success';
+  const bgColor = isSuccess ? 'bg-green-50' : 'bg-red-50';
+  const borderColor = isSuccess ? 'border-green-200' : 'border-red-200';
+  const textColor = isSuccess ? 'text-green-800' : 'text-red-800';
+  const iconColor = isSuccess ? 'text-green-600' : 'text-red-600';
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-green-50/50 z-50">
+      <div className={`${bgColor} ${borderColor} border rounded-xl p-6 max-w-md w-full mx-4 shadow-lg`}>
+        <div className="flex items-start space-x-3">
+          <div className={`${iconColor} flex-shrink-0 mt-0.5`}>
+            {isSuccess ? (
+              <span>✔️</span>
+            ) : (
+              <span>❌</span>
+            )}
+          </div>
+          <div className="flex-1">
+            <p className={`${textColor} text-sm font-medium leading-relaxed`}>
+              {message}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className={`${textColor} hover:opacity-70 transition-opacity flex-shrink-0`}
+          >
+            ✖️
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 import axios from "axios";
 
 const CartContext = createContext();
@@ -51,6 +87,16 @@ const initialState = {
 export const CartProvider = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, initialState);
   const [customerId, setCustomerId] = useState(null);
+  const [popupMessage, setPopupMessage] = useState(null);
+  const [popupType, setPopupType] = useState('success');
+  const showPopup = (message, type = 'success') => {
+    setPopupMessage(message);
+    setPopupType(type);
+  };
+  const closePopup = () => {
+    setPopupMessage(null);
+    setPopupType('success');
+  };
 
   // Get customer ID from session storage on mount
   useEffect(() => {
@@ -58,13 +104,11 @@ export const CartProvider = ({ children }) => {
     if (userString) {
       try {
         const user = JSON.parse(userString);
-        // Check both 'role' and 'user_type' for backwards compatibility
         if (user.role === "customer" || user.user_type === "customer") {
           setCustomerId(user.id);
           console.log("Customer ID set from sessionStorage:", user.id);
         }
       } catch (error) {
-        console.error("Error parsing user from sessionStorage:", error);
       }
     }
   }, []);
@@ -123,11 +167,9 @@ export const CartProvider = ({ children }) => {
         console.log("Cart items loaded:", response.data.cart_items);
         dispatch({ type: "SET_CART_ITEMS", payload: response.data.cart_items });
       } else {
-        console.error("Failed to load cart:", response.data.message);
         dispatch({ type: "SET_CART_ITEMS", payload: [] });
       }
     } catch (error) {
-      console.error("Error loading cart from database:", error);
       dispatch({ type: "SET_CART_ITEMS", payload: [] });
     }
   };
@@ -135,7 +177,6 @@ export const CartProvider = ({ children }) => {
   // Add item to cart
   const addToCart = async (product) => {
     if (!customerId) {
-      console.error("No customer ID available");
       return;
     }
 
@@ -143,7 +184,6 @@ export const CartProvider = ({ children }) => {
     const productId = product.id || product.product_id;
 
     if (!productId) {
-      console.error("No product ID found in product object:", product);
       return;
     }
 
@@ -172,20 +212,15 @@ export const CartProvider = ({ children }) => {
         // Reload cart from database to get updated state
         await loadCartFromDatabase();
       } else {
-        console.error(
-          "Failed to add item to cart in database:",
-          response.data.message
-        );
       }
     } catch (error) {
-      console.error("Error adding item to cart:", error);
     }
   };
 
   // Update quantity
   const updateQuantity = async (productId, quantity) => {
     if (!customerId) {
-      console.error("No customer ID available");
+        // No customer ID available
       return;
     }
 
@@ -207,20 +242,15 @@ export const CartProvider = ({ children }) => {
         // Reload cart from database to get updated state
         await loadCartFromDatabase();
       } else {
-        console.error(
-          "Failed to update quantity in database:",
-          response.data.message
-        );
       }
     } catch (error) {
-      console.error("Error updating quantity:", error);
     }
   };
 
   // Remove item from cart
   const removeItem = async (productId) => {
     if (!customerId) {
-      console.error("No customer ID available");
+        // No customer ID available
       return;
     }
 
@@ -238,23 +268,16 @@ export const CartProvider = ({ children }) => {
       console.log("Remove response:", response.data);
 
       if (response.data.success) {
-        // Reload cart from database to get updated state
         await loadCartFromDatabase();
       } else {
-        console.error(
-          "Failed to remove item from cart in database:",
-          response.data.message
-        );
       }
     } catch (error) {
-      console.error("Error removing item from cart:", error);
     }
   };
 
   // Clear cart
   const clearCart = async () => {
     if (!customerId) {
-      console.error("No customer ID available");
       return;
     }
 
@@ -272,7 +295,6 @@ export const CartProvider = ({ children }) => {
       // Reload cart from database to get updated state
       await loadCartFromDatabase();
     } catch (error) {
-      console.error("Error clearing cart:", error);
     }
   };
 
@@ -280,24 +302,22 @@ export const CartProvider = ({ children }) => {
 
   // Buy now functionality
   const handleBuyNow = () => {
-    // Check if user is logged in as customer
     const userString = sessionStorage.getItem("user");
     if (!userString) {
-      alert("Please login as a customer to proceed with checkout.");
+      showPopup("Please login as a customer to proceed with checkout.", "error");
       return;
     }
 
     try {
       const user = JSON.parse(userString);
-      // Check both 'role' and 'user_type' for backwards compatibility
       if (user.role !== "customer" && user.user_type !== "customer") {
-        alert("Please login as a customer to proceed with checkout.");
+        showPopup("Please login as a customer to proceed with checkout.", "error");
         return;
       }
 
       // Check if cart has items
       if (state.items.length === 0) {
-        alert("Your cart is empty. Please add items before checkout.");
+        showPopup("Your cart is empty. Please add items before checkout.", "error");
         return;
       }
 
@@ -305,7 +325,7 @@ export const CartProvider = ({ children }) => {
       dispatch({ type: "TOGGLE_BUY_NOW_MODAL" });
     } catch (error) {
       console.error("Error checking user status:", error);
-      alert("Please login as a customer to proceed with checkout.");
+      showPopup("Please login as a customer to proceed with checkout.", "error");
     }
   };
 
@@ -342,6 +362,11 @@ export const CartProvider = ({ children }) => {
       }}
     >
       {children}
+      <PopupMessage
+        message={popupMessage}
+        type={popupType}
+        onClose={closePopup}
+      />
     </CartContext.Provider>
   );
 };

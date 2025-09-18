@@ -31,7 +31,6 @@ try {
     }
     
     $customizationRequest = new CustomizationRequest($conn);
-    
     $result = $customizationRequest->createRequest(
         $input['customer_id'],
         $input['seller_id'],
@@ -40,7 +39,36 @@ try {
         $input['quantity'],
         $input['notes'] ?? ''
     );
-    
+
+    // If customization request was created, send notification to seller
+    if ($result['success'] && isset($result['request_id'])) {
+        // Fetch product and customer details for notification
+        $productName = '';
+        $customerName = '';
+        $productStmt = $conn->prepare('SELECT product_name FROM products WHERE id = ?');
+        $productStmt->execute([$input['product_id']]);
+        $productRow = $productStmt->fetch(PDO::FETCH_ASSOC);
+        if ($productRow) $productName = $productRow['product_name'];
+        $customerStmt = $conn->prepare('SELECT full_name FROM customers WHERE id = ?');
+        $customerStmt->execute([$input['customer_id']]);
+        $customerRow = $customerStmt->fetch(PDO::FETCH_ASSOC);
+        if ($customerRow) $customerName = $customerRow['full_name'];
+
+        $notificationData = [
+            'seller_id' => $input['seller_id'],
+            'title' => 'New Customization Request',
+            'message' => 'Customer ' . $customerName . ' has requested customization for product "' . $productName . '".',
+            'type' => 'customization_request',
+            'related_id' => $result['request_id']
+        ];
+    $ch = curl_init('http://localhost/Agrilink-Agri-Marketplace/backend/notifications/add_notification.php');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($notificationData));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        $notificationResponse = curl_exec($ch);
+        curl_close($ch);
+    }
     echo json_encode($result);
     
 } catch (Exception $e) {

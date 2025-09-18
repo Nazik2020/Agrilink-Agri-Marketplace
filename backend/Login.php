@@ -66,6 +66,11 @@ try {
   $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
   if ($user && password_verify($password, $user['password'])) {
+    // Only allow active sellers to login
+    if (isset($user['status']) && $user['status'] !== 'active') {
+      echo json_encode(["success" => false, "message" => "Account is not active."]);
+      exit;
+    }
     // Format profile picture URL
     $logo_url = null;
     if (!empty($user['business_logo'])) {

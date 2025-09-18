@@ -40,19 +40,14 @@ try {
         exit;
     }
     
-    // Delete the request
-    $sql = "DELETE FROM customization_requests WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$input['request_id']]);
-    
-    // Also delete any associated customized products
-    $sql = "DELETE FROM customized_products WHERE customization_request_id = ?";
+    // Soft delete: update status_of_request to 'deleted'
+    $sql = "UPDATE customization_requests SET status_of_request = 'deleted' WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([$input['request_id']]);
     
     echo json_encode([
         'success' => true,
-        'message' => 'Customization request deleted successfully'
+        'message' => 'Customization request marked as deleted'
     ]);
     
 } catch (Exception $e) {

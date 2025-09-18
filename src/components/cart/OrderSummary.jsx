@@ -19,21 +19,7 @@ const OrderSummary = () => {
             <span className="font-semibold">${subtotal.toFixed(2)}</span>
           </div>
 
-         {/* <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <Truck className="w-4 h-4 mr-1 text-gray-500" />
-              <span className="text-gray-600">Shipping</span>
-            </div>
-            <span className={`font-semibold ${shipping === 0 ? 'text-green-600' : ''}`}>
-              {shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}
-            </span>
-          </div> 
-
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Tax</span>
-            <span className="font-semibold">${tax.toFixed(2)}</span>
-          </div>
-        */}
+        
           <hr className="border-gray-300" />
 
           <div className="flex justify-between items-center text-lg">

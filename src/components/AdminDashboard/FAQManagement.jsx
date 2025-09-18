@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Trash2 } from "lucide-react";
-// ...existing code...
 
 const FAQManagement = () => {
   // Custom PopupMessage (from ContentModeration)
@@ -104,7 +103,7 @@ const FAQManagement = () => {
   const [editAnswers, setEditAnswers] = useState({});
   const [editCategories, setEditCategories] = useState({});
   const [categories, setCategories] = useState([]);
-  // Removed duplicate showPopup state and successMsg
+ 
 
   useEffect(() => {
     fetchFaqs();
@@ -202,7 +201,7 @@ const FAQManagement = () => {
           </thead>
           <tbody>
             {faqs
-              .sort((a, b) => (a.answer ? 1 : -1)) // Unanswered first
+              .sort((a, b) => (a.answer ? 1 : -1)) // Unanswered FAQs first showing 
               .map((faq) => (
                 <tr key={faq.id} className="border-b">
                   <td className="border p-2 text-gray-800" style={{ maxWidth: '200px', wordBreak: 'break-word' }}>{faq.question}</td>

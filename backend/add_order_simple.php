@@ -116,6 +116,26 @@ try {
                 if ($decreaseResult['success']) {
                     error_log("ORDER SUCCESS: Order $orderId created and stock updated");
                     // If this product is a customized product, mark request as delivered and deactivate customized product
+                            // Notify seller about new order
+                            try {
+                                $sellerNotification = [
+                                    'seller_id' => $item['seller_id'] ?? 16,
+                                    'title' => 'New Order Placed',
+                                    'message' => 'A new order has been placed by customer ID ' . $customer_id . ' for product "' . ($item['product_name'] ?? '') . '" (Qty: ' . $quantity . ').',
+                                    'type' => 'new_order',
+                                    'related_id' => $orderId
+                                ];
+                                $ch = curl_init('http://localhost/Agrilink-Agri-Marketplace/backend/notifications/add_notification.php');
+                                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                                curl_setopt($ch, CURLOPT_POST, true);
+                                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($sellerNotification));
+                                $result = curl_exec($ch);
+                                curl_close($ch);
+                                error_log('Seller notified about new order: ' . $result);
+                            } catch (Exception $e) {
+                                error_log('Failed to notify seller about new order: ' . $e->getMessage());
+                            }
                     try {
                         $chk = $pdo->prepare("SELECT customization_request_id, stock FROM customized_products WHERE id = ? LIMIT 1");
                         $chk->execute([$product_id]);
@@ -135,6 +155,26 @@ try {
                     } catch (Exception $e) {
                         error_log("POST-ORDER CUSTOMIZED UPDATE FAILED: " . $e->getMessage());
                     }
+                        // Notify customer after order placed
+                        try {
+                            $notificationData = [
+                                'customer_id' => $customer_id,
+                                'title' => 'Order Placed',
+                                'message' => 'You have placed an order for ' . ($item['product_name'] ?? '') . '. We will notify you when your product is ready to be delivered.',
+                                'type' => 'order_placed',
+                                'related_id' => $orderId
+                            ];
+                            $ch = curl_init('http://localhost/Agrilink-Agri-Marketplace/backend/notifications/add_customer_notification.php');
+                            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                            curl_setopt($ch, CURLOPT_POST, true);
+                            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($notificationData));
+                            $result = curl_exec($ch);
+                            curl_close($ch);
+                            error_log('Customer notified after order placed: ' . $result);
+                        } catch (Exception $e) {
+                            error_log('Failed to notify customer after order placed: ' . $e->getMessage());
+                        }
                     $ordersCreated[] = $orderId;
                 } else {
                     // Rollback order if stock update fails (optional: delete order)

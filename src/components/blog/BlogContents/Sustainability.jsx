@@ -27,8 +27,8 @@ const Sustainability = () => {
         alt="Ceylon spice farm landscape" 
         className="mb-4 rounded-lg" 
         style={{ height: "220px", width: "auto" }}
-        onError={(e) => console.error("Error loading sus1:", e)}
-        onLoad={() => console.log("sus1 loaded successfully")}
+        onError={undefined}
+        onLoad={undefined}
       />
 
       <h3 className="text-lg font-semibold mb-2 text-gray-900">🪴 1. Organic and Low-Impact Farming</h3>
@@ -58,8 +58,8 @@ const Sustainability = () => {
         alt="Agroforestry spice farming" 
         className="mb-4 rounded-lg" 
         style={{ height: "220px", width: "auto" }}
-        onError={(e) => console.error("Error loading sus2:", e)}
-        onLoad={() => console.log("sus2 loaded successfully")}
+  onError={undefined}
+  onLoad={undefined}
       />
 
       <h4 className="text-md font-semibold mb-1 text-gray-900">Advantages of Agroforestry:</h4>
@@ -95,8 +95,8 @@ const Sustainability = () => {
         alt="Smallholder spice farmers" 
         className="mb-4 rounded-lg" 
         style={{ height: "220px", width: "auto" }}
-        onError={(e) => console.error("Error loading sus3:", e)}
-        onLoad={() => console.log("sus3 loaded successfully")}
+        onError={undefined}
+        onLoad={undefined}
       />
 
       <h3 className="text-lg font-semibold mb-2 text-gray-900">🌾 4. Climate-Resilient Farming Practices</h3>
@@ -133,8 +133,8 @@ const Sustainability = () => {
         alt="Sustainable spice certifications" 
         className="mb-4 rounded-lg" 
         style={{ height: "220px", width: "auto" }}
-        onError={(e) => console.error("Error loading sus4:", e)}
-        onLoad={() => console.log("sus4 loaded successfully")}
+         onError={undefined}
+         onLoad={undefined}
       />
 
       <h3 className="text-lg font-semibold mb-2 text-gray-900">🌟 Conclusion: A Flavorful Future Rooted in Sustainability</h3>

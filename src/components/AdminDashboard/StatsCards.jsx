@@ -27,8 +27,8 @@ const StatsCards = () => {
     },
     {
       title: 'Revenue',
-      value: '$12,345',
-      change: '+15% from last month',
+      value: 'Loading...',
+      change: 'Loading...',
       icon: DollarSign,
       color: 'primary',
     },
@@ -45,6 +45,17 @@ const StatsCards = () => {
       const flagRes = await fetch('http://localhost/Agrilink-Agri-Marketplace/backend/admin/content_moderation/get_flags_count.php');
       if (!flagRes.ok) throw new Error(`HTTP error! status: ${flagRes.status}`);
       const flagData = await flagRes.json();
+
+      // Fetch revenue stats
+      let revenueData = { success: false };
+      try {
+        const revenueRes = await fetch('http://localhost/Agrilink-Agri-Marketplace/backend/admin/dashboard/get_revenue_stats.php');
+        if (revenueRes.ok) {
+          revenueData = await revenueRes.json();
+        }
+      } catch (err) {
+        // Ignore revenue error, keep loading state
+      }
 
       setStats(prevStats => prevStats.map(stat => {
         if (stat.title === 'Total Users' && userStatsData.success) {
@@ -70,10 +81,16 @@ const StatsCards = () => {
             change: `${flagData.flag_count} active, ${flagData.total_flag_count} total`
           };
         }
+        if (stat.title === 'Revenue' && revenueData.success) {
+          return {
+            ...stat,
+            value: revenueData.revenue ? `$${parseFloat(revenueData.revenue).toLocaleString()}` : 'N/A',
+            change: revenueData.change || ''
+          };
+        }
         return stat;
       }));
     } catch (error) {
-      console.error('Error fetching stats:', error);
       // Keep the loading state if there's an error
     }
   };

@@ -211,15 +211,22 @@ export const WishlistProvider = ({ children }) => {
     loadWishlist();
   }, [loadWishlist]);
 
-  // Reload wishlist when user changes
-  useEffect(() => {
-    const handleStorageChange = () => {
-      loadWishlist();
-    };
+    // Reload wishlist when user changes (storage or login)
+    useEffect(() => {
+      const handleStorageChange = () => {
+        loadWishlist();
+      };
+      const handleUserStateChanged = () => {
+        loadWishlist();
+      };
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [loadWishlist]);
+      window.addEventListener("storage", handleStorageChange);
+      window.addEventListener("userStateChanged", handleUserStateChanged);
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+        window.removeEventListener("userStateChanged", handleUserStateChanged);
+      };
+    }, [loadWishlist]);
 
   const value = {
     wishlist,

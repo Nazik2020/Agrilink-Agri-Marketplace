@@ -65,7 +65,7 @@ export default function RightSection() {
         // Store user data in sessionStorage
         sessionStorage.setItem("user", JSON.stringify(res.data.user));
         
-        // Store seller info for sidebar/dashboard - FIXED
+      
         if (res.data.user && res.data.user.role === "seller") {
           // Store the complete seller data
           sessionStorage.setItem("seller", JSON.stringify(res.data.user));

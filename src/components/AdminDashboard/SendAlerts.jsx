@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Label, Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui';
 import { Send, Clock } from 'lucide-react';
 import { useToast } from './hooks/use-toast';
@@ -8,13 +8,26 @@ const SendAlerts = () => {
   const [alertMessage, setAlertMessage] = useState('');
   const { toast } = useToast();
 
-  const recentAlerts = [
-    { message: 'Privacy policy update', time: '2 hours ago' },
-    { message: 'Maintenance scheduled', time: 'Yesterday' },
-    { message: 'New security features', time: '3 days ago' }
-  ];
+  const [recentAlerts, setRecentAlerts] = useState([]);
+  const [loadingAlerts, setLoadingAlerts] = useState(true);
 
-  const handleSendAlert = () => {
+  // fetchAlerts function is now hoisted for reuse
+  const fetchAlerts = async () => {
+    try {
+      const res = await fetch('http://localhost/Agrilink-Agri-Marketplace/backend/notifications/get_global_alerts.php');
+      const data = await res.json();
+      setRecentAlerts(data.alerts || []);
+    } catch (err) {
+      setRecentAlerts([]);
+    } finally {
+      setLoadingAlerts(false);
+    }
+  };
+  useEffect(() => {
+    fetchAlerts();
+  }, []);
+
+  const handleSendAlert = async () => {
     if (!alertType || !alertMessage.trim()) {
       toast({
         title: "Error",
@@ -24,21 +37,41 @@ const SendAlerts = () => {
       return;
     }
 
-    toast({
-      title: "Alert Sent Successfully!",
-      description: "System-wide general alert has been sent to all users.",
-      variant: "success",
-      style: {
-        background: '#fff',
-        color: '#111',
-        boxShadow: '0 2px 16px 0 rgba(0,0,0,0.10)',
-        borderRadius: '12px',
-        fontWeight: '500',
+    try {
+      const res = await fetch('http://localhost/Agrilink-Agri-Marketplace/backend/notifications/send_global_alert.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: alertType,
+          message: alertMessage,
+          type: alertType
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast({
+          title: "Alert Sent Successfully!",
+          description: "System-wide general alert has been sent to all users.",
+          variant: "success"
+        });
+        setAlertType('');
+        setAlertMessage('');
+        fetchAlerts(); // Refresh recent alerts after sending lateset one at the top
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to send alert.",
+          variant: "destructive"
+        });
+  // console.error(data.alert_error);
       }
-    });
-
-    setAlertType('');
-    setAlertMessage('');
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Network or server error.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -94,14 +127,20 @@ const SendAlerts = () => {
         </div>
         <div className="bg-yellow-50 rounded-lg p-4">
           <div className="font-semibold mb-2">Recent Alerts Sent:</div>
-          <ul className="space-y-1">
-            {recentAlerts.map((alert, index) => (
-              <li key={index} className="flex justify-between">
-                <span>• {alert.message}</span>
-                <span className="text-gray-500 text-sm">{alert.time}</span>
-              </li>
-            ))}
-          </ul>
+          {loadingAlerts ? (
+            <div className="text-gray-500">Loading...</div>
+          ) : recentAlerts.length === 0 ? (
+            <div className="text-gray-500">No recent alerts found.</div>
+          ) : (
+            <ul className="space-y-1">
+              {recentAlerts.map((alert, index) => (
+                <li key={index} className="flex justify-between">
+                  <span>• {alert.message}</span>
+                  <span className="text-gray-500 text-sm">{alert.time}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </div>

@@ -94,7 +94,7 @@ const TestimonialSection = () => {
 
               {/* Author */}
               <div className="flex items-center mb-6">
-                {/* No profile image, just author and title */}
+                
                 <div>
                   <p className="font-bold text-green-700 text-base sm:text-lg">
                     {testimonials[currentTestimonial].author}
@@ -103,11 +103,11 @@ const TestimonialSection = () => {
                     {testimonials[currentTestimonial].title}
                   </p>
                 </div>
-                {/* Horizontal Line from Profile to Right */}
+             
                 <hr className="flex-1 border-t border-green-300 ml-4 hidden lg:block" />
               </div>
 
-              {/* Hand Icon and Line on Right */}
+             
               <div className="flex justify-end items-center">
                 <hr className="flex-1 border-t border-green-300 mr-4 hidden lg:block" />
                 <div

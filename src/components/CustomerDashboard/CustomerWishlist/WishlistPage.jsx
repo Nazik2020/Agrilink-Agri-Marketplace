@@ -10,15 +10,14 @@ const WishlistPage = () => {
   const [localLoading, setLocalLoading] = useState({});
   const [toast, setToast] = useState({ show: false, message: "", type: "" });
 
-  // Load wishlist on component mount
+
   useEffect(() => {
     console.log("WishlistPage: Component mounted, loading wishlist...");
 
-    // Check localStorage for guest wishlist
     const guestWishlist = localStorage.getItem("guestWishlist");
     console.log("WishlistPage: Guest wishlist in localStorage:", guestWishlist);
 
-    // Check user info
+   
     const userString = sessionStorage.getItem("user");
     console.log("WishlistPage: User from localStorage:", userString);
 
@@ -29,15 +28,13 @@ const WishlistPage = () => {
         console.log("WishlistPage: User role:", user.role);
         console.log("WishlistPage: User ID:", user.id);
       } catch (error) {
-        console.error("WishlistPage: Error parsing user:", error);
+        // Error parsing user
       }
     }
 
-    // Note: loadWishlist is already called by the context on mount
-    // No need to call it again here
-  }, []); // Empty dependency array to run only once
+  }, []); 
 
-  // Add debug logging for wishlist state changes
+  
   useEffect(() => {
     console.log("WishlistPage: Wishlist state updated:", {
       wishlist,
@@ -64,7 +61,7 @@ const WishlistPage = () => {
         showToast(result.message || "Failed to remove item", "error");
       }
     } catch (error) {
-      console.error("Error removing from wishlist:", error);
+      // Error removing from wishlist
       showToast("Error removing item from wishlist", "error");
     } finally {
       setLocalLoading((prev) => ({ ...prev, [productId]: false }));
@@ -76,12 +73,12 @@ const WishlistPage = () => {
     try {
       // Prepare the product data for cart
       const productForCart = {
-        id: item.product_id, // This should match the product_id from database
+        id: item.product_id, 
         name: item.product_name,
         seller: item.seller_name || "Unknown Seller",
         category: item.category || "Product",
         price: parseFloat(item.price),
-        maxQuantity: 10, // Default max quantity
+        maxQuantity: 10, 
         image: getProductImage(item.product_images),
       };
 
@@ -93,7 +90,7 @@ const WishlistPage = () => {
 
       console.log("Added to cart from wishlist:", productForCart);
     } catch (error) {
-      console.error("Error adding to cart:", error);
+      // Error adding to cart
       showToast("Error adding item to cart", "error");
     }
   };
@@ -106,26 +103,33 @@ const WishlistPage = () => {
 
   // Get product image
   const getProductImage = (productImages) => {
-    if (!productImages)
-      return "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop";
-
-    try {
-      const images = JSON.parse(productImages);
-      return images.length > 0
-        ? images[0].startsWith("http")
-          ? images[0]
-          : `http://localhost/backend/${images[0]}`
-        : "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop";
-    } catch (error) {
-      console.error("Error parsing product images:", error);
+    // If already an array, use directly
+    let imagesArr = [];
+    if (!productImages) {
       return "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop";
     }
+    if (Array.isArray(productImages)) {
+      imagesArr = productImages;
+    } else {
+      try {
+        imagesArr = JSON.parse(productImages);
+      } catch (error) {
+        imagesArr = [];
+      }
+    }
+    if (imagesArr.length > 0) {
+      const img = imagesArr[0];
+      if (typeof img === "string" && img.startsWith("http")) {
+        return img;
+      } else if (typeof img === "string") {
+        return `http://localhost/Agrilink-Agri-Marketplace/backend/${img}`;
+      }
+    }
+    return "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop";
   };
 
-  // Check if item is in stock (you can modify this logic based on your requirements)
   const isInStock = (item) => {
-    // For now, assume all items are in stock
-    // You can add stock checking logic here based on your database
+   
     return true;
   };
 
@@ -158,7 +162,7 @@ const WishlistPage = () => {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+           <h1 className="text-3xl font-bold text-green-600">
               My Wishlist
             </h1>
             <p className="text-gray-600">
@@ -192,7 +196,7 @@ const WishlistPage = () => {
               const discount = calculateDiscount(
                 parseFloat(item.price),
                 parseFloat(item.price) * 1.2
-              ); // Assuming 20% markup for original price
+              ); 
 
               return (
                 <div

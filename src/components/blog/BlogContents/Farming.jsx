@@ -1,9 +1,6 @@
 import React from "react";
-// import farmingMainImg from "../../../assets/blog/farmingMain.png";
-// import farmingStepImg from "../../../assets/blog/farmingStep.png";
-import cofee1 from "../../../assets/blog/cofee1.png";
+
 import cofee2 from "../../../assets/blog/cofee2.png";
-import cofee3 from "../../../assets/blog/cofee3.png";
 import cofee4 from "../../../assets/blog/cofee4.png";
 import cofee5 from "../../../assets/blog/cofee5.png";
 

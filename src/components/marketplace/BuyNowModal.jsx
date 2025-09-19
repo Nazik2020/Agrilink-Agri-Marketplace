@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-<<<<<<< HEAD
-import { CreditCard, Lock, CheckCircle, X, User, Mail, MapPin, Phone, Globe } from "lucide-react";
-import axios from "axios";
-import { useCart } from "../cart/CartContext";
-
-const BuyNowModal = ({ isOpen, onClose, product, quantity = 1, isCartCheckout = false }) => {
-  const { items: cartItems, total: cartTotal, subtotal: cartSubtotal, shipping: cartShipping, tax: cartTax, clearCart, customerId } = useCart();
-  
-  // State management
-=======
 import {
   CreditCard,
   Lock,
@@ -42,8 +32,7 @@ const BuyNowModal = ({
   } = useCart();
 
   // State management - ALL HOOKS MUST BE AT THE TOP
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
-  const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Success
+  const [step, setStep] = useState(1); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [stripeKey, setStripeKey] = useState("");
@@ -73,21 +62,19 @@ const BuyNowModal = ({
   // Order summary - handle both single product and cart checkout
   const unitPrice = parseFloat(product?.price || 0);
   const singleProductTotal = unitPrice * formData.quantity;
-<<<<<<< HEAD
-  
+
   // Use cart totals if this is a cart checkout, otherwise use single product totals
-  const totalAmount = isCartCheckout ? cartTotal : singleProductTotal;
   const subtotal = isCartCheckout ? cartSubtotal : singleProductTotal;
   const shipping = isCartCheckout ? cartShipping : 0;
   const tax = isCartCheckout ? cartTax : 0;
-=======
+  const totalAmount = subtotal + shipping + tax;
 
-  // Use cart totals if this is a cart checkout, otherwise use single product totals
-  const totalAmount = isCartCheckout ? cartTotal || 0 : singleProductTotal;
-  const shipping = isCartCheckout ? cartShipping || 0 : 0;
-  const tax = isCartCheckout ? cartTax || 0 : 0;
-  const subtotalValue = isCartCheckout ? cartSubtotal || 0 : singleProductTotal;
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
+  const allowedCards = {
+    4242424242424242: "success",
+    4000000000000002: "Your card was declined.",
+    4000000000009995: "Insufficient funds.",
+    4000000000009987: "Card expired.",
+  };
 
   // Load customer data when modal opens
   useEffect(() => {
@@ -97,83 +84,6 @@ const BuyNowModal = ({
   }, [isOpen, customerId]);
 
   // Load customer data from database
-<<<<<<< HEAD
-  const loadCustomerData = async () => {
-    if (!customerId) {
-      console.log("No customer ID available");
-      return;
-    }
-
-    console.log("Loading customer data for ID:", customerId);
-    setCustomerDataLoading(true);
-    try {
-      const response = await axios.post('http://localhost/backend/get_customer_billing_data.php', {
-        customer_id: customerId
-      });
-
-      console.log("Customer data response:", response.data);
-
-      if (response.data.success || response.data.billingData) {
-        const billingData = response.data.billingData;
-        setCustomerData(response.data.customerInfo);
-        
-        console.log("Billing data loaded:", billingData);
-        console.log("Customer info loaded:", response.data.customerInfo);
-        
-        // Auto-populate form with available customer data
-        setFormData(prev => ({
-          ...prev,
-          billing_name: billingData.billing_name || '',
-          billing_email: billingData.billing_email || '',
-          billing_address: billingData.billing_address || '',
-          billing_postal_code: billingData.billing_postal_code || '',
-          billing_country: billingData.billing_country || 'United States',
-          customer_id: customerId
-        }));
-        
-        // Count auto-filled fields
-        const autoFilledCount = Object.values(billingData).filter(value => 
-          value && value !== '' && value !== 'United States'
-        ).length;
-        
-        if (autoFilledCount > 0) {
-          console.log(`Auto-filled ${autoFilledCount} fields from customer profile`);
-        }
-        
-        // Clear any previous error
-        setError('');
-      } else {
-        console.error("Could not load customer data:", response.data.message);
-        
-        // Fallback: Set minimal data from session
-        const userString = sessionStorage.getItem("user");
-        if (userString) {
-          try {
-            const user = JSON.parse(userString);
-            setFormData(prev => ({
-              ...prev,
-              billing_name: user.full_name || '',
-              billing_email: user.email || '',
-              billing_country: 'United States',
-              customer_id: customerId
-            }));
-          } catch (e) {
-            console.error("Error parsing user from session:", e);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error loading customer data:', error);
-      console.error('Error response:', error.response?.data);
-      setError('Failed to load customer data');
-    } finally {
-      setCustomerDataLoading(false);
-    }
-  };
-
-  // Load customer data from database
-=======
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
   useEffect(() => {
     if (isOpen) {
       loadStripeConfig();
@@ -188,22 +98,17 @@ const BuyNowModal = ({
       document.body.style.overflow = "unset";
     }
 
-    // Cleanup function to restore scroll when component unmounts
     return () => {
       document.body.style.overflow = "unset";
     };
   }, [isOpen]);
 
-<<<<<<< HEAD
-=======
   // Early returns AFTER all hooks are defined
   if (!isOpen) return null;
 
   // Add safety checks for props
   if (!onClose || typeof onClose !== "function") {
-    console.error(
-      "BuyNowModal: onClose prop is required and must be a function"
-    );
+    
     return null;
   }
 
@@ -218,8 +123,6 @@ const BuyNowModal = ({
     setCustomerDataLoading(true);
 
     try {
-      // Call backend API to get REAL customer signup data
-      // Get customer email from session storage for fallback
       const userString = sessionStorage.getItem("user");
       let customerEmail = null;
       if (userString) {
@@ -227,19 +130,16 @@ const BuyNowModal = ({
           const user = JSON.parse(userString);
           customerEmail = user.email;
         } catch (e) {
-          console.error("Error parsing user from session:", e);
         }
       }
 
       const response = await axios.post(
-        "http://localhost:8080/get_customer_billing_data.php",
+        "http://localhost/Agrilink-Agri-Marketplace/backend/get_customer_billing_data.php",
         {
           customer_id: customerId,
           customer_email: customerEmail,
         }
       );
-
-      console.log("Backend response:", response.data);
 
       console.log("Backend response:", response.data);
 
@@ -252,7 +152,6 @@ const BuyNowModal = ({
         const customerInfo = response.data.customerInfo;
         setCustomerData(customerInfo);
 
-        // Auto-populate form with REAL signup data
         setFormData((prev) => ({
           ...prev,
           billing_name: customerInfo.name || customerInfo.full_name || "",
@@ -266,14 +165,12 @@ const BuyNowModal = ({
         setError("");
         console.log("✅ Successfully loaded real customer data:", customerInfo);
       } else {
-        // Backend returned success:false - show error and block checkout
         setError(
           "Unable to load your profile information. Please complete your profile before checkout."
         );
         setCustomerData(null);
       }
     } catch (error) {
-      console.error("❌ Error loading customer data:", error);
 
       // Show error and prevent checkout if no profile found
       setError(
@@ -285,7 +182,6 @@ const BuyNowModal = ({
     }
   };
 
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
   // Handle backdrop click to close modal
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
@@ -294,23 +190,8 @@ const BuyNowModal = ({
   };
 
   const loadStripeConfig = async () => {
-<<<<<<< HEAD
-    try {
-      const response = await axios.get(
-        "http://localhost/backend/get_stripe_config.php"
-      );
-      if (response.data.success) {
-        setStripeKey(response.data.publishable_key);
-      }
-    } catch (error) {
-      console.error("Error loading Stripe config:", error);
-      setError("Payment system unavailable");
-    }
-=======
-    // Skip backend call - use mock key directly
     setStripeKey("pk_test_mock_key_for_development");
     console.log("Using mock Stripe key - payment will work");
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
   };
 
   // Handle form input changes
@@ -374,102 +255,21 @@ const BuyNowModal = ({
     return errors;
   };
 
-<<<<<<< HEAD
-  // Handle payment processing
-=======
-  // Handle payment processing - ONLY SPECIFIC CARDS ALLOWED
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
   const handlePayment = async () => {
-    setError("");
-    setLoading(true);
-
-<<<<<<< HEAD
-    console.log("=== Payment Debug Info ===");
-    console.log("Customer ID:", customerId);
-    console.log("Customer Data:", customerData);
-    console.log("Form Data:", formData);
-    console.log("Is Cart Checkout:", isCartCheckout);
-    console.log("Cart Items:", cartItems);
-    console.log("Total Amount:", totalAmount);
-
     try {
-      // Validate form
-      const validationErrors = validateForm();
-      console.log("Validation Errors:", validationErrors);
-      
-=======
-    try {
-      // Validate form first
-      const validationErrors = validateForm();
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
-      if (validationErrors.length > 0) {
-        setError(validationErrors.join(", "));
+      setLoading(true);
+      setError("");
+
+      const cardNumber = (formData.card_number || "").replace(/\s+/g, "");
+      if (!cardNumber) {
+        setError("Please enter a card number.");
         setLoading(false);
         return;
       }
 
-<<<<<<< HEAD
-      // Prepare checkout data
-      const checkoutData = {
-        action: "create_payment_intent",
-        customer_id: formData.customer_id,
-        billing_name: formData.billing_name,
-        billing_email: formData.billing_email,
-        billing_address: formData.billing_address,
-        billing_postal_code: formData.billing_postal_code,
-        billing_country: formData.billing_country,
-      };
-
-      // Add cart items or single product
-      if (isCartCheckout) {
-        checkoutData.cart_items = cartItems.map(item => ({
-          product_id: item.product_id,
-          quantity: item.quantity,
-          price: item.price
-        }));
-        checkoutData.total_amount = totalAmount;
-      } else {
-        checkoutData.product_id = product.id;
-        checkoutData.quantity = formData.quantity;
-      }
-
-      console.log("Checkout Data being sent:", checkoutData);
-
-      // Create payment intent
-      const response = await axios.post(
-        "http://localhost/backend/checkout_api.php",
-        checkoutData
-      );
-
-      console.log("Backend Response:", response.data);
-
-      if (response.data.success) {
-        // Simulate payment success (in real implementation, you'd use Stripe Elements)
-        setTimeout(() => {
-          setStep(3); // Success step
-          setLoading(false);
-        }, 2000);
-      } else {
-        setError(response.data.error || "Payment failed");
-=======
-      // Get card number without spaces
-      const cardNumber = formData.card_number.replace(/\s/g, "");
-
-      // ONLY THESE CARDS ARE ALLOWED - NO RANDOM NUMBERS
-      const allowedCards = {
-        4242424242424242: "success", // ✅ Visa
-        5555555555554444: "success", // ✅ Mastercard
-        378282246310005: "success", // ✅ American Express
-        4000000000000002: "Your card was declined.", // ❌ Generic decline
-        4000000000009995: "Your card has insufficient funds.", // ❌ Insufficient funds
-        4000000000009987: "Your card was reported lost or stolen.", // ❌ Lost card
-      };
-
       // Check if card number is in allowed list
       if (!allowedCards.hasOwnProperty(cardNumber)) {
-        setError(
-          "Invalid card number. Please enter a valid Stripe test card number."
-        );
+        setError("Invalid card number. Please enter a valid card number.");
         setLoading(false);
         return;
       }
@@ -494,7 +294,7 @@ const BuyNowModal = ({
           billing_country: formData.billing_country,
         };
 
-        let purchasedProductIds = [];
+        let purchasedProducts = [];
 
         if (isCartCheckout) {
           // Cart checkout: send all cart items
@@ -509,7 +309,10 @@ const BuyNowModal = ({
           orderPayload.subtotal = cartSubtotal;
           orderPayload.shipping = cartShipping;
           orderPayload.tax = cartTax;
-          purchasedProductIds = cartItems.map((item) => item.product_id);
+          purchasedProducts = cartItems.map((item) => ({
+            productId: item.product_id,
+            quantity: item.quantity,
+          }));
         } else {
           // Single product checkout
           orderPayload.product_id = product?.id || product?.product_id;
@@ -517,9 +320,15 @@ const BuyNowModal = ({
           orderPayload.quantity = formData.quantity;
           orderPayload.price = product?.price;
           orderPayload.product_images = product?.images?.[0] || "";
-          orderPayload.seller_id = product?.seller_id || product?.sellerId || null;
+          orderPayload.seller_id =
+            product?.seller_id || product?.sellerId || null;
           if (product?.id || product?.product_id) {
-            purchasedProductIds = [product.id || product.product_id];
+            purchasedProducts = [
+              {
+                productId: product.id || product.product_id,
+                quantity: formData.quantity || 1,
+              },
+            ];
           }
         }
 
@@ -549,16 +358,11 @@ const BuyNowModal = ({
           return;
         }
 
-        // Dispatch custom event for each purchased product to update ProductDetails page
-        if (purchasedProductIds.length > 0) {
-          purchasedProductIds.forEach((productId) => {
-            console.log(
-              "[BuyNowModal] Dispatching orderPaid event for productId:",
-              productId,
-              typeof productId
-            );
+        // Dispatch custom event for each purchased product to update listings instantly
+        if (purchasedProducts.length > 0) {
+          purchasedProducts.forEach(({ productId, quantity }) => {
             window.dispatchEvent(
-              new CustomEvent("orderPaid", { detail: { productId } })
+              new CustomEvent("orderPaid", { detail: { productId, quantity } })
             );
           });
         }
@@ -567,22 +371,39 @@ const BuyNowModal = ({
           clearCart(); // Clear cart on successful payment
         }
 
+        // Tell backend to close customized visibility if this was a customized product
+        try {
+          if (!isCartCheckout && product && product.is_customized && product.id) {
+            await axios.post(
+              `${API_BASE}/backend/RequestCustomization/close_after_purchase.php`,
+              { customized_product_id: product.id }
+            );
+          }
+          if (isCartCheckout && Array.isArray(cartItems)) {
+            const customizedIds = cartItems
+              .filter((it) => it.isCustomized && it.id)
+              .map((it) => it.id);
+            for (const cid of customizedIds) {
+              await axios.post(
+                `${API_BASE}/backend/RequestCustomization/close_after_purchase.php`,
+                { customized_product_id: cid }
+              );
+            }
+          }
+        } catch (e) {
+          console.warn('close_after_purchase notify failed', e);
+        }
+
         setStep(3); // Go to success page
         setLoading(false);
       } else {
         // DECLINED - Show specific error message
         setError(allowedCards[cardNumber]);
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
         setLoading(false);
       }
     } catch (error) {
       console.error("Payment error:", error);
-<<<<<<< HEAD
-      console.error("Error response:", error.response?.data);
-      setError("Payment processing failed");
-=======
       setError("Payment processing failed. Please try again.");
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
       setLoading(false);
     }
   };
@@ -607,28 +428,15 @@ const BuyNowModal = ({
       quantity: quantity,
       customer_id: customerId || 1,
     });
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
     // Clear cart if this was a cart checkout and payment was successful
     if (isCartCheckout && step === 3) {
       clearCart();
     }
-<<<<<<< HEAD
-    
-    onClose();
-  };
-
-  if (!isOpen) return null;
-
-=======
 
     onClose();
   };
 
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
   const modalContent = (
     <div
       className="fixed inset-0 flex items-center justify-center p-4"
@@ -745,16 +553,6 @@ const BuyNowModal = ({
                 <h3 className="font-bold text-lg mb-3 text-gray-800">
                   Order Summary
                 </h3>
-<<<<<<< HEAD
-                
-                {isCartCheckout ? (
-                  // Cart checkout - show all cart items
-                  <div className="space-y-3">
-                    {cartItems.map((item, index) => (
-                      <div key={index} className="flex items-center space-x-4">
-                        <img
-                          src={item.product_images ? `http://localhost/backend/${item.product_images.split(',')[0]}` : "/placeholder.svg"}
-=======
 
                 {isCartCheckout ? (
                   // Cart checkout - show all cart items
@@ -765,14 +563,33 @@ const BuyNowModal = ({
                         className="flex items-center space-x-4"
                       >
                         <img
-                          src={
-                            item.product_images
-                              ? `http://localhost/backend/${
-                                  item.product_images.split(",")[0]
-                                }`
-                              : "/placeholder.svg"
-                          }
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
+                          src={(function () {
+                            let imagesArr = [];
+                            if (!item.product_images) {
+                              return "/placeholder.svg";
+                            }
+                            if (Array.isArray(item.product_images)) {
+                              imagesArr = item.product_images;
+                            } else {
+                              try {
+                                imagesArr = JSON.parse(item.product_images);
+                              } catch (error) {
+                                imagesArr = [];
+                              }
+                            }
+                            if (imagesArr.length > 0) {
+                              const img = imagesArr[0];
+                              if (
+                                typeof img === "string" &&
+                                img.startsWith("http")
+                              ) {
+                                return img;
+                              } else if (typeof img === "string") {
+                                return `http://localhost/Agrilink-Agri-Marketplace/backend/${img}`;
+                              }
+                            }
+                            return "/placeholder.svg";
+                          })()}
                           alt={item.product_name}
                           className="w-16 h-16 object-cover rounded-lg border border-green-200"
                         />
@@ -785,76 +602,29 @@ const BuyNowModal = ({
                           </p>
                         </div>
                         <div className="text-right">
-<<<<<<< HEAD
-                          <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
-                          <div className="font-semibold text-gray-800">
-                            ${(parseFloat(item.price) * item.quantity).toFixed(2)}
-=======
                           <span className="text-sm text-gray-600">
                             Qty: {item.quantity}
                           </span>
-                          <div className="font-semibold text-gray-800">
-                            $
-                            {(parseFloat(item.price) * item.quantity).toFixed(
-                              2
-                            )}
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
-                          </div>
+                          <br />
+                          <span className="font-semibold text-green-700">
+                            ${parseFloat(item.price * item.quantity).toFixed(2)}
+                          </span>
                         </div>
                       </div>
                     ))}
-<<<<<<< HEAD
-                    
-=======
 
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                     {/* Cart totals */}
                     <div className="border-t border-green-200 mt-4 pt-4 space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Subtotal:</span>
-<<<<<<< HEAD
-                        <span className="font-semibold">${subtotal.toFixed(2)}</span>
-                      </div>
-                      {shipping > 0 && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Shipping:</span>
-                          <span className="font-semibold">${shipping.toFixed(2)}</span>
-                        </div>
-                      )}
-                      {tax > 0 && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Tax:</span>
-                          <span className="font-semibold">${tax.toFixed(2)}</span>
-=======
                         <span className="font-semibold">
-                          ${(cartSubtotal || 0).toFixed(2)}
+                          ${totalAmount.toFixed(2)}
                         </span>
                       </div>
-                      {(cartShipping || 0) > 0 && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Shipping:</span>
-                          <span className="font-semibold">
-                            ${(cartShipping || 0).toFixed(2)}
-                          </span>
-                        </div>
-                      )}
-                      {(cartTax || 0) > 0 && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Tax:</span>
-                          <span className="font-semibold">
-                            ${(cartTax || 0).toFixed(2)}
-                          </span>
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
-                        </div>
-                      )}
                       <div className="flex justify-between items-center text-lg">
                         <span className="font-bold text-gray-800">Total:</span>
                         <span className="font-bold text-xl text-green-600">
-<<<<<<< HEAD
-                          ${totalAmount.toFixed(2)}
-=======
                           ${(totalAmount || 0).toFixed(2)}
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                         </span>
                       </div>
                     </div>
@@ -863,9 +633,35 @@ const BuyNowModal = ({
                   // Single product checkout
                   <div className="flex items-center space-x-4">
                     <img
-                      src={product?.images?.[0] || "/placeholder.svg"}
+                      src={(function () {
+                        let imagesArr = [];
+                        if (!product?.images) {
+                          return "/placeholder.svg";
+                        }
+                        if (Array.isArray(product.images)) {
+                          imagesArr = product.images;
+                        } else {
+                          try {
+                            imagesArr = JSON.parse(product.images);
+                          } catch (error) {
+                            imagesArr = [];
+                          }
+                        }
+                        if (imagesArr.length > 0) {
+                          const img = imagesArr[0];
+                          if (
+                            typeof img === "string" &&
+                            img.startsWith("http")
+                          ) {
+                            return img;
+                          } else if (typeof img === "string") {
+                            return `http://localhost/Agrilink-Agri-Marketplace/backend/${img}`;
+                          }
+                        }
+                        return "/placeholder.svg";
+                      })()}
                       alt={product?.name}
-                      className="w-16 h-16 object-cover rounded-lg border border-green-200"
+                      className="w-24 h-24 object-cover rounded-lg border border-green-200"
                     />
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-800">
@@ -874,411 +670,283 @@ const BuyNowModal = ({
                       <p className="text-gray-600">
                         ${unitPrice.toFixed(2)} each
                       </p>
+                      <label className="block mt-2">
+                        Quantity:
+                        <input
+                          type="number"
+                          name="quantity"
+                          min="1"
+                          max={product?.stock || 100}
+                          value={formData.quantity}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              quantity: Math.max(1, Number(e.target.value)),
+                            }))
+                          }
+                          className="w-20 ml-2 border border-gray-300 rounded px-2 py-1"
+                        />
+                      </label>
                     </div>
                     <div className="text-right">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Qty
+                      <span className="font-semibold text-green-700">
+                        ${singleProductTotal.toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Summary totals */}
+                <div className="mt-4 border-t border-green-200 pt-3 text-right space-y-1">
+                  <div>
+                    <span className="font-semibold">Subtotal:</span> $
+                    {subtotal.toFixed(2)}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Shipping:</span> $
+                    {shipping.toFixed(2)}
+                  </div>
+                  <div>
+                    <span className="font-semibold">Tax:</span> $
+                    {tax.toFixed(2)}
+                  </div>
+                  <div className="font-bold text-lg">
+                    Total: ${totalAmount.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Billing Information Form */}
+              <div className="mt-6">
+                <h3 className="font-bold text-lg mb-3 text-gray-800">
+                  Billing Information
+                </h3>
+                {error && (
+                  <div className="bg-red-100 text-red-700 p-2 rounded mb-4">
+                    {error}
+                  </div>
+                )}
+                {customerDataLoading ? (
+                  <p>Loading your profile information...</p>
+                ) : (
+                  <form className="space-y-4">
+                    <div>
+                      <label className="block font-semibold text-gray-700">
+                        Name
+                        <User
+                          className="inline-block ml-2 text-green-600"
+                          size={16}
+                        />
                       </label>
                       <input
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={formData.quantity}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            quantity: parseInt(e.target.value) || 1,
-                          }))
-                        }
-                        className="w-16 p-2 border border-gray-300 rounded text-center focus:ring-2 focus:ring-green-500 focus:border-green-600"
+                        type="text"
+                        name="billing_name"
+                        value={formData.billing_name}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                        placeholder="John Doe"
+                        disabled={!!customerData}
                       />
                     </div>
-                  </div>
-                )}
-<<<<<<< HEAD
-                
-=======
-
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
-                {!isCartCheckout && (
-                  <div className="border-t border-green-200 mt-4 pt-4 flex justify-between items-center">
-                    <span className="font-bold text-lg text-gray-800">
-                      Total:
-                    </span>
-                    <span className="font-bold text-xl text-green-600">
-                      ${totalAmount.toFixed(2)}
-                    </span>
-                  </div>
+                    <div>
+                      <label className="block font-semibold text-gray-700">
+                        Email
+                        <Mail
+                          className="inline-block ml-2 text-green-600"
+                          size={16}
+                        />
+                      </label>
+                      <input
+                        type="email"
+                        name="billing_email"
+                        value={formData.billing_email}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                        placeholder="john@example.com"
+                        disabled={!!customerData}
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-semibold text-gray-700">
+                        Address
+                        <MapPin
+                          className="inline-block ml-2 text-green-600"
+                          size={16}
+                        />
+                      </label>
+                      <input
+                        type="text"
+                        name="billing_address"
+                        value={formData.billing_address}
+                        onChange={handleInputChange}
+                        className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                        placeholder="123 Main St"
+                        disabled={!!customerData}
+                      />
+                    </div>
+                    <div className="flex space-x-4">
+                      <div className="flex-1">
+                        <label className="block font-semibold text-gray-700">
+                          Postal Code
+                        </label>
+                        <input
+                          type="text"
+                          name="billing_postal_code"
+                          value={formData.billing_postal_code}
+                          onChange={handleInputChange}
+                          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                          placeholder="12345"
+                          disabled={!!customerData}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block font-semibold text-gray-700">
+                          Country
+                        </label>
+                        <input
+                          type="text"
+                          name="billing_country"
+                          value={formData.billing_country}
+                          onChange={handleInputChange}
+                          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                          placeholder="United States"
+                          disabled={!!customerData}
+                        />
+                      </div>
+                    </div>
+                  </form>
                 )}
               </div>
 
-              {/* Billing Information */}
-              <div>
-                <h3 className="font-bold text-lg mb-4 text-gray-800 flex items-center">
-                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
-                    <span className="text-green-600 text-sm">📍</span>
-                  </div>
-                  Billing Information
-                  <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded-full">
-                    Auto-filled from Profile
-                  </span>
-                </h3>
-
-                {customerDataLoading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto mb-4"></div>
-<<<<<<< HEAD
-                    <p className="text-gray-600">Loading your billing information...</p>
-=======
-                    <p className="text-gray-600">
-                      Loading your billing information...
-                    </p>
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
-                  </div>
-                ) : customerData ? (
-                  <div className="space-y-4">
-                    {/* Customer Information Display */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
-                      <div className="flex items-center space-x-3">
-                        <User className="w-5 h-5 text-blue-600" />
-                        <div className="flex-1">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Full Name
-                          </label>
-                          <input
-                            type="text"
-                            value={formData.billing_name}
-                            readOnly
-                            disabled
-                            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-3">
-                        <Mail className="w-5 h-5 text-blue-600" />
-                        <div className="flex-1">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Email Address
-                          </label>
-                          <input
-                            type="email"
-                            value={formData.billing_email}
-                            readOnly
-                            disabled
-                            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-3">
-                        <MapPin className="w-5 h-5 text-blue-600" />
-                        <div className="flex-1">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Street Address
-                          </label>
-                          <input
-                            type="text"
-                            value={formData.billing_address}
-                            readOnly
-                            disabled
-                            className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="flex items-center space-x-3">
-                          <MapPin className="w-5 h-5 text-blue-600" />
-                          <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Postal Code
-                            </label>
-                            <input
-                              type="text"
-                              value={formData.billing_postal_code}
-                              readOnly
-                              disabled
-                              className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="flex items-center space-x-3">
-                          <Globe className="w-5 h-5 text-blue-600" />
-                          <div className="flex-1">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Country
-                            </label>
-                            <input
-                              type="text"
-                              value={formData.billing_country}
-                              readOnly
-                              disabled
-                              className="w-full p-3 bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Information Message */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <p className="text-sm text-blue-700 flex items-center">
-<<<<<<< HEAD
-                        <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                        </svg>
-                        Billing information is automatically filled from your profile and cannot be changed here. 
-                        To update your information, please visit your profile page.
-=======
-                        <svg
-                          className="w-4 h-4 mr-2"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        Billing information is automatically filled from your
-                        profile and cannot be changed here. To update your
-                        information, please visit your profile page.
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-red-700 text-sm">
-<<<<<<< HEAD
-                      Unable to load your billing information. Please ensure your profile is complete.
-=======
-                      Unable to load your billing information. Please ensure
-                      your profile is complete.
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
-                    </p>
-                  </div>
-                )}
+              {/* Navigation Buttons */}
+              <div className="flex justify-end mt-6 space-x-3">
+                <button
+                  onClick={handleClose}
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => setStep(2)}
+                  className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                  disabled={loading || !!error || customerDataLoading}
+                >
+                  Next
+                </button>
               </div>
-
-              <button
-                onClick={() => setStep(2)}
-                className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
-              >
-                <span>Continue to Payment</span>
-                <span>→</span>
-              </button>
             </div>
           )}
 
           {step === 2 && (
             <div className="space-y-4">
-              {/* Security Notice */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-3">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <Lock className="text-green-600" size={16} />
-                </div>
-                <div>
-                  <p className="font-bold text-green-800">🔒 Secure Payment</p>
-                  <p className="text-green-600 text-sm">
-                    Your payment information is encrypted and secure
-                  </p>
-                </div>
-              </div>
-
-              {/* Payment Form */}
-              <div>
-                <h3 className="font-bold text-lg mb-4 text-gray-800 flex items-center">
-                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
-                    <span className="text-green-600 text-sm">💳</span>
-                  </div>
-                  Payment Information
-                </h3>
-                <div className="space-y-4">
-                  <input
-                    type="text"
-                    name="card_name"
-                    placeholder="Cardholder Name"
-                    value={formData.card_name}
-                    onChange={handleInputChange}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-600 transition-all duration-200"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Card Number"
-                    value={formData.card_number}
-                    onChange={handleCardNumberChange}
-                    maxLength="19"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-600 transition-all duration-200"
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <input
-                      type="text"
-                      placeholder="MM/YY"
-                      value={formData.card_expiry}
-                      onChange={handleExpiryChange}
-                      maxLength="5"
-                      className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-600 transition-all duration-200"
-                    />
-                    <input
-                      type="text"
-                      name="card_cvc"
-                      placeholder="CVC"
-                      value={formData.card_cvc}
-                      onChange={handleInputChange}
-                      maxLength="4"
-                      className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-600 transition-all duration-200"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Order Summary (compact) */}
-              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                {isCartCheckout ? (
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium text-gray-700">
-                        {cartItems.length} items
-                      </span>
-                      <span className="font-bold text-xl text-green-600">
-                        ${totalAmount.toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-600">
-<<<<<<< HEAD
-                      {cartItems.map((item, index) => (
-                        <div key={index} className="flex justify-between">
-                          <span>{item.product_name} × {item.quantity}</span>
-                          <span>${(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
-=======
-                      {cartItems.map((item) => (
-                        <div
-                          key={item.product_id}
-                          className="flex justify-between"
-                        >
-                          <span>
-                            {item.product_name} × {item.quantity}
-                          </span>
-                          <span>
-                            $
-                            {(parseFloat(item.price) * item.quantity).toFixed(
-                              2
-                            )}
-                          </span>
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium text-gray-700">
-                      {product?.name} × {formData.quantity}
-                    </span>
-                    <span className="font-bold text-xl text-green-600">
-                      ${totalAmount.toFixed(2)}
-                    </span>
-                  </div>
-                )}
-              </div>
-
+              <h3 className="font-bold text-lg mb-3 text-gray-800">
+                Payment Information
+              </h3>
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600">
+                <div className="bg-red-100 text-red-700 p-2 rounded mb-4">
                   {error}
                 </div>
               )}
 
-              <div className="flex space-x-3">
+              <form className="space-y-4">
+                <div>
+                  <label className="block font-semibold text-gray-700">
+                    Card Number
+                  </label>
+                  <input
+                    type="text"
+                    name="card_number"
+                    value={formData.card_number}
+                    onChange={handleCardNumberChange}
+                    maxLength={19}
+                    placeholder="Enter card number"
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                  />
+                </div>
+                <div className="flex space-x-4">
+                  <div className="flex-1">
+                    <label className="block font-semibold text-gray-700">
+                      Expiry Date (MM/YY)
+                    </label>
+                    <input
+                      type="text"
+                      name="card_expiry"
+                      value={formData.card_expiry}
+                      onChange={handleExpiryChange}
+                      maxLength={5}
+                      placeholder="MM/YY"
+                      className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block font-semibold text-gray-700">
+                      CVC
+                    </label>
+                    <input
+                      type="text"
+                      name="card_cvc"
+                      value={formData.card_cvc}
+                      onChange={handleInputChange}
+                      maxLength={4}
+                      placeholder="CVC"
+                      className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block font-semibold text-gray-700">
+                    Name on Card
+                  </label>
+                  <input
+                    type="text"
+                    name="card_name"
+                    value={formData.card_name}
+                    onChange={handleInputChange}
+                    placeholder="Enter name on card"
+                    className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                  />
+                </div>
+              </form>
+
+              {/* Navigation Buttons */}
+              <div className="flex justify-between mt-6">
                 <button
                   onClick={() => setStep(1)}
-                  className="flex-1 bg-white text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-all duration-200 border border-gray-300 hover:border-gray-400"
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+                  disabled={loading}
                 >
-                  ← Back
+                  Back
                 </button>
                 <button
                   onClick={handlePayment}
+                  className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
                   disabled={loading}
-                  className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50"
                 >
-                  {loading ? (
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                      <span>Processing...</span>
-                    </div>
-                  ) : (
-                    `💳 Pay $${totalAmount.toFixed(2)}`
-                  )}
+                  {loading ? "Processing..." : "Pay Now"}
                 </button>
               </div>
             </div>
           )}
 
           {step === 3 && (
-            <div className="text-center space-y-4">
-              <div className="flex justify-center">
-                <CheckCircle className="text-green-600" size={48} />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">
-                  Payment Successful!
-                </h3>
-                <p className="text-gray-600">
-                  Your order has been confirmed and will be processed soon.
-                </p>
-              </div>
-              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                <p className="font-semibold text-gray-800 mb-2">
-                  Order Details:
-                </p>
-                {isCartCheckout ? (
-                  <div className="space-y-2">
-<<<<<<< HEAD
-                    {cartItems.map((item, index) => (
-                      <p key={index} className="text-gray-700">
-                        {item.product_name} × {item.quantity}
-                      </p>
-                    ))}
-                    <p className="font-bold text-xl text-green-600">
-                      Total: ${totalAmount.toFixed(2)}
-=======
-                    {cartItems.map((item) => (
-                      <p key={item.product_id} className="text-gray-700">
-                        {item.product_name} × {item.quantity}
-                      </p>
-                    ))}
-                    {/* Force display of actual cart total */}
-                    <p className="font-bold text-xl text-green-600">
-                      Total: ${Number(cartTotal || totalAmount).toFixed(2)}
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-gray-700 mb-1">
-                      {product?.name} × {formData.quantity}
-                    </p>
-<<<<<<< HEAD
-                    <p className="font-bold text-xl text-green-600">
-                      Total: ${totalAmount.toFixed(2)}
-=======
-                    {/* Ensure product price is correctly displayed */}
-                    <p className="font-bold text-xl text-green-600">
-                      Total: $
-                      {(Number(product?.price) * formData.quantity).toFixed(2)}
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
-                    </p>
-                  </>
-                )}
-              </div>
+            <div className="text-center p-6 space-y-4">
+              <CheckCircle
+                size={48}
+                className="mx-auto text-green-600 animate-bounce"
+              />
+              <h3 className="text-2xl font-bold text-green-700">
+                Payment Successful!
+              </h3>
+              <p className="text-gray-700">
+                Thank you for your order. You will receive a confirmation
+                message shortly.
+              </p>
               <button
                 onClick={handleClose}
-                className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                className="mt-4 px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
               >
-                Continue Shopping
+                Close
               </button>
             </div>
           )}
@@ -1287,17 +955,7 @@ const BuyNowModal = ({
     </div>
   );
 
-  // Use createPortal to render the modal at the root level
-<<<<<<< HEAD
   return createPortal(modalContent, document.body);
-=======
-  try {
-    return createPortal(modalContent, document.body);
-  } catch (error) {
-    console.error("BuyNowModal render error:", error);
-    return null;
-  }
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
 };
 
 export default BuyNowModal;

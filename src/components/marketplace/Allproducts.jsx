@@ -4,10 +4,7 @@ import { FaShoppingCart, FaHeart } from "react-icons/fa";
 import axios from "axios";
 import { useCart } from "../cart/CartContext";
 import SimpleWishlistButton from "../wishlist/SimpleWishlistButton";
-<<<<<<< HEAD
-=======
 import StarRating from "./StarRating";
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
 
 const Allproducts = ({ displayCount = 8 }) => {
   const { addToCart } = useCart();
@@ -20,11 +17,7 @@ const Allproducts = ({ displayCount = 8 }) => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(
-<<<<<<< HEAD
-          "http://localhost/backend/get_products.php"
-=======
-          "http://localhost:8080/get_products.php"
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
+          "http://localhost/Agrilink-Agri-Marketplace/backend/get_products.php"
         );
         if (response.data.success) {
           setProducts(response.data.products);
@@ -42,6 +35,23 @@ const Allproducts = ({ displayCount = 8 }) => {
     fetchProducts();
   }, []);
 
+  // Instant stock update when an order is paid
+  useEffect(() => {
+    const handleOrderPaid = (e) => {
+      const { productId, quantity = 1 } = e.detail || {};
+      if (!productId) return;
+      setProducts((prev) =>
+        prev.map((p) =>
+          String(p.id) === String(productId)
+            ? { ...p, stock: Math.max(0, (parseInt(p.stock, 10) || 0) - (quantity || 1)) }
+            : p
+        )
+      );
+    };
+    window.addEventListener("orderPaid", handleOrderPaid);
+    return () => window.removeEventListener("orderPaid", handleOrderPaid);
+  }, []);
+
   const handleAddToCart = (product) => {
     addToCart({
       id: product.id,
@@ -56,33 +66,9 @@ const Allproducts = ({ displayCount = 8 }) => {
   // Loading state
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center h-64">
-        <div className="relative">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-200 border-t-green-600"></div>
-          <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-green-400 animate-ping"></div>
-        </div>
-<<<<<<< HEAD
-        <p className="mt-6 text-gray-600 text-lg font-medium">Loading amazing products...</p>
-        <div className="flex space-x-2 mt-4">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce"></div>
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
-=======
-        <p className="mt-6 text-gray-600 text-lg font-medium">
-          Loading amazing products...
-        </p>
-        <div className="flex space-x-2 mt-4">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce"></div>
-          <div
-            className="w-2 h-2 bg-green-500 rounded-full animate-bounce"
-            style={{ animationDelay: "0.1s" }}
-          ></div>
-          <div
-            className="w-2 h-2 bg-green-500 rounded-full animate-bounce"
-            style={{ animationDelay: "0.2s" }}
-          ></div>
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
-        </div>
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+        <p className="ml-4 text-gray-600">Loading products...</p>
       </div>
     );
   }
@@ -91,23 +77,13 @@ const Allproducts = ({ displayCount = 8 }) => {
   if (error) {
     return (
       <div className="text-center py-12">
-        <div className="max-w-md mx-auto">
-          <div className="text-6xl mb-6">⚠️</div>
-<<<<<<< HEAD
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Oops! Something went wrong</h3>
-=======
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">
-            Oops! Something went wrong
-          </h3>
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
-          <p className="text-gray-600 text-lg mb-6">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-3 rounded-2xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
-          >
-            Try Again
-          </button>
-        </div>
+        <p className="text-red-600 text-lg">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600"
+        >
+          Try Again
+        </button>
       </div>
     );
   }
@@ -174,11 +150,7 @@ const Allproducts = ({ displayCount = 8 }) => {
             <img
               src={
                 product.product_images && product.product_images.length > 0
-<<<<<<< HEAD
-                  ? `http://localhost/backend/${product.product_images[0]}`
-=======
-                  ? `http://localhost/Agrilink-Agri-Marketplace/backend/${product.product_images[0]}`
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
+                  ? product.product_images[0]
                   : "https://via.placeholder.com/300x200?text=No+Image"
               }
               alt={product.product_name}
@@ -199,11 +171,6 @@ const Allproducts = ({ displayCount = 8 }) => {
                 by {product.seller_name || "Unknown"}
               </span>
             </div>
-<<<<<<< HEAD
-
-            <Link to={`/product/${product.id}`}>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1 cursor-pointer hover:text-green-700">
-=======
             <div className="flex items-center mb-1">
               {product.stock > 0 ? (
                 <span className="text-green-600 font-semibold text-xs">
@@ -230,24 +197,15 @@ const Allproducts = ({ displayCount = 8 }) => {
                   width: "100%",
                 }}
               >
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
                 {product.product_name}
               </h3>
             </Link>
-
             <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-<<<<<<< HEAD
-              {product.product_description.length > 80
-                ? product.product_description.substring(0, 80) + "..."
-                : product.product_description}
-=======
               {product.product_description &&
               product.product_description.length > 80
                 ? product.product_description.substring(0, 80) + "..."
                 : product.product_description || ""}
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
             </p>
-
             <div className="flex items-end justify-between mt-auto">
               <div>
                 <span className="text-green-700 font-bold text-lg">

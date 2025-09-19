@@ -1,6 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Libertinus+Mono&family=Lora:ital,wght");
 @import url("https://fonts.googleapis.com/css2?family=Libertinus+Mono&family=Lora:ital,wght@0,400..700;1,400..700&family=UoqMunThenKhung&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Libertinus+Mono&family=Lora:ital,wght@0,400..700;1,400..700&family=UoqMunThenKhung&display=swap");
+
 @import "tailwindcss";
 
 .libertinus-mono-regular {
@@ -24,8 +25,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+/*
+Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
 

@@ -3,6 +3,56 @@
 require_once dirname(__FILE__) . '/../config/admin_config.php';
 
 class UserManager {
+    /**
+     * Get user details for customer or seller
+     */
+    public function getUserDetails($userId, $userType) {
+        try {
+            if ($userType === 'customer') {
+                $sql = "SELECT id, full_name, username, email, address, postal_code, contactno, country, profile_image, status, last_login, created_at FROM customers WHERE id = ? LIMIT 1";
+                $stmt = $this->conn->prepare($sql);
+                $stmt->execute([$userId]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($user) {
+                    return [
+                        'success' => true,
+                        'user' => $user
+                    ];
+                } else {
+                    return [
+                        'success' => false,
+                        'message' => 'Customer not found'
+                    ];
+                }
+            } elseif ($userType === 'seller') {
+                $sql = "SELECT id, username, business_name, business_description, country, contact_number, email, address, business_logo, status, last_login, created_at FROM sellers WHERE id = ? LIMIT 1";
+                $stmt = $this->conn->prepare($sql);
+                $stmt->execute([$userId]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($user) {
+                    return [
+                        'success' => true,
+                        'user' => $user
+                    ];
+                } else {
+                    return [
+                        'success' => false,
+                        'message' => 'Seller not found'
+                    ];
+                }
+            } else {
+                return [
+                    'success' => false,
+                    'message' => 'Invalid user type'
+                ];
+            }
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Error fetching user details: ' . $e->getMessage()
+            ];
+        }
+    }
     private $conn;
     private $adminConfig;
     
@@ -34,52 +84,62 @@ class UserManager {
             
             $totalCount = $customerCount + $sellerCount;
             
-            // Get customers
+            // Get customers with search filter
+            $customerWhere = '';
+            $customerParams = [];
+            if ($search !== '') {
+                $customerWhere = "WHERE (full_name LIKE ? OR email LIKE ?)";
+                $customerParams[] = "%$search%";
+                $customerParams[] = "%$search%";
+            }
             $customerSql = "SELECT
                 id, full_name as name, email, COALESCE(status, 'active') as status, created_at, last_login, 'customer' as type
                 FROM customers
+                $customerWhere
                 ORDER BY created_at DESC";
-            
             $customerStmt = $this->conn->prepare($customerSql);
-            $customerStmt->execute();
+            $customerStmt->execute($customerParams);
             $customers = $customerStmt->fetchAll(PDO::FETCH_ASSOC);
-            
+
             // Add default values for missing columns
             foreach ($customers as &$customer) {
                 $customer['address'] = '';
                 $customer['contactno'] = '';
                 $customer['country'] = '';
                 $customer['postal_code'] = '';
-                // Ensure last_login is not overwritten
                 if (!isset($customer['last_login'])) {
                     $customer['last_login'] = null;
                 }
             }
-            
             $users = array_merge($users, $customers);
-            
-            // Get sellers
+
+            // Get sellers with search filter
+            $sellerWhere = '';
+            $sellerParams = [];
+            if ($search !== '') {
+                $sellerWhere = "WHERE (business_name LIKE ? OR email LIKE ?)";
+                $sellerParams[] = "%$search%";
+                $sellerParams[] = "%$search%";
+            }
             $sellerSql = "SELECT
                 id, business_name as name, email, COALESCE(status, 'active') as status, created_at, last_login, 'seller' as type
                 FROM sellers
+                $sellerWhere
                 ORDER BY created_at DESC";
-            
             $sellerStmt = $this->conn->prepare($sellerSql);
-            $sellerStmt->execute();
+            $sellerStmt->execute($sellerParams);
             $sellers = $sellerStmt->fetchAll(PDO::FETCH_ASSOC);
-            
+
             // Add default values for missing columns
             foreach ($sellers as &$seller) {
                 $seller['address'] = '';
                 $seller['contactno'] = '';
                 $seller['country'] = '';
                 $seller['postal_code'] = '';
-                // Ensure last_login is not overwritten
                 if (!isset($seller['last_login'])) {
                     $seller['last_login'] = null;
                 }
             }
-            
             $users = array_merge($users, $sellers);
             
             // Sort by created_at and apply pagination

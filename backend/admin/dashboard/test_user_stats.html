@@ -133,7 +133,7 @@
         }
 
         async function getUserStats() {
-            const result = await makeRequest('/backend/admin/dashboard/get_user_stats.php');
+            const result = await makeRequest('http://localhost/Agrilink-Agri-Marketplace/backend/admin/dashboard/get_user_stats.php');
             document.getElementById('userStatsResponse').textContent = JSON.stringify(result, null, 2);
             
             if (result.success) {
@@ -154,7 +154,7 @@
         }
 
         async function updateLiveStats() {
-            const result = await makeRequest('/backend/admin/dashboard/get_user_stats.php');
+            const result = await makeRequest('http://localhost/Agrilink-Agri-Marketplace/backend/admin/dashboard/get_user_stats.php');
             if (result.success) {
                 updateLiveStatsWithData(result.stats);
             }

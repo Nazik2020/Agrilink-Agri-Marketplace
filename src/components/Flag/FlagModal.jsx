@@ -8,6 +8,7 @@ const FlagModal = ({
   onClose,
   onSuccess,
   open,
+  showPopup,
 }) => {
   const [category, setCategory] = useState("");
   const [reason, setReason] = useState("");
@@ -45,11 +46,7 @@ const FlagModal = ({
 
     try {
       const response = await axios.post(
-<<<<<<< HEAD
-        "http://localhost/backend/submit_flag.php",
-=======
         "http://localhost/Agrilink-Agri-Marketplace/backend/submit_flag.php",
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
         {
           flagged_by_customer_id: user.id,
           seller_id: sellerId,
@@ -62,11 +59,11 @@ const FlagModal = ({
       if (response.data.success) {
         onSuccess();
       } else {
-        alert(response.data.message || "Error submitting flag");
+        if (showPopup) showPopup(response.data.message || "Error submitting flag", 'error');
       }
     } catch (error) {
       console.error("Error submitting flag:", error);
-      alert("Network error. Please try again.");
+      if (showPopup) showPopup("Network error. Please try again.", 'error');
     } finally {
       setIsSubmitting(false);
     }

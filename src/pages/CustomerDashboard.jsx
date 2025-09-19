@@ -1,18 +1,49 @@
 // src/pages/CustomerDashboard.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import CustomerSidebar from '../components/CustomerDashboard/MainSidebar/CustomerSidebar';
 import { FaBars, FaTimes, FaUser, FaHeart, FaShoppingBag, FaBell, FaSignOutAlt } from 'react-icons/fa';
+import { FaArchive } from 'react-icons/fa';
 import customer from '../assets/CustomerDashboard/3412435.jpg';
 
 const CustomerDashboard = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [username, setUsername] = useState('');
+  const [profileImage, setProfileImage] = useState(null);
+
+  // Helper to build image URL
+  const buildImgUrl = (raw) => {
+    if (!raw) return null;
+    if (/^https?:\/\//i.test(raw)) return raw;
+  return `${window.location.origin}/${String(raw).replace(/^\/?/, '')}?t=${Date.now()}`;
+  };
+
+  useEffect(() => {
+    const loadFromSession = () => {
+      try {
+        const user = JSON.parse(sessionStorage.getItem('user'));
+        if (user) {
+          setUsername(user.full_name || user.username || 'Customer');
+          if (user.profile_image) {
+            setProfileImage(buildImgUrl(user.profile_image));
+          } else {
+            setProfileImage(null);
+          }
+        }
+      } catch (e) {}
+    };
+    loadFromSession();
+    window.addEventListener('userStateChanged', loadFromSession);
+    return () => {
+      window.removeEventListener('userStateChanged', loadFromSession);
+    };
+  }, []);
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleLogout = () => {
     console.log('Customer logged out');
-    navigate('/login');
+    navigate('/marketplace');
   };
 
   const menuItems = [
@@ -43,23 +74,14 @@ const CustomerDashboard = () => {
       {isMenuOpen && (
         <div className="lg:hidden fixed top-0 left-0 w-full bg-white shadow-md z-40 mt-16">
           <div className="px-6 py-4 flex flex-col gap-4 text-base text-black">
-            {/* Profile section */}
-            <div className="flex flex-col items-center mb-4 mt-2">
-              <div className="relative mb-2">
-                <img
-                  src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop"
-                  alt="Sarah Miller"
-                  className="w-16 h-16 rounded-full object-cover border-2 border-green-100 shadow"
-                />
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
-              </div>
-              <h3 className="text-base font-semibold text-green-600 mb-0.5">Sarah Miller</h3>
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">Customer</span>
-            </div>
-            {menuItems.map((item, index) => {
+            {/* Only show menu items, no profile image/name */}
+            {[{ icon: FaUser, label: 'Profile', path: '/customer-dashboard/profile' },
+              { icon: FaHeart, label: 'WishList', path: '/customer-dashboard/wishlist' },
+              { icon: FaShoppingBag, label: 'Order History', path: '/customer-dashboard/orders' },
+              { icon: FaArchive, label: 'Customized Products', path: '/customer-dashboard/customized-products' },
+              { icon: FaBell, label: 'Notifications', path: '/customer-dashboard/notifications' }].map((item, index) => {
               const IconComponent = item.icon;
               const isActive = location.pathname === item.path || (location.pathname === '/customer-dashboard' && item.path === '/customer-dashboard/profile');
-              
               return (
                 <button
                   key={index}
@@ -71,12 +93,12 @@ const CustomerDashboard = () => {
                     isActive ? 'text-green-700' : 'text-black'
                   }`}
                 >
-                  <IconComponent className="text-lg" />
+                  {IconComponent && <IconComponent className="text-lg" />}
                   <span>{item.label}</span>
                 </button>
               );
             })}
-            
+
             {/* Logout button */}
             <div className="border-t border-gray-200 pt-4 mt-4">
               <button

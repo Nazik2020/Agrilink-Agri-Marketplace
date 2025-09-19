@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Badge } from './ui';
 import StatsCards from './StatsCards';
+import FAQManagement from './FAQManagement';
 import UserManagement from './UserManagement';
 import SendAlerts from './SendAlerts';
 import ContentModeration from './ContentModeration';
@@ -12,7 +13,8 @@ const navigation = [
   { id: 'user-management', name: 'User Management', component: UserManagement },
   { id: 'send-alerts', name: 'Send Alerts', component: SendAlerts },
   { id: 'content-moderation', name: 'Content Moderation', component: ContentModeration },
-  { id: 'activity-monitor', name: 'Activity Monitor', component: ActivityMonitor }
+  { id: 'activity-monitor', name: 'Activity Monitor', component: ActivityMonitor },
+  { id: 'faq-management', name: 'FAQ Management', component: FAQManagement }
 ];
 
 const Dashboard = () => {
@@ -37,13 +39,15 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background pt-10">
       <div className="border-b bg-card">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
           {/* Header section */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-3">
                 <Shield className="h-8 w-8 text-green-600" />
-                <h1 className="text-4xl font-bold text-foreground">Admin Dashboard</h1>
+                <h1 className="text-4xl font-bold text-green-700">Admin Dashboard</h1>
               </div>
+
               {/* Logout Button */}
               <button
                 onClick={handleLogout}
@@ -55,10 +59,12 @@ const Dashboard = () => {
             </div>
             <p className="text-lg text-muted-foreground">Monitor and manage Agrilink platform activities</p>
           </div>
+
           {/* Stats cards always at the top */}
           <div className="mt-8 mb-8">
             <StatsCards />
           </div>
+          
           {/* Tab navigation below stats cards */}
           <div className="flex w-full mt-6">
             <nav className="flex flex-row flex-wrap gap-x-4 w-full justify-center">

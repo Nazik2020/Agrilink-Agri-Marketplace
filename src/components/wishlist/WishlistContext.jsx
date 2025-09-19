@@ -61,7 +61,7 @@ export const WishlistProvider = ({ children }) => {
       // Logged-in customer
       try {
         const response = await axios.post(
-          "http://localhost:8080/add_to_wishlist.php",
+          "http://localhost/Agrilink-Agri-Marketplace/backend/add_to_wishlist.php",
           {
             productId: productId,
             customerId: user.id,
@@ -100,7 +100,7 @@ export const WishlistProvider = ({ children }) => {
       // Logged-in customer
       try {
         const response = await axios.post(
-          "http://localhost:8080/remove_from_wishlist.php",
+          "http://localhost/Agrilink-Agri-Marketplace/backend/remove_from_wishlist.php",
           {
             productId: productId,
             customerId: user.id,
@@ -159,7 +159,7 @@ export const WishlistProvider = ({ children }) => {
         );
 
         const responsePromise = axios.post(
-          "http://localhost:8080/get_wishlist.php",
+          "http://localhost/Agrilink-Agri-Marketplace/backend/get_wishlist.php",
           {
             customerId: user.id,
           }
@@ -211,15 +211,22 @@ export const WishlistProvider = ({ children }) => {
     loadWishlist();
   }, [loadWishlist]);
 
-  // Reload wishlist when user changes
-  useEffect(() => {
-    const handleStorageChange = () => {
-      loadWishlist();
-    };
+    // Reload wishlist when user changes (storage or login)
+    useEffect(() => {
+      const handleStorageChange = () => {
+        loadWishlist();
+      };
+      const handleUserStateChanged = () => {
+        loadWishlist();
+      };
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [loadWishlist]);
+      window.addEventListener("storage", handleStorageChange);
+      window.addEventListener("userStateChanged", handleUserStateChanged);
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+        window.removeEventListener("userStateChanged", handleUserStateChanged);
+      };
+    }, [loadWishlist]);
 
   const value = {
     wishlist,

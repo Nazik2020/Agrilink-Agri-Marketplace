@@ -3,54 +3,9 @@ import NotificationCard from './NotificationCard';
 import NotificationDetailsModal from './NotificationDetailsModel';
 import { Bell, Package } from 'lucide-react';
 
-const NotificationsList = () => {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: 'New Customization Request',
-      customer: 'Sarah Miller',
-      product: 'Organic Tomatoes',
-      timestamp: '2 hours ago',
-      isNew: true,
-      status: null
-    },
-    {
-      id: 2,
-      title: 'New Customization Request',
-      customer: 'David Lee',
-      product: 'Free-Range Eggs',
-      timestamp: '5 hours ago',
-      isNew: true,
-      status: null
-    },
-    {
-      id: 3,
-      title: 'New Customization Request',
-      customer: 'Emily Chen',
-      product: 'Artisan Cheeses',
-      timestamp: '1 day ago',
-      isNew: true,
-      status: null
-    },
-    {
-      id: 4,
-      title: 'Customization Request',
-      customer: 'John Smith',
-      product: 'Local Honey',
-      timestamp: '2 days ago',
-      isNew: false,
-      status: 'accepted'
-    },
-    {
-      id: 5,
-      title: 'Customization Request',
-      customer: 'Maria Garcia',
-      product: 'Fresh Vegetables',
-      timestamp: '3 days ago',
-      isNew: false,
-      status: 'rejected'
-    }
-  ]);
+
+const NotificationsList = ({ notifications: initialNotifications = [] }) => {
+  const [notifications, setNotifications] = useState(initialNotifications);
 
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -77,11 +32,26 @@ const NotificationsList = () => {
     setSelectedNotification(null);
   };
 
-  // Only show new notifications that haven't been processed
-  const newNotifications = notifications.filter(n => n.isNew && !n.status);
-  
-  // Only show processed notifications (accepted/rejected)
-  const allNotifications = notifications.filter(n => !n.isNew && n.status);
+  // Only show new notifications (isNew)
+  const newNotifications = notifications.filter(n => n.isNew);
+  // All notifications that are not new
+  const allNotifications = notifications.filter(n => !n.isNew);
+
+  // Mark notification as read
+  const handleMarkRead = async (id) => {
+    try {
+  await fetch('http://localhost/Agrilink-Agri-Marketplace/backend/notifications/mark_notification_read.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notification_id: id })
+      });
+      setNotifications(notifications.map(notif =>
+        notif.id === id ? { ...notif, isNew: false } : notif
+      ));
+    } catch (err) {
+      alert('Failed to mark notification as read');
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -94,17 +64,16 @@ const NotificationsList = () => {
           <h1 className="text-4xl font-bold text-green-600">Notifications</h1>
         </div>
 
-        {/* New Customization Requests */}
+        {/* New Notifications */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">
-            New Customization Requests
+          <h3 className="text-xl font-semibold text-green-700 mb-4">
+            New Notifications
             {newNotifications.length > 0 && (
               <span className="ml-2 bg-red-500 text-white text-sm px-2 py-1 rounded-full">
                 {newNotifications.length}
               </span>
             )}
-          </h2>
-          
+          </h3>
           {newNotifications.length > 0 ? (
             <div className="space-y-4">
               {newNotifications.map((notification) => (
@@ -115,27 +84,28 @@ const NotificationsList = () => {
                   onReject={handleReject}
                   onViewDetails={handleViewDetails}
                   showActions={true}
+                  onMarkRead={handleMarkRead}
                 />
               ))}
             </div>
           ) : (
             <div className="text-center py-8 bg-gray-50 rounded-xl">
               <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">No new customization requests</p>
+              <p className="text-gray-500">No new notifications</p>
             </div>
           )}
         </div>
 
         {/* All Notifications (Processed) */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">
+        <div>            
+          <h3 className="text-xl font-semibold text-green-700 mb-4">
             All Notifications
             {allNotifications.length > 0 && (
               <span className="ml-2 bg-gray-500 text-white text-sm px-2 py-1 rounded-full">
                 {allNotifications.length}
               </span>
             )}
-          </h2>
+          </h3>
           
           {allNotifications.length > 0 ? (
             <div className="space-y-4">

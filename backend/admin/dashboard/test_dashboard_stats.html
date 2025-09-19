@@ -155,7 +155,7 @@
         }
 
         async function getDashboardStats() {
-            const result = await makeRequest('/backend/admin/dashboard/get_dashboard_stats.php');
+            const result = await makeRequest('http://localhost/Agrilink-Agri-Marketplace/backend/admin/dashboard/get_dashboard_stats.php');
             document.getElementById('dashboardStatsResponse').textContent = JSON.stringify(result, null, 2);
             
             if (result.success) {
@@ -164,7 +164,7 @@
         }
 
         async function getPlatformMetrics() {
-            const result = await makeRequest('/backend/admin/dashboard/get_platform_metrics.php');
+            const result = await makeRequest('http://localhost/Agrilink-Agri-Marketplace/backend/admin/dashboard/get_platform_metrics.php');
             document.getElementById('platformMetricsResponse').textContent = JSON.stringify(result, null, 2);
         }
 
@@ -197,7 +197,7 @@
         }
 
         async function updateLiveDashboard() {
-            const result = await makeRequest('/backend/admin/dashboard/get_dashboard_stats.php');
+            const result = await makeRequest('http://localhost/Agrilink-Agri-Marketplace/backend/admin/dashboard/get_dashboard_stats.php');
             if (result.success) {
                 updateLiveDashboardWithData(result.stats);
             }

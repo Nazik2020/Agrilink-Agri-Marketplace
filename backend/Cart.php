@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/services/OfferPricing.php';
+
 class Cart {
     private $conn;
 
@@ -51,17 +53,44 @@ class Cart {
             
             error_log("Cart ID: " . $cartId);
 
-            // If price not provided, get it from products table
-            if ($price === null) {
-                $stmt = $this->conn->prepare("SELECT price FROM products WHERE id = ?");
+            // Always fetch product info to apply offers for regular products
+            $basePrice = null;
+            $specialOffer = null;
+            $isCustomized = false;
+
+            // Check if it's a customized product first (no special offers apply)
+            $stmt = $this->conn->prepare("SELECT price FROM customized_products WHERE id = ?");
+            $stmt->execute([$productId]);
+            $customizedProduct = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($customizedProduct) {
+                $isCustomized = true;
+                $basePrice = (float)$customizedProduct['price'];
+            } else {
+                // Regular product: get price and special_offer
+                $stmt = $this->conn->prepare("SELECT price, special_offer FROM products WHERE id = ?");
                 $stmt->execute([$productId]);
                 $product = $stmt->fetch(PDO::FETCH_ASSOC);
                 if (!$product) {
                     error_log("Product not found with ID: " . $productId);
                     return ["success" => false, "message" => "Product not found"];
                 }
-                $price = $product['price'];
-                error_log("Retrieved price from database: " . $price);
+                $basePrice = (float)$product['price'];
+                $specialOffer = $product['special_offer'] ?? null;
+            }
+
+            // Auto-adjust quantity for certain offers (e.g., B1G1 when adding 1)
+            if (!$isCustomized) {
+                $quantity = OfferPricing::autoAdjustQuantity((int)$quantity, $specialOffer);
+            }
+
+            // Determine effective unit price considering the offer
+            if ($price === null) {
+                if ($isCustomized) {
+                    $price = $basePrice;
+                } else {
+                    $pricing = OfferPricing::compute($basePrice, (int)$quantity, $specialOffer);
+                    $price = $pricing['unit_price'];
+                }
             }
 
             // Check if item already exists in cart
@@ -72,13 +101,19 @@ class Cart {
             error_log("Existing item check: " . print_r($existingItem, true));
 
             if ($existingItem) {
-                // Update quantity
+                // Update quantity and recalculate effective price
                 $newQuantity = $existingItem['quantity'] + $quantity;
                 error_log("Updating existing item quantity to: " . $newQuantity);
-                
-                $stmt = $this->conn->prepare("UPDATE cart_items SET quantity = ?, updated_at = CURRENT_TIMESTAMP WHERE cart_item_id = ?");
-                $stmt->execute([$newQuantity, $existingItem['cart_item_id']]);
-                
+
+                $newPrice = $price;
+                if (!$isCustomized) {
+                    $pricing = OfferPricing::compute($basePrice, (int)$newQuantity, $specialOffer);
+                    $newPrice = $pricing['unit_price'];
+                }
+
+                $stmt = $this->conn->prepare("UPDATE cart_items SET quantity = ?, price = ?, updated_at = CURRENT_TIMESTAMP WHERE cart_item_id = ?");
+                $stmt->execute([$newQuantity, $newPrice, $existingItem['cart_item_id']]);
+
                 return [
                     "success" => true, 
                     "message" => "Item quantity updated in cart",
@@ -113,6 +148,7 @@ class Cart {
      */
     public function getCartItems($customerId) {
         try {
+            // Get regular products
             $stmt = $this->conn->prepare("
                 SELECT 
                     ci.cart_item_id,
@@ -125,7 +161,10 @@ class Cart {
                     p.product_images,
                     p.category,
                     p.seller_id as seller_id,
-                    s.business_name as seller_name
+                    p.price as base_price,
+                    p.special_offer,
+                    s.business_name as seller_name,
+                    'regular' as product_type
                 FROM cart c
                 JOIN cart_items ci ON c.cart_id = ci.cart_id
                 JOIN products p ON ci.product_id = p.id
@@ -134,7 +173,50 @@ class Cart {
                 ORDER BY ci.added_at DESC
             ");
             $stmt->execute([$customerId]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $regularProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Get customized products
+            $stmt = $this->conn->prepare("
+                SELECT 
+                    ci.cart_item_id,
+                    ci.product_id,
+                    ci.quantity,
+                    ci.price,
+                    ci.added_at,
+                    cp.product_name,
+                    cp.product_description,
+                    cp.product_images,
+                    cp.category,
+                    cp.seller_id as seller_id,
+                    s.business_name as seller_name,
+                    'customized' as product_type,
+                    cp.customization_description
+                FROM cart c
+                JOIN cart_items ci ON c.cart_id = ci.cart_id
+                JOIN customized_products cp ON ci.product_id = cp.id
+                LEFT JOIN sellers s ON cp.seller_id = s.id
+                WHERE c.customer_id = ?
+                ORDER BY ci.added_at DESC
+            ");
+            $stmt->execute([$customerId]);
+            $customizedProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Combine and sort by added_at
+            // Compute offer-aware fields for regular products
+            foreach ($regularProducts as &$item) {
+                $calc = OfferPricing::compute($item['base_price'], $item['quantity'], $item['special_offer'] ?? null);
+                $item['effective_unit_price'] = $calc['unit_price'];
+                $item['line_total'] = $calc['line_total'];
+                $item['paid_units'] = $calc['paid_units'];
+                $item['free_units'] = $calc['free_units'];
+            }
+
+            $allProducts = array_merge($regularProducts, $customizedProducts);
+            usort($allProducts, function($a, $b) {
+                return strtotime($b['added_at']) - strtotime($a['added_at']);
+            });
+
+            return $allProducts;
 
         } catch (PDOException $e) {
             error_log("Error in getCartItems: " . $e->getMessage());
@@ -151,13 +233,26 @@ class Cart {
                 return $this->removeFromCart($customerId, $productId);
             }
 
+            // For regular products, auto-adjust quantity for BxGy when the user lands on the paid threshold
+            $quantityToSet = (int)$quantity;
+            try {
+                $s = $this->conn->prepare("SELECT p.special_offer FROM cart_items ci JOIN cart c ON ci.cart_id = c.cart_id JOIN products p ON ci.product_id = p.id WHERE c.customer_id = ? AND ci.product_id = ? LIMIT 1");
+                $s->execute([$customerId, $productId]);
+                $row = $s->fetch(PDO::FETCH_ASSOC);
+                if ($row && isset($row['special_offer'])) {
+                    $quantityToSet = OfferPricing::autoAdjustQuantity($quantityToSet, $row['special_offer']);
+                }
+            } catch (Exception $e) {
+                // ignore and use given quantity
+            }
+
             $stmt = $this->conn->prepare("
                 UPDATE cart_items ci
                 JOIN cart c ON ci.cart_id = c.cart_id
                 SET ci.quantity = ?, ci.updated_at = CURRENT_TIMESTAMP
                 WHERE c.customer_id = ? AND ci.product_id = ?
             ");
-            $stmt->execute([$quantity, $customerId, $productId]);
+            $stmt->execute([$quantityToSet, $customerId, $productId]);
 
             if ($stmt->rowCount() > 0) {
                 return ["success" => true, "message" => "Quantity updated"];
@@ -220,22 +315,31 @@ class Cart {
      */
     public function getCartSummary($customerId) {
         try {
+            // Fetch items with product base price and offers to compute accurate totals
             $stmt = $this->conn->prepare("
-                SELECT 
-                    COUNT(ci.cart_item_id) as total_items,
-                    SUM(ci.quantity) as total_quantity,
-                    SUM(ci.quantity * ci.price) as total_price
+                SELECT ci.quantity, ci.price AS stored_unit_price, p.price AS base_price, p.special_offer
                 FROM cart c
                 JOIN cart_items ci ON c.cart_id = ci.cart_id
+                JOIN products p ON ci.product_id = p.id
                 WHERE c.customer_id = ?
             ");
             $stmt->execute([$customerId]);
-            $summary = $stmt->fetch(PDO::FETCH_ASSOC);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $totalItems = count($rows);
+            $totalQty = 0;
+            $totalPrice = 0.0;
+            foreach ($rows as $row) {
+                $qty = (int)$row['quantity'];
+                $totalQty += $qty;
+                $calc = OfferPricing::compute($row['base_price'], $qty, $row['special_offer'] ?? null);
+                $totalPrice += $calc['line_total'];
+            }
 
             return [
-                "total_items" => (int)$summary['total_items'],
-                "total_quantity" => (int)$summary['total_quantity'],
-                "total_price" => (float)$summary['total_price']
+                "total_items" => (int)$totalItems,
+                "total_quantity" => (int)$totalQty,
+                "total_price" => (float)round($totalPrice, 2)
             ];
 
         } catch (PDOException $e) {

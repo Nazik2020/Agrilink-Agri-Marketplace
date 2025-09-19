@@ -21,12 +21,12 @@ const CartModal = () => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* Backdrop */}
+      
       <div className="absolute inset-0 bg-gray-100" onClick={toggleCart} />
 
-      {/* Modal */}
+      
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-6xl mx-4 max-h-[90vh] overflow-hidden">
-        {/* Header */}
+        
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <button
             onClick={toggleCart}
@@ -52,9 +52,9 @@ const CartModal = () => {
           </button>
         </div>
 
-        {/* Content */}
+        
         <div className="flex flex-col lg:flex-row max-h-[calc(90vh-140px)]">
-          {/* Cart Items */}
+          
           <div className="flex-1 p-6 overflow-y-auto">
             {loading ? (
               <div className="flex justify-center items-center py-12">
@@ -94,14 +94,14 @@ const CartModal = () => {
             )}
           </div>
 
-          {/* Order Summary */}
+          
           <div className="lg:w-96 border-l border-gray-200">
             <OrderSummary />
           </div>
         </div>
       </div>
 
-      {/* Buy Now Modal */}
+      
       <BuyNowModal
         isOpen={showBuyNowModal}
         onClose={toggleBuyNowModal}

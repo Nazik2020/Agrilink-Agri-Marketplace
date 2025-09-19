@@ -6,63 +6,47 @@ import Footer from "../components/common/Footer";
 
 const FAQ = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("General Questions");
-  /* const [openItems, setOpenItems] = useState({});*/
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [openItemIndex, setOpenItemIndex] = useState(null);
   const [userQuestion, setUserQuestion] = useState("");
+  const [faqs, setFaqs] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const faqData = [
-    {
-      category: "General Questions",
-      question: "How do I place an order?",
-      answer:
-        "You can place an order by browsing our products, adding items to your cart, and proceeding to checkout. Follow the step-by-step process to complete your purchase.",
-    },
-    {
-      category: "General Questions",
-      question: "What payment methods do you accept?",
-      answer:
-        "We accept all major credit cards (Visa, MasterCard, American Express), PayPal, Apple Pay, and Google Pay for your convenience.",
-    },
-    {
-      category: "General Questions",
-      question: "Can I cancel my order?",
-      answer:
-        "Yes, you can cancel your order within 24 hours of placing it. Please contact our customer service team as soon as possible to process the cancellation.",
-    },
-    {
-      category: "Products",
-      question: "How do I list my products?",
-      answer:
-        'To list your products, go to your seller dashboard, click on "Add Product", fill in the product details, upload images, and set your pricing. Your product will be reviewed before going live.',
-    },
-    {
-      category: "Pricing",
-      question: "What are the selling fees?",
-      answer:
-        "Our selling fees are competitive and vary by category. Typically, we charge a 3-8% commission on sold items plus a small transaction fee. Check our seller terms for detailed pricing.",
-    },
-    {
-      category: "Account",
-      question: "How do I manage my listings?",
-      answer:
-        "You can manage all your listings from your seller dashboard. Here you can edit prices, update descriptions, add photos, and track your sales performance.",
-    },
-  ];
+  // Fetch FAQs from backend
+  React.useEffect(() => {
+    setLoading(true);
+    fetch("http://localhost/Agrilink-Agri-Marketplace/backend/faq/get_faqs.php")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setFaqs(data.faqs);
+          // Extract unique categories
+          const cats = Array.from(new Set(data.faqs.map(f => f.category).filter(Boolean)));
+          setCategories(cats.length ? cats : ["General Questions"]);
+          setSelectedCategory(cats[0] || "General Questions");
+        } else {
+          setError(data.message || "Failed to load FAQs.");
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError("Error loading FAQs.");
+        setLoading(false);
+      });
+  }, []);
 
-  const categories = ["General Questions", "Products", "Pricing", "Account"];
-
-  const filteredFAQs = useMemo(() => {
-    return faqData.filter((item) => {
+  const filteredFAQs = React.useMemo(() => {
+    return faqs.filter((item) => {
       const matchesSearch =
         item.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.answer.toLowerCase().includes(searchTerm.toLowerCase());
+        (item.answer ? item.answer.toLowerCase().includes(searchTerm.toLowerCase()) : false);
       const matchesCategory =
-        selectedCategory === "General Questions" ||
-        item.category === selectedCategory;
+        !selectedCategory || item.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [searchTerm, selectedCategory]);
+  }, [faqs, searchTerm, selectedCategory]);
 
   const toggleItem = (index) => {
     /* setOpenItems(prev => ({
@@ -74,10 +58,36 @@ const FAQ = () => {
 
   const handleSubmitQuestion = () => {
     if (userQuestion.trim()) {
-      alert(
-        `Thank you for your question: "${userQuestion}". Our team will review it and get back to you soon!`
-      );
-      setUserQuestion("");
+      // Submit question to backend (no category)
+      fetch("http://localhost/Agrilink-Agri-Marketplace/backend/faq/add_faq.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: userQuestion
+          // Optionally add submitted_by and role if available
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setUserQuestion("");
+            // Optionally refetch FAQs
+            setLoading(true);
+            fetch("http://localhost/Agrilink-Agri-Marketplace/backend/faq/get_faqs.php")
+              .then((res) => res.json())
+              .then((data) => {
+                if (data.success) {
+                  setFaqs(data.faqs);
+                }
+                setLoading(false);
+              });
+          } else {
+            alert(data.message || "Failed to submit question.");
+          }
+        })
+        .catch(() => {
+          alert("Error submitting question.");
+        });
     }
   };
 
@@ -160,15 +170,17 @@ const FAQ = () => {
             <div className="mb-6">
               <h3 className="text-2xl font-semibold text-gray-800">FAQs</h3>
             </div>
-
             <div className="w-full">
-              {filteredFAQs.length > 0 ? (
+              {loading ? (
+                <div className="text-center py-10 text-gray-500 text-lg">Loading FAQs...</div>
+              ) : error ? (
+                <div className="text-center py-10 text-red-500 text-lg">{error}</div>
+              ) : filteredFAQs.length > 0 ? (
                 filteredFAQs.map((faq, index) => (
                   <FAQItem
-                    key={index}
+                    key={faq.id}
                     question={faq.question}
                     answer={faq.answer}
-                    /* isOpen={openItems[index] || false}*/
                     isOpen={openItemIndex === index}
                     onToggle={() => toggleItem(index)}
                   />
@@ -184,13 +196,13 @@ const FAQ = () => {
           {/* Add Your Answer Section */}
           <div className="w-full mx-auto p-7 bg-slate-50 rounded-xl border border-gray-200">
             <h4 className="text-xl font-semibold text-gray-800 mb-5 text-center">
-              Add your answer here
+              Add your question here
             </h4>
             <div className="flex flex-col gap-4">
               <textarea
                 value={userQuestion}
                 onChange={(e) => setUserQuestion(e.target.value)}
-                placeholder="Can't find what you're looking for? Submit your question here and our team will get back to you."
+                placeholder="Can't find what you're looking for? Submit your question here and our team will get back to you within 72 hours. Please check the FAQ section for an answer."
                 className="w-full p-4 border-2 border-gray-200 rounded-lg text-base font-inherit resize-y min-h-[120px] transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
                 rows="4"
               />

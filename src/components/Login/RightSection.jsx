@@ -61,7 +61,18 @@ export default function RightSection() {
 
       if (res.data.success) {
         setMessage(res.data.message);
+        
+        // Store user data in sessionStorage
         sessionStorage.setItem("user", JSON.stringify(res.data.user));
+        
+      
+        if (res.data.user && res.data.user.role === "seller") {
+          // Store the complete seller data
+          sessionStorage.setItem("seller", JSON.stringify(res.data.user));
+          console.log("Seller data stored:", res.data.user); // Debug log
+        }
+        
+        // Dispatch custom event to notify other components
         window.dispatchEvent(
           new CustomEvent("userStateChanged", {
             detail: { action: "login", user: res.data.user },
@@ -74,11 +85,7 @@ export default function RightSection() {
           res.data.user.role === "seller" &&
           res.data.user.id
         ) {
-<<<<<<< HEAD
-          sessionStorage.setItem("seller_id", res.data.user.id);
-=======
           window.localStorage.setItem("seller_id", res.data.user.id);
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
         }
 
         // Sync guest wishlist if user is a customer
@@ -90,24 +97,25 @@ export default function RightSection() {
           if (res.data.user.role === "admin") {
             navigate("/admin-dashboard");
           } else if (res.data.user.role === "seller") {
-            navigate("/"); // Redirect sellers to home page
+            navigate("/marketplace"); // Redirect sellers to marketplace
+          } else if (res.data.user.role === "customer") {
+            navigate("/marketplace"); // Redirect customers to marketplace
           } else {
-            // Redirect customers to home page
             navigate("/");
           }
         }, 2000);
       } else {
-        // Handle different types of errors
-        if (res.data.error_type === 'account_banned') {
-          setMessage(res.data.message);
-        } else if (res.data.error_type === 'database_error') {
-          setMessage("⚠️ System temporarily unavailable. Please try again later.");
-        } else {
-          setMessage(res.data.message);
-        }
+        setMessage(res.data.message);
       }
     } catch (error) {
-      setMessage("Network error. Please try again.");
+      console.error("Login error:", error);
+      if (error.response) {
+        setMessage(error.response.data?.message || "Server error occurred");
+      } else if (error.request) {
+        setMessage("Network error. Please check your connection.");
+      } else {
+        setMessage("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -132,11 +140,7 @@ export default function RightSection() {
 
         // Sync to backend
         const syncRes = await axios.post(
-<<<<<<< HEAD
-          "http://localhost/backend/sync_guest_wishlist.php",
-=======
           "http://localhost/Agrilink-Agri-Marketplace/backend/sync_guest_wishlist.php",
->>>>>>> 823657cae7c55afa88b0c14d2d62c8487900931c
           {
             customerId: customerId,
             productIds: guestWishlist,

@@ -11,29 +11,39 @@ const CartItem = ({ item }) => {
     }
   };
 
-  const totalPrice = parseFloat(item.price) * item.quantity;
+  // Use backend line_total when available, otherwise calculate from price * quantity
+  const totalPrice = item.line_total ? parseFloat(item.line_total) : parseFloat(item.price) * item.quantity;
+  const effectiveUnitPrice = item.effective_unit_price ? parseFloat(item.effective_unit_price) : parseFloat(item.price);
 
-  // Get product image
   const getProductImage = (productImages) => {
+    let imagesArr = [];
     if (!productImages) {
       return "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop";
     }
-
-    try {
-      const images = JSON.parse(productImages);
-      return images.length > 0
-        ? `http://localhost/backend/${images[0]}`
-        : "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop";
-    } catch (error) {
-      console.error("Error parsing product images:", error);
-      return "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop";
+    if (Array.isArray(productImages)) {
+      imagesArr = productImages;
+    } else {
+      try {
+        imagesArr = JSON.parse(productImages);
+      } catch (error) {
+        imagesArr = [];
+      }
     }
+    if (imagesArr.length > 0) {
+      const img = imagesArr[0];
+      if (typeof img === "string" && img.startsWith("http")) {
+        return img;
+      } else if (typeof img === "string") {
+        return `http://localhost/Agrilink-Agri-Marketplace/backend/${img}`;
+      }
+    }
+    return "https://images.pexels.com/photos/533280/pexels-photo-533280.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&fit=crop";
   };
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6">
       <div className="flex flex-col sm:flex-row gap-4">
-        {/* Product Image */}
+  {/* Product Image */}
         <div className="w-full sm:w-32 h-32 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
           <img
             src={getProductImage(item.product_images)}
@@ -42,7 +52,7 @@ const CartItem = ({ item }) => {
           />
         </div>
 
-        {/* Product Details */}
+  {/* Product Details */}
         <div className="flex-1">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1">
@@ -104,7 +114,19 @@ const CartItem = ({ item }) => {
             {/* Price */}
             <div className="text-right">
               <div className="text-2xl font-bold text-green-600">${totalPrice.toFixed(2)}</div>
-              <div className="text-sm text-gray-500">${parseFloat(item.price).toFixed(2)} per item</div>
+              {effectiveUnitPrice !== parseFloat(item.price) ? (
+                <div className="text-sm text-gray-500">
+                  <span className="line-through">${parseFloat(item.price).toFixed(2)}</span>
+                  <span className="ml-2 text-green-600">${effectiveUnitPrice.toFixed(2)} per item</span>
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">${effectiveUnitPrice.toFixed(2)} per item</div>
+              )}
+              {item.paid_units && item.free_units && item.free_units > 0 && (
+                <div className="text-xs text-blue-600 mt-1">
+                  {item.paid_units} paid + {item.free_units} free
+                </div>
+              )}
             </div>
           </div>
         </div>

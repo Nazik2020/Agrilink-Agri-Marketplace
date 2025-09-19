@@ -1,17 +1,7 @@
+
 <?php
 error_log("DEBUG_MARKER: add_order_simple.php executed at " . date('c'));
-// Simple order endpoint with comprehensive CORS
-header("Access-Control-Allow-Origin: http://localhost:3000");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE");
-header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Origin");
-header("Access-Control-Max-Age: 86400");
-header("Content-Type: application/json");
-
-// Handle preflight OPTIONS request
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
+require_once __DIR__ . '/cors.php';
 
 try {
     // Log incoming request for debugging
@@ -30,6 +20,7 @@ try {
     require_once 'db.php';
     require_once __DIR__ . '/models/Order.php';
     require_once 'ProductStockManager.php';
+    require_once __DIR__ . '/services/OfferPricing.php';
 
     // Use PDO connection everywhere
     $pdo = getDbConnection();
@@ -86,22 +77,36 @@ try {
                 ];
                 continue;
             }
-            if ($currentStock < $quantity) {
+            // Compute effective price server-side based on product offer
+            try {
+                $pstmt = $pdo->prepare("SELECT price, special_offer, product_name, seller_id FROM products WHERE id = ?");
+                $pstmt->execute([$product_id]);
+                $p = $pstmt->fetch(PDO::FETCH_ASSOC);
+            } catch (Exception $e) { $p = null; }
+            $basePrice = $p ? (float)$p['price'] : (float)($item['price'] ?? 0);
+            $offerTag = $p['special_offer'] ?? ($item['special_offer'] ?? null);
+            $calc = OfferPricing::compute($basePrice, (int)$quantity, $offerTag);
+
+            // Ensure enough stock for delivered (paid+free) quantity
+            $deliverQty = (int)($calc['adjusted_qty'] ?? $quantity);
+            if ($currentStock < $deliverQty) {
                 $errors[] = [
                     'item' => $item,
-                    'error' => 'Not enough stock',
+                    'error' => 'Not enough stock to fulfill offer',
+                    'required_stock' => $deliverQty,
                     'available_stock' => $currentStock
                 ];
                 continue;
             }
+
             $orderData = [
                 'customer_id' => $customer_id,
-                'seller_id' => $item['seller_id'] ?? 16,
+                'seller_id' => $p['seller_id'] ?? ($item['seller_id'] ?? 16),
                 'product_id' => $product_id,
-                'product_name' => $item['product_name'] ?? '',
-                'quantity' => $quantity,
-                'unit_price' => $item['price'] ?? 0,
-                'total_amount' => ($item['price'] ?? 0) * $quantity,
+                'product_name' => $p['product_name'] ?? ($item['product_name'] ?? ''),
+                'quantity' => $deliverQty,
+                'unit_price' => $calc['unit_price'],
+                'total_amount' => $calc['line_total'],
                 'order_status' => 'pending',
                 'payment_status' => 'completed',
                 'payment_method' => $card_type,
@@ -116,8 +121,8 @@ try {
             error_log("ORDER INFO: Attempting to insert order for product " . $orderData['product_id']);
             $orderId = $orderModel->create($orderData);
             if ($orderId) {
-                // Decrease stock after successful order creation
-                $decreaseResult = $stockManager->decreaseStock($product_id, $quantity);
+                // Decrease stock after successful order creation (use delivered quantity)
+                $decreaseResult = $stockManager->decreaseStock($product_id, $deliverQty);
                 $debugStockResults[] = [
                     'item' => $item,
                     'order_id' => $orderId,
@@ -125,6 +130,66 @@ try {
                 ];
                 if ($decreaseResult['success']) {
                     error_log("ORDER SUCCESS: Order $orderId created and stock updated");
+                    // If this product is a customized product, mark request as delivered and deactivate customized product
+                            // Notify seller about new order
+                            try {
+                                $sellerNotification = [
+                                    'seller_id' => $item['seller_id'] ?? 16,
+                                    'title' => 'New Order Placed',
+                                    'message' => 'A new order has been placed by customer ID ' . $customer_id . ' for product "' . ($item['product_name'] ?? '') . '" (Qty: ' . $quantity . ').',
+                                    'type' => 'new_order',
+                                    'related_id' => $orderId
+                                ];
+                                $ch = curl_init('http://localhost/Agrilink-Agri-Marketplace/backend/notifications/add_notification.php');
+                                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                                curl_setopt($ch, CURLOPT_POST, true);
+                                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($sellerNotification));
+                                $result = curl_exec($ch);
+                                curl_close($ch);
+                                error_log('Seller notified about new order: ' . $result);
+                            } catch (Exception $e) {
+                                error_log('Failed to notify seller about new order: ' . $e->getMessage());
+                            }
+                    try {
+                        $chk = $pdo->prepare("SELECT customization_request_id, stock FROM customized_products WHERE id = ? LIMIT 1");
+                        $chk->execute([$product_id]);
+                        $row = $chk->fetch(PDO::FETCH_ASSOC);
+                        if ($row && isset($row['customization_request_id'])) {
+                            $reqId = (int)$row['customization_request_id'];
+                            // Update request status to delivered
+                            $up1 = $pdo->prepare("UPDATE customization_requests SET status = 'delivered' WHERE id = ?");
+                            $up1->execute([$reqId]);
+                            // Only deactivate customized product if stock is now zero
+                            $newStock = $stockManager->getStock($product_id);
+                            if ($newStock !== null && $newStock <= 0) {
+                                $up2 = $pdo->prepare("UPDATE customized_products SET status = 'inactive' WHERE id = ?");
+                                $up2->execute([$product_id]);
+                            }
+                        }
+                    } catch (Exception $e) {
+                        error_log("POST-ORDER CUSTOMIZED UPDATE FAILED: " . $e->getMessage());
+                    }
+                        // Notify customer after order placed
+                        try {
+                            $notificationData = [
+                                'customer_id' => $customer_id,
+                                'title' => 'Order Placed',
+                                'message' => 'You have placed an order for ' . ($item['product_name'] ?? '') . '. We will notify you when your product is ready to be delivered.',
+                                'type' => 'order_placed',
+                                'related_id' => $orderId
+                            ];
+                            $ch = curl_init('http://localhost/Agrilink-Agri-Marketplace/backend/notifications/add_customer_notification.php');
+                            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                            curl_setopt($ch, CURLOPT_POST, true);
+                            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($notificationData));
+                            $result = curl_exec($ch);
+                            curl_close($ch);
+                            error_log('Customer notified after order placed: ' . $result);
+                        } catch (Exception $e) {
+                            error_log('Failed to notify customer after order placed: ' . $e->getMessage());
+                        }
                     $ordersCreated[] = $orderId;
                 } else {
                     // Rollback order if stock update fails (optional: delete order)
@@ -164,19 +229,31 @@ try {
             echo json_encode(["success" => false, "message" => "Product not found", "test_marker" => "debug_patch_active"]);
             exit();
         }
-        if ($currentStock < $quantity) {
-            error_log("ORDER ERROR: Not enough stock for single product order");
-            echo json_encode(["success" => false, "message" => "Not enough stock", "available_stock" => $currentStock, "test_marker" => "debug_patch_active"]);
+        try {
+            $pstmt = $pdo->prepare("SELECT price, special_offer, product_name, seller_id FROM products WHERE id = ?");
+            $pstmt->execute([$product_id]);
+            $p = $pstmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Exception $e) { $p = null; }
+        $basePrice = $p ? (float)$p['price'] : (float)($data['price'] ?? 0);
+        $offerTag = $p['special_offer'] ?? ($data['special_offer'] ?? null);
+        $calc = OfferPricing::compute($basePrice, (int)$quantity, $offerTag);
+        $deliverQty = (int)($calc['adjusted_qty'] ?? $quantity);
+
+        // Re-check stock against delivered qty (paid + free)
+        if ($currentStock < $deliverQty) {
+            error_log("ORDER ERROR: Not enough stock for single product order considering offer");
+            echo json_encode(["success" => false, "message" => "Not enough stock to fulfill offer", "required_stock" => $deliverQty, "available_stock" => $currentStock, "test_marker" => "debug_patch_active"]);
             exit();
         }
+
         $orderData = [
             'customer_id' => $customer_id,
-            'seller_id' => $data['seller_id'] ?? 16,
+            'seller_id' => $p['seller_id'] ?? ($data['seller_id'] ?? 16),
             'product_id' => $product_id,
-            'product_name' => $data['product_name'] ?? '',
-            'quantity' => $quantity,
-            'unit_price' => $data['price'] ?? 0,
-            'total_amount' => ($data['price'] ?? 0) * $quantity,
+            'product_name' => $p['product_name'] ?? ($data['product_name'] ?? ''),
+            'quantity' => $deliverQty,
+            'unit_price' => $calc['unit_price'],
+            'total_amount' => $calc['line_total'],
             'order_status' => 'pending',
             'payment_status' => 'completed',
             'payment_method' => $card_type,
@@ -191,7 +268,7 @@ try {
         error_log("ORDER INFO: Attempting to insert single product order for product " . $orderData['product_id']);
         $orderId = $orderModel->create($orderData);
         if ($orderId) {
-            $decreaseResult = $stockManager->decreaseStock($product_id, $quantity);
+            $decreaseResult = $stockManager->decreaseStock($product_id, $deliverQty);
             $debugStockResults = [
                 [
                     'product_id' => $product_id,

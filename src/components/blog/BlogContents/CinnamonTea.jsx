@@ -25,7 +25,7 @@ Historically, cinnamon has been prized since ancient times. It was once consider
       alt="Cinnamon sticks" 
       className="mb-4 rounded-lg" 
       onError={(e) => {
-        console.error("CinnamonTea cinnaImg error:", e);
+  // Error handler removed
         e.target.style.display = 'none';
       }}
       onLoad={() => console.log("CinnamonTea cinnaImg loaded successfully")}
@@ -74,7 +74,7 @@ Historically, cinnamon has been prized since ancient times. It was once consider
           className="rounded-lg object-cover"
           style={{ height: "390px", width: "auto" }}
           onError={(e) => {
-            console.error("CinnamonTea cinnamonteaImg error:", e);
+            // Error handler removed
             e.target.style.display = 'none';
           }}
           onLoad={() => console.log("CinnamonTea cinnamonteaImg loaded successfully")}

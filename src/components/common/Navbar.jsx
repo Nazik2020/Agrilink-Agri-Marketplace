@@ -17,6 +17,7 @@ import {
 import Logo from "../../assets/navbar/agrilink_logo.png";
 import { useCart } from "../cart/CartContext";
 import { useWishlist } from "../wishlist/WishlistContext";
+import { API_CONFIG } from "../../config/api";
 
 // User Management Class following OOP principles
 class UserManager {
@@ -25,28 +26,28 @@ class UserManager {
     this.sellerStorageKey = "seller_id";
   }
 
-  // Get current user from localStorage
+  
   getCurrentUser() {
     try {
       const userString = sessionStorage.getItem(this.storageKey);
       return userString ? JSON.parse(userString) : null;
     } catch (error) {
-      console.error("Error parsing user data:", error);
+      // Error parsing user data
       return null;
     }
   }
 
-  // Check if user is logged in and is a customer
+  
   isCustomerLoggedIn() {
     const user = this.getCurrentUser();
     return user && user.role === "customer";
   }
 
-  // Logout user
+  
   logout() {
     sessionStorage.removeItem(this.storageKey);
     sessionStorage.removeItem(this.sellerStorageKey);
-    // Dispatch custom event for immediate UI update
+    
     window.dispatchEvent(
       new CustomEvent("userStateChanged", {
         detail: { action: "logout" },
@@ -54,10 +55,10 @@ class UserManager {
     );
   }
 
-  // Login user
+  
   login(userData) {
     sessionStorage.setItem(this.storageKey, JSON.stringify(userData));
-    // Dispatch custom event for immediate UI update
+    
     window.dispatchEvent(
       new CustomEvent("userStateChanged", {
         detail: { action: "login", user: userData },
@@ -66,7 +67,7 @@ class UserManager {
   }
 }
 
-// Create a singleton instance
+
 const userManager = new UserManager();
 
 const Navbar = () => {
@@ -80,27 +81,27 @@ const Navbar = () => {
   const { wishlistCount } = useWishlist();
   const navigate = useNavigate();
 
-  // User state management following OOP principles
+
   useEffect(() => {
     const updateUserState = () => {
-      // Prefer seller object if logged in as seller, else use user
+
       let currentUser = userManager.getCurrentUser();
-      // If role is seller, try to merge business_logo from sessionStorage seller object
+
       if (currentUser && currentUser.role === "seller") {
         try {
           const seller = JSON.parse(sessionStorage.getItem("seller"));
           if (seller && seller.business_logo) {
-            currentUser.profile_image = `http://localhost/backend/${seller.business_logo}`;
+            currentUser.profile_image = seller.business_logo;
           }
         } catch (e) {}
       }
       setUser(currentUser);
     };
 
-    // Initial user state check
+
     updateUserState();
 
-    // Event listeners for user state changes
+
     const handleUserStateChange = (event) => {
       updateUserState();
     };
@@ -111,18 +112,18 @@ const Navbar = () => {
       }
     };
 
-    // Add event listeners
+
     window.addEventListener("userStateChanged", handleUserStateChange);
     window.addEventListener("storage", handleStorageChange);
 
-    // Cleanup event listeners
+
     return () => {
       window.removeEventListener("userStateChanged", handleUserStateChange);
       window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
-  // Scroll behavior management
+
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY < 50) {
@@ -131,9 +132,9 @@ const Navbar = () => {
         return;
       }
       if (window.scrollY > lastScrollY) {
-        setShowNavbar(false); // Scrolling down
+  setShowNavbar(false);
       } else {
-        setShowNavbar(true); // Scrolling up
+  setShowNavbar(true);
       }
       setLastScrollY(window.scrollY);
     };
@@ -141,13 +142,13 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-  // Cart interaction handler
+
   const handleCartClick = () => {
     toggleCart();
     setIsMenuOpen(false);
   };
 
-  // Logout handler using OOP UserManager
+
   const handleLogout = () => {
     userManager.logout();
     setUser(null);
@@ -156,7 +157,7 @@ const Navbar = () => {
     navigate("/");
   };
 
-  // Dashboard link resolver
+
   const getDashboardLink = () => {
     if (!user) return "/";
     switch (user.role) {
@@ -177,24 +178,33 @@ const Navbar = () => {
     return user.full_name || user.username || user.email || "User";
   };
 
-  // User profile image getter (cache-bust for seller logo, always reads latest from sessionStorage)
+  // Build absolute URL for a stored relative image path
+  const buildProfileImgUrl = (path) => {
+    if (!path) return null;
+    if (/^https?:\/\//i.test(path)) return path; 
+    const base = API_CONFIG.BASE_URL.replace(/\/$/, "");
+    const rel = path.replace(/^\/?/, "");
+    return `${base}/${rel}?t=${Date.now()}`; 
+  };
+
+  // User profile image getter (supports customer and seller)
   const getUserProfileImage = () => {
     if (!user) return null;
-    if (user.role === "seller") {
-      try {
+    try {
+      if (user.role === "seller") {
         const seller = JSON.parse(sessionStorage.getItem("seller"));
         if (seller && seller.business_logo) {
-          return `http://localhost/backend/${seller.business_logo}?t=${seller.business_logo}`;
+          return buildProfileImgUrl(seller.business_logo);
         }
-      } catch {}
+      }
+      return buildProfileImgUrl(user.profile_image);
+    } catch {
+      return buildProfileImgUrl(user.profile_image);
     }
-    return user.profile_image || null;
   };
 
   // Check if wishlist should be shown (only for logged-in customers)
-  const shouldShowWishlist = () => {
-    return userManager.isCustomerLoggedIn();
-  };
+  const showWishlist = user && user.role === "customer";
 
   // Get user initial for dropdown
   const getUserInitial = () => {
@@ -214,25 +224,25 @@ const Navbar = () => {
     >
       <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between">
         {" "}
-        {/* Increased py-2 to py-4 */}
+       
         {/* Logo */}
         <Link
           to="/"
           className="flex items-center gap-2 hover:opacity-80 transition-opacity"
         >
           <img src={Logo} alt="Agrilink logo" className="w-12 h-12" />{" "}
-          {/* Increased from w-10 h-10 */}
+          
           <div className="w-px h-10 bg-gray-300"></div>{" "}
-          {/* Increased from h-8 */}
+          
           <div className="flex flex-col leading-tight">
             <span className="text-gray-600 font-semibold text-base">
               {" "}
-              {/* Increased from text-sm */}
+              
               Agricultural
             </span>
             <span className="text-gray-600 font-semibold text-base">
               {" "}
-              {/* Increased from text-sm */}
+             
               Marketplace
             </span>
           </div>
@@ -240,7 +250,6 @@ const Navbar = () => {
         {/* Navigation Links */}
         <div className="hidden lg:flex gap-6 text-base font-medium text-gray-700">
           {" "}
-          {/* Increased from text-xs */}
           <Link
             to="/"
             className="hover:text-green-600 transition-colors duration-200"
@@ -283,7 +292,7 @@ const Navbar = () => {
           {user ? (
             <>
               {/* Wishlist Icon - Only for customers */}
-              {user.role === "customer" && (
+              {showWishlist && (
                 <Link
                   to="/customer-dashboard/wishlist"
                   className="relative text-gray-600 hover:text-green-600 transition-colors duration-200"
@@ -459,18 +468,20 @@ const Navbar = () => {
             {user && user.role === "customer" && (
               <div className="flex items-center gap-6 pt-2 border-t border-gray-200">
                 {/* Wishlist Icon */}
-                <Link
-                  to="/customer-dashboard/wishlist"
-                  className="relative text-gray-600 hover:text-green-600 transition-colors duration-200"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <FaRegHeart className="text-xl" />
-                  {wishlistCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                      {wishlistCount > 99 ? "99+" : wishlistCount}
-                    </span>
-                  )}
-                </Link>
+                {showWishlist && (
+                  <Link
+                    to="/customer-dashboard/wishlist"
+                    className="relative text-gray-600 hover:text-green-600 transition-colors duration-200"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <FaRegHeart className="text-xl" />
+                    {wishlistCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                        {wishlistCount > 99 ? "99+" : wishlistCount}
+                      </span>
+                    )}
+                  </Link>
+                )}
                 {/* Cart Icon */}
                 <button
                   onClick={handleCartClick}

@@ -107,7 +107,7 @@ const BlogDetail = () => {
                 alt={post.title}
                 className="w-full h-auto rounded-lg shadow-lg"
                 onError={(e) => {
-                  console.error("BlogDetail featured image error:", e)
+                  // Error handler removed
                   e.target.style.display = "none"
                 }}
               />

@@ -11,7 +11,7 @@ class TopRatedProducts {
     }
 
     /**
-     * Get top N products by average rating (with at least 1 review)
+     * Get top N products by review count first, then average rating (minimum 4.4)
      * @param int $limit
      * @return array
      */
@@ -22,13 +22,14 @@ class TopRatedProducts {
                 LEFT JOIN {$this->sellerTable} s ON p.seller_id = s.id
                 LEFT JOIN {$this->reviewTable} r ON p.id = r.product_id
                 GROUP BY p.id
-                HAVING review_count > 0
-                ORDER BY average_rating DESC
+                HAVING review_count > 0 AND average_rating >= 4.4
+                ORDER BY review_count DESC, average_rating DESC
                 LIMIT :limit";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
         $stmt->execute();
         $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
         // Decode images and ensure average_rating is always a number
         foreach ($products as &$product) {
             $product['product_images'] = $product['product_images'] ? json_decode($product['product_images'], true) : [];
@@ -37,6 +38,10 @@ class TopRatedProducts {
             } else {
                 $product['average_rating'] = floatval($product['average_rating']);
             }
+            // Ensure stock is always an integer
+            $product['stock'] = isset($product['stock']) ? intval($product['stock']) : 0;
+            // Ensure review_count is always an integer
+            $product['review_count'] = isset($product['review_count']) ? intval($product['review_count']) : 0;
         }
         return $products;
     }

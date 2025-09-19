@@ -5,8 +5,14 @@
  */
 
 function setCORSHeaders() {
-    // Allow requests from React development server
-    header("Access-Control-Allow-Origin: http://localhost:3000");
+    // Allow requests from React development server (both ports)
+    $allowed_origins = ["http://localhost:3000", "http://localhost:3002"];
+    $origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : "";
+    if (in_array($origin, $allowed_origins)) {
+        header("Access-Control-Allow-Origin: $origin");
+    } else {
+        header("Access-Control-Allow-Origin: http://localhost:3002"); // fallback
+    }
     header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
     header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Origin, Accept");
     header("Access-Control-Allow-Credentials: true");

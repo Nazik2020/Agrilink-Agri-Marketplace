@@ -47,7 +47,7 @@ $endpoints = [
 echo json_encode([
     'success' => true,
     'message' => 'Order History API Endpoints',
-    'base_url' => 'http://localhost/backend/order_history/',
+    'base_url' => 'http://localhost/Agrilink-Agri-Marketplace/backend/order_history/',
     'endpoints' => $endpoints,
     'version' => '1.0.0',
     'created' => date('Y-m-d H:i:s')

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { User, Heart, ShoppingBag, Bell, LogOut } from "lucide-react";
+import { User, Heart, ShoppingBag, Bell, LogOut, Package } from "lucide-react";
 import customer from "../../../assets/CustomerDashboard/3412435.jpg";
+import { API_CONFIG } from "../../../config/api";
+
 const CustomerSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -10,33 +12,44 @@ const CustomerSidebar = () => {
   const [username, setUsername] = useState("");
   const [profileImage, setProfileImage] = useState(null);
 
-  useEffect(() => {
-    try {
-      const user = JSON.parse(sessionStorage.getItem("user"));
-      if (user && user.username) {
-        setUsername(user.username);
-      }
-      if (user && user.profile_image) {
-        setProfileImage(user.profile_image);
-      }
-    } catch (e) {}
+  const buildImgUrl = (raw) => {
+    if (!raw) return null;
+    if (/^https?:\/\//i.test(raw)) return raw;
+    const base = API_CONFIG.BASE_URL.replace(/\/$/, "");
+    const rel = String(raw).replace(/^\/?/, "");
+    return `${base}/${rel}?t=${Date.now()}`;
+  };
 
-    // Listen for profile updates (e.g., after upload)
-    const handleStorage = () => {
+  useEffect(() => {
+    const loadFromSession = () => {
       try {
         const user = JSON.parse(sessionStorage.getItem("user"));
-        if (user && user.profile_image) {
-          setProfileImage(user.profile_image);
+        if (user) {
+          setUsername(user.full_name || user.username || "Customer");
+          if (user.profile_image) {
+            setProfileImage(buildImgUrl(user.profile_image));
+          }
         }
-      } catch (e) {}
+      } catch (e) {
+        // Error parsing user from sessionStorage
+      }
     };
+
+    loadFromSession();
+
+    const handleStorage = () => loadFromSession();
+    const handleUserState = () => loadFromSession();
     window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+    window.addEventListener("userStateChanged", handleUserState);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("userStateChanged", handleUserState);
+    };
   }, []);
 
   const handleLogout = () => {
-    console.log("Customer logged out");
-    navigate("/login");
+    // Customer logged out
+    navigate("/marketplace");
   };
 
   const menuItems = [
@@ -46,6 +59,11 @@ const CustomerSidebar = () => {
       icon: ShoppingBag,
       label: "Order History",
       path: "/customer-dashboard/orders",
+    },
+    {
+      icon: Package,
+      label: "Customized Products",
+      path: "/customer-dashboard/customized-products",
     },
     {
       icon: Bell,
@@ -66,6 +84,10 @@ const CustomerSidebar = () => {
             }
             alt="Profile"
             className="w-30 h-30 rounded-full object-cover border-4 border-green-100 shadow-lg"
+            onError={(e) => {
+              e.currentTarget.src =
+                "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop";
+            }}
           />
           <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
         </div>

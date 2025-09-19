@@ -22,14 +22,10 @@ class SellerAnalytics {
     return (float)$stmt->fetchColumn();
     }
 
-    public function getTodaysExpenses() {
-        $stmt = $this->pdo->prepare("SELECT SUM(amount) FROM expenses WHERE seller_id = ? AND expense_date = CURDATE()");
-        $stmt->execute([$this->sellerId]);
-        return (float)$stmt->fetchColumn();
-    }
-
-    public function getTodaysProfit() {
-        return $this->getTodaysIncome() - $this->getTodaysExpenses();
+    public function getTodaysCommission() {
+        // Calculate 2.5% commission on today's income
+        $todaysIncome = $this->getTodaysIncome();
+        return round($todaysIncome * 0.025, 2);
     }
 
     public function getMonthlyIncome() {
@@ -51,6 +47,36 @@ class SellerAnalytics {
         ");
         $stmt->execute([$this->sellerId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Return today's sold products for this seller with aggregated quantity and totals.
+     */
+    public function getTodaysSoldProducts() {
+        $sql = "
+            SELECT 
+                o.product_id,
+                o.product_name,
+                MAX(o.unit_price) AS unit_price,
+                SUM(o.quantity) AS total_quantity,
+                SUM(o.total_amount) AS total_amount
+            FROM orders o
+            WHERE 
+                o.seller_id = ?
+                AND DATE(CONVERT_TZ(o.created_at, '+00:00', '+05:30')) = CURDATE()
+                AND o.payment_status = 'completed'
+            GROUP BY o.product_id, o.product_name
+            ORDER BY total_amount DESC
+        ";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([$this->sellerId]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return array_map(function ($row) {
+            $row['unit_price'] = (float)$row['unit_price'];
+            $row['total_quantity'] = (int)$row['total_quantity'];
+            $row['total_amount'] = (float)$row['total_amount'];
+            return $row;
+        }, $rows);
     }
 
     // Add more analytics methods as needed

@@ -13,6 +13,33 @@ const FAQ = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [popup, setPopup] = useState(null); // { type: 'success'|'error', message: string }
+
+  // Simple PopupMessage used elsewhere in the app (green/red overlay)
+  const PopupMessage = ({ message, type, onClose }) => {
+    if (!message) return null;
+    const isSuccess = type === 'success';
+    const bgColor = isSuccess ? 'bg-green-50' : 'bg-red-50';
+    const borderColor = isSuccess ? 'border-green-200' : 'border-red-200';
+    const textColor = isSuccess ? 'text-green-800' : 'text-red-800';
+    const icon = isSuccess ? '✔️' : '⚠️';
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-green-50/50 z-50">
+        <div className={`${bgColor} ${borderColor} border rounded-xl p-6 max-w-md w-full mx-4 shadow-lg`}>
+          <div className="flex items-start space-x-3">
+            <div className={`${textColor} flex-shrink-0 mt-0.5`} style={{fontWeight:'bold',fontSize:'1.5em'}}>{icon}</div>
+            <div className="flex-1">
+              <p className={`${textColor} text-sm font-medium leading-relaxed`}>{message}</p>
+            </div>
+            <button onClick={onClose} className={`${textColor} hover:opacity-70 transition-opacity flex-shrink-0`}>×</button>
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button onClick={onClose} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isSuccess ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}`}>OK</button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Fetch FAQs from backend
   React.useEffect(() => {
@@ -57,21 +84,40 @@ const FAQ = () => {
   };
 
   const handleSubmitQuestion = () => {
-    if (userQuestion.trim()) {
-      // Submit question to backend (no category)
+    if (!userQuestion.trim()) return;
+
+    // Only customers or sellers may submit a question
+    const userStr = sessionStorage.getItem('user');
+    if (!userStr) {
+      setPopup({ type: 'error', message: 'Please register to the system to submit your question.' });
+      setTimeout(() => setPopup(null), 3000);
+      return;
+    }
+    try {
+      const user = JSON.parse(userStr);
+      const role = (user?.role || '').toLowerCase();
+      if (role !== 'customer' && role !== 'seller') {
+        setPopup({ type: 'error', message: 'Please register to the system to submit your question.' });
+        setTimeout(() => setPopup(null), 3000);
+        return;
+      }
+
       fetch("http://localhost/Agrilink-Agri-Marketplace/backend/faq/add_faq.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          question: userQuestion
-          // Optionally add submitted_by and role if available
+          question: userQuestion,
+          submitted_by: user.id,
+          role: user.role
         }),
       })
         .then((res) => res.json())
         .then((data) => {
           if (data.success) {
             setUserQuestion("");
-            // Optionally refetch FAQs
+            setPopup({ type: 'success', message: 'Your question has been submitted successfully.' });
+            setTimeout(() => setPopup(null), 2000);
+            // Refresh FAQs
             setLoading(true);
             fetch("http://localhost/Agrilink-Agri-Marketplace/backend/faq/get_faqs.php")
               .then((res) => res.json())
@@ -82,17 +128,25 @@ const FAQ = () => {
                 setLoading(false);
               });
           } else {
-            alert(data.message || "Failed to submit question.");
+            setPopup({ type: 'error', message: data.message || 'Failed to submit question.' });
+            setTimeout(() => setPopup(null), 3000);
           }
         })
         .catch(() => {
-          alert("Error submitting question.");
+          setPopup({ type: 'error', message: 'Error submitting question.' });
+          setTimeout(() => setPopup(null), 3000);
         });
+    } catch (_e) {
+      setPopup({ type: 'error', message: 'Please register to the system to submit your question.' });
+      setTimeout(() => setPopup(null), 3000);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      {popup && (
+        <PopupMessage message={popup.message} type={popup.type} onClose={() => setPopup(null)} />
+      )}
       {/* Header Section */}
       <div className="relative bg-gradient-to-br from-emerald-500 to-emerald-600 py-25 px-5 text-center overflow-hidden w-full">
         {/* Decorative Background Elements */}

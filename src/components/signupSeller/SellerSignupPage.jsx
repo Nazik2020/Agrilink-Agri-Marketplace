@@ -36,7 +36,7 @@ const SellerSignupPage = () => {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.userName.trim()) {
-      newErrors.userName = "User name is required";
+      newErrors.userName = "First name is required";
     }
     if (!formData.businessName.trim()) {
       newErrors.businessName = "Business name is required";

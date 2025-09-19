@@ -65,9 +65,11 @@ const BuyNowModal = ({
 
   // Use cart totals if this is a cart checkout, otherwise use single product totals
   const subtotal = isCartCheckout ? cartSubtotal : singleProductTotal;
-  const shipping = isCartCheckout ? cartShipping : 0;
-  const tax = isCartCheckout ? cartTax : 0;
-  const totalAmount = subtotal + shipping + tax;
+  // Shipping/tax are not charged in this project. Keep numeric values at 0 for payloads,
+  // but don't add them to the UI total. Show a shipping note to the user instead.
+  const shipping = 0;
+  const tax = 0;
+  const totalAmount = subtotal;
 
   const allowedCards = {
     4242424242424242: "success",
@@ -359,12 +361,51 @@ const BuyNowModal = ({
         }
 
         // Dispatch custom event for each purchased product to update listings instantly
-        if (purchasedProducts.length > 0) {
-          purchasedProducts.forEach(({ productId, quantity }) => {
-            window.dispatchEvent(
-              new CustomEvent("orderPaid", { detail: { productId, quantity } })
-            );
-          });
+        // Prefer deliveredQuantity as returned by backend debug info (paid + free for offers)
+        try {
+          const resp = response && response.data ? response.data : {};
+          const debugArr = Array.isArray(resp.debug) ? resp.debug : [];
+
+          if (debugArr.length > 0) {
+            // Use backend-provided decrease (deliverQty)
+            debugArr.forEach((entry) => {
+              const productId = entry?.item?.product_id || entry?.product_id || entry?.debug?.product_id || null;
+              const deliveredQuantity = entry?.debug?.quantity ?? null;
+              const fallbackQty = (() => {
+                // try to find from purchasedProducts if needed
+                if (!productId) return null;
+                const m = purchasedProducts.find((pp) => String(pp.productId) === String(productId));
+                return m ? m.quantity : null;
+              })();
+              if (productId) {
+                window.dispatchEvent(
+                  new CustomEvent("orderPaid", {
+                    detail: {
+                      productId,
+                      quantity: deliveredQuantity ?? fallbackQty ?? 1,
+                      deliveredQuantity: deliveredQuantity ?? undefined,
+                    },
+                  })
+                );
+              }
+            });
+          } else if (purchasedProducts.length > 0) {
+            // Fallback to local quantities if backend didn't return debug info
+            purchasedProducts.forEach(({ productId, quantity }) => {
+              window.dispatchEvent(
+                new CustomEvent("orderPaid", { detail: { productId, quantity } })
+              );
+            });
+          }
+        } catch (e) {
+          // As a safety net, still dispatch basic events
+          if (purchasedProducts.length > 0) {
+            purchasedProducts.forEach(({ productId, quantity }) => {
+              window.dispatchEvent(
+                new CustomEvent("orderPaid", { detail: { productId, quantity } })
+              );
+            });
+          }
         }
 
         if (isCartCheckout) {
@@ -617,9 +658,11 @@ const BuyNowModal = ({
                     <div className="border-t border-green-200 mt-4 pt-4 space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Subtotal:</span>
-                        <span className="font-semibold">
-                          ${totalAmount.toFixed(2)}
-                        </span>
+                        <span className="font-semibold">${subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Shipping:</span>
+                        <span className="italic text-gray-600">Will be informed later</span>
                       </div>
                       <div className="flex justify-between items-center text-lg">
                         <span className="font-bold text-gray-800">Total:</span>
@@ -703,12 +746,8 @@ const BuyNowModal = ({
                     {subtotal.toFixed(2)}
                   </div>
                   <div>
-                    <span className="font-semibold">Shipping:</span> $
-                    {shipping.toFixed(2)}
-                  </div>
-                  <div>
-                    <span className="font-semibold">Tax:</span> $
-                    {tax.toFixed(2)}
+                    <span className="font-semibold">Shipping:</span>
+                    <span className="ml-1 italic text-gray-600">Will be informed later</span>
                   </div>
                   <div className="font-bold text-lg">
                     Total: ${totalAmount.toFixed(2)}

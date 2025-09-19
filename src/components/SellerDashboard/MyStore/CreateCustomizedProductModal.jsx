@@ -45,10 +45,14 @@ const CreateCustomizedProductModal = ({ request, onClose, onSubmit }) => {
         : parseFloat(request.original_price);
       const initialOffer = request?.special_offer && request.special_offer !== '' ? request.special_offer : 'No Special Offer';
       setFormData({
+        // Pre-fill product name for clarity; seller can still edit
         productName: `${request.product_name} - Customized`,
+        // Keep product description from the original product
         productDescription: request.product_description,
-        customizationDescription: request.customization_details,
-        price: (basePrice * 1.2).toFixed(2), // 20% markup
+        // Keep customization description empty so seller can write their version
+        customizationDescription: '',
+        // Leave price empty so seller can input their offered price
+        price: '',
         stock: request.quantity,
         category: request.category || 'Products',
         specialOffer: initialOffer
@@ -243,7 +247,7 @@ const CreateCustomizedProductModal = ({ request, onClose, onSubmit }) => {
                   onChange={handleInputChange}
                   disabled={isLoading}
                   className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300 disabled:bg-gray-50 disabled:cursor-not-allowed"
-                  placeholder="Enter product name"
+                  placeholder="Enter a clear customized product name"
                 />
                 {errors.productName && (
                   <p className="text-red-500 text-sm">{errors.productName}</p>
@@ -264,7 +268,7 @@ const CreateCustomizedProductModal = ({ request, onClose, onSubmit }) => {
                   min="0"
                   disabled={isLoading}
                   className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300 disabled:bg-gray-50 disabled:cursor-not-allowed"
-                  placeholder="Enter price"
+                  placeholder="Enter your offered price"
                 />
                 {errors.price && (
                   <p className="text-red-500 text-sm">{errors.price}</p>
@@ -395,7 +399,7 @@ const CreateCustomizedProductModal = ({ request, onClose, onSubmit }) => {
               rows="3"
               disabled={isLoading}
               className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300 resize-none disabled:bg-gray-50 disabled:cursor-not-allowed"
-              placeholder="Describe your customized product"
+              placeholder="Enter a clear customized product description"
             />
             {errors.productDescription && (
               <p className="text-red-500 text-sm">{errors.productDescription}</p>
@@ -414,7 +418,7 @@ const CreateCustomizedProductModal = ({ request, onClose, onSubmit }) => {
               rows="3"
               disabled={isLoading}
               className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300 resize-none disabled:bg-gray-50 disabled:cursor-not-allowed"
-              placeholder="Describe the customization details"
+              placeholder="Describe the seller-defined customization (e.g., packaging, size, extra processing)"
             />
             {errors.customizationDescription && (
               <p className="text-red-500 text-sm">{errors.customizationDescription}</p>

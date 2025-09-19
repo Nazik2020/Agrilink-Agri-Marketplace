@@ -38,12 +38,13 @@ const Allproducts = ({ displayCount = 8 }) => {
   // Instant stock update when an order is paid
   useEffect(() => {
     const handleOrderPaid = (e) => {
-      const { productId, quantity = 1 } = e.detail || {};
+      const { productId } = e.detail || {};
+      const qtyToSubtract = (e.detail && (e.detail.deliveredQuantity ?? e.detail.quantity)) || 1;
       if (!productId) return;
       setProducts((prev) =>
         prev.map((p) =>
           String(p.id) === String(productId)
-            ? { ...p, stock: Math.max(0, (parseInt(p.stock, 10) || 0) - (quantity || 1)) }
+            ? { ...p, stock: Math.max(0, (parseInt(p.stock, 10) || 0) - (qtyToSubtract || 1)) }
             : p
         )
       );

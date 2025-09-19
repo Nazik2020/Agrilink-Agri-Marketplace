@@ -10,6 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . '/../config/admin_config.php';
+require_once __DIR__ . '/../../services/OfferPricing.php';
 
 try {
     $adminConfig = new AdminConfig();
@@ -44,7 +45,7 @@ try {
     }
 
     // Orders
-    $orderSql = "SELECT o.id AS activity_id, c.full_name AS user, CONCAT('Placed order #', o.id) AS action, o.created_at AS time, 'order' AS type FROM orders o LEFT JOIN customers c ON o.customer_id = c.id";
+    $orderSql = "SELECT o.id AS activity_id, c.full_name AS user, CONCAT('Placed order #', o.id) AS action, o.created_at AS time, 'order' AS type, o.total_amount, o.payment_status FROM orders o LEFT JOIN customers c ON o.customer_id = c.id";
     if ($monthStart && $monthEnd) {
         $orderSql .= " WHERE o.created_at BETWEEN '" . $monthStart . "' AND '" . $monthEnd . "'";
     }
@@ -56,24 +57,36 @@ try {
             'action' => $row['action'],
             'time' => timeAgo($row['time']),
             'time_raw' => $row['time'],
-            'type' => $row['type']
+            'type' => $row['type'],
+            'total_amount' => isset($row['total_amount']) ? (float)$row['total_amount'] : null,
+            'payment_status' => isset($row['payment_status']) ? $row['payment_status'] : null
         ];
     }
 
     // Products added
-    $productSql = "SELECT p.id AS activity_id, s.business_name AS user, 'Added new product' AS action, p.created_at AS time, 'product' AS type FROM products p LEFT JOIN sellers s ON p.seller_id = s.id";
+    $productSql = "SELECT p.id AS activity_id, s.business_name AS user, 'Added new product' AS action, p.created_at AS time, 'product' AS type, p.price, p.special_offer FROM products p LEFT JOIN sellers s ON p.seller_id = s.id";
     if ($monthStart && $monthEnd) {
         $productSql .= " WHERE p.created_at BETWEEN '" . $monthStart . "' AND '" . $monthEnd . "'";
     }
     $productSql .= " ORDER BY p.created_at DESC LIMIT 20";
     foreach ($conn->query($productSql) as $row) {
+        $price = isset($row['price']) ? (float)$row['price'] : null;
+        $offer = isset($row['special_offer']) ? $row['special_offer'] : '';
+        $effective = null;
+        if ($price !== null) {
+            $calc = OfferPricing::compute($price, 1, $offer);
+            $effective = $calc['unit_price'];
+        }
         $activities[] = [
             'id' => $row['activity_id'],
             'user' => $row['user'],
             'action' => $row['action'],
             'time' => timeAgo($row['time']),
             'time_raw' => $row['time'],
-            'type' => $row['type']
+            'type' => $row['type'],
+            'price' => $price,
+            'special_offer' => $offer,
+            'effective_price' => $effective
         ];
     }
 

@@ -5,8 +5,8 @@ import axios from "axios";
 
 const CustomerSignupPage = () => {
   const [formData, setFormData] = useState({
-    fullName: "",
-    userName: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -32,11 +32,11 @@ const CustomerSignupPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = "Full name is required";
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "First name is required";
     }
-    if (!formData.userName.trim()) {
-      newErrors.userName = "Username is required";
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = "Last name is required";
     }
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
@@ -67,11 +67,15 @@ const CustomerSignupPage = () => {
 
     setIsLoading(true);
     try {
+      const fullName = `${formData.firstName} ${formData.lastName}`
+        .trim()
+        .replace(/\s+/g, " ");
+      const userName = `${formData.firstName}${formData.lastName}`.replace(/\s+/g, "").toLowerCase();
       const res = await axios.post(
         "http://localhost/Agrilink-Agri-Marketplace/backend/SignupCustomer.php",
         {
-          fullName: formData.fullName,
-          userName: formData.userName,
+          fullName,
+          userName,
           email: formData.email,
           password: formData.password,
         }
@@ -79,8 +83,8 @@ const CustomerSignupPage = () => {
       setMessage(res.data.message);
       if (res.data.success) {
         setFormData({
-          fullName: "",
-          userName: "",
+          firstName: "",
+          lastName: "",
           email: "",
           password: "",
           confirmPassword: "",

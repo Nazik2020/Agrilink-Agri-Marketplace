@@ -75,13 +75,13 @@ const navigate = useNavigate();
 
         {/* Signup Form */}
         <form onSubmit={onSubmit} className="space-y-5">
-          {/* User Name */}
+          {/* First Name */}
           <div>
             <label
               htmlFor="userName"
               className="block text-base font-medium text-gray-600 mb-2"
             >
-              User Name
+              First Name
             </label>
             <input
               type="text"
@@ -89,7 +89,7 @@ const navigate = useNavigate();
               name="userName"
               value={formData.userName}
               onChange={onInputChange}
-              placeholder="Enter username"
+              placeholder="Enter your first name"
               className={`w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
                 errors.userName ? "border-red-500" : "border-gray-300"
               }`}

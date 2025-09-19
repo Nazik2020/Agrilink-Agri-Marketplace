@@ -5,6 +5,35 @@ import { createPortal } from "react-dom";
 import axios from "axios";
 import { X } from "lucide-react";
 
+// Lightweight popup used elsewhere in the app (success=green, error=red)
+const PopupMessage = ({ message, type = 'success', onClose }) => {
+  if (!message) return null;
+  const isSuccess = type === 'success';
+  const bgColor = isSuccess ? 'bg-green-50' : 'bg-red-50';
+  const borderColor = isSuccess ? 'border-green-200' : 'border-red-200';
+  const textColor = isSuccess ? 'text-green-800' : 'text-red-800';
+  const iconColor = isSuccess ? 'text-green-600' : 'text-red-600';
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black/20 z-[10001]">
+      <div className={`${bgColor} ${borderColor} border rounded-2xl p-6 max-w-lg w-[92%] mx-4 shadow-xl relative`}> 
+        <button
+          aria-label="Close notification"
+          onClick={onClose}
+          className={`absolute top-3 right-3 ${textColor} hover:opacity-75 transition-opacity`}
+        >
+          <X size={20} />
+        </button>
+        <div className="flex items-start space-x-3 pr-6">
+          <div className={`${iconColor} flex-shrink-0 mt-0.5`}>{isSuccess ? '✔️' : '❌'}</div>
+          <div className="flex-1">
+            <p className={`${textColor} text-base font-medium whitespace-pre-line`}>{message}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const WithdrawModal = ({
   isOpen,
   onClose,
@@ -22,6 +51,15 @@ const WithdrawModal = ({
   const [cvc, setCvc] = useState("");
   const [hasCardDetails, setHasCardDetails] = useState(false);
   const seller_id = localStorage.getItem("seller_id");
+
+  // Popup state
+  const [popupMessage, setPopupMessage] = useState(null);
+  const [popupType, setPopupType] = useState('success');
+  const [afterPopupClose, setAfterPopupClose] = useState(null);
+  const showPopup = (message, type = 'success') => {
+    setPopupMessage(message);
+    setPopupType(type);
+  };
 
   // Format card number with spaces every 4 digits and restrict to 16 digits
   const handleCardNumberChange = (e) => {
@@ -54,22 +92,10 @@ const WithdrawModal = ({
     // Remove spaces from card number
     const rawCardNumber = cardNumber.replace(/\s/g, "");
     // Validate all fields
-    if (!cardholderName.trim()) {
-      alert("Please enter seller name.");
-      return;
-    }
-    if (!/^\d{16}$/.test(rawCardNumber)) {
-      alert("Card number must be 16 digits.");
-      return;
-    }
-    if (!/^\d{2}\/\d{2}$/.test(expiry)) {
-      alert("Expiry must be in MM/YY format.");
-      return;
-    }
-    if (!/^\d{3,4}$/.test(cvc)) {
-      alert("CVC must be 3 or 4 digits.");
-      return;
-    }
+    if (!cardholderName.trim()) { showPopup("Please enter seller name.", 'error'); return; }
+    if (!/^\d{16}$/.test(rawCardNumber)) { showPopup("Card number must be 16 digits.", 'error'); return; }
+    if (!/^\d{2}\/\d{2}$/.test(expiry)) { showPopup("Expiry must be in MM/YY format.", 'error'); return; }
+    if (!/^\d{3,4}$/.test(cvc)) { showPopup("CVC must be 3 or 4 digits.", 'error'); return; }
     setLoading(true);
     try {
       const response = await axios.post(
@@ -83,7 +109,7 @@ const WithdrawModal = ({
         }
       );
       if (response.data.success) {
-        alert("Card details saved successfully! You can now withdraw funds.");
+        showPopup("Card details saved successfully! You can now withdraw funds.", 'success');
         setCardholderName("");
         setCardNumber("");
         setExpiry("");
@@ -96,24 +122,17 @@ const WithdrawModal = ({
         setBankAccounts(res.data.accounts);
         setShowAddBank(false);
       } else {
-        alert(response.data.error);
+        showPopup(response.data.error || 'Failed to add card details.', 'error');
       }
     } catch (err) {
-      alert("Failed to add card details.");
+      showPopup("Failed to add card details.", 'error');
     }
     setLoading(false);
   };
 
   const handleWithdraw = async () => {
-    if (!amount || !bankAccount) {
-      alert("Please enter amount and select bank account.");
-      return;
-    }
-    
-    if (!hasCardDetails) {
-      alert("You must save your card details before withdrawing. Please click 'Save Card Details' first.");
-      return;
-    }
+  if (!amount || !bankAccount) { showPopup("Please enter amount and select bank account.", 'error'); return; }
+    if (!hasCardDetails) { showPopup("You must save your card details before withdrawing. Please click 'Save Card Details' first.", 'error'); return; }
     
     setLoading(true);
     try {
@@ -126,18 +145,21 @@ const WithdrawModal = ({
         }
       );
       if (response.data.success) {
-        alert(
-          `Withdrawal completed!\nCommission: $${response.data.commission}\nWithdrawn: $${response.data.withdrawn_amount}`
-        );
+        showPopup(`Withdrawal completed!\nCommission: $${response.data.commission}\nWithdrawn: $${response.data.withdrawn_amount}`,'success');
         setAmount("");
         setBankAccount("");
-        if (onWithdrawSuccess) onWithdrawSuccess();
-        onClose();
+        // Close modal and refresh after the user dismisses the popup
+        setAfterPopupClose(() => () => {
+          if (onWithdrawSuccess) onWithdrawSuccess();
+          onClose();
+          setPopupMessage(null);
+          setAfterPopupClose(null);
+        });
       } else {
-        alert(response.data.error);
+        showPopup(response.data.error || 'Withdrawal failed.', 'error');
       }
     } catch (err) {
-      alert("Withdrawal failed. Please try again.");
+      showPopup("Withdrawal failed. Please try again.", 'error');
     }
     setLoading(false);
   };
@@ -283,6 +305,15 @@ const WithdrawModal = ({
           </button>
         </div>
       </div>
+      {/* Success/Error Popup */}
+      <PopupMessage
+        message={popupMessage}
+        type={popupType}
+        onClose={() => {
+          if (afterPopupClose) { afterPopupClose(); }
+          else { setPopupMessage(null); }
+        }}
+      />
     </div>
   );
 

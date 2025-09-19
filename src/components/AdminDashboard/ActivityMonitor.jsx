@@ -159,6 +159,36 @@ const ActivityMonitor = () => {
                           <p className="text-gray-500 text-sm">
                             {activity.action}
                           </p>
+                          {/* Offer-aware snippets for product and order types */}
+                          {activity.type === 'product' && (activity.effective_price != null || activity.special_offer) && (
+                            <div className="mt-1 text-sm">
+                              {activity.effective_price != null && activity.price != null && parseFloat(activity.effective_price) !== parseFloat(activity.price) ? (
+                                <>
+                                  <span className="text-green-700 font-semibold mr-2">${parseFloat(activity.effective_price).toFixed(2)}</span>
+                                  <span className="text-gray-400 line-through">${parseFloat(activity.price).toFixed(2)}</span>
+                                </>
+                              ) : (
+                                activity.price != null && <span className="text-gray-700">${parseFloat(activity.price).toFixed(2)}</span>
+                              )}
+                              {activity.special_offer && activity.special_offer !== 'No Special Offer' && (
+                                <span className="ml-2 inline-block bg-red-100 text-red-700 text-[10px] font-semibold px-2 py-0.5 rounded-full align-middle">
+                                  {activity.special_offer}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {activity.type === 'order' && (activity.total_amount != null || activity.payment_status) && (
+                            <div className="mt-1 text-sm text-gray-700">
+                              {activity.total_amount != null && (
+                                <span className="mr-2">Total: <span className="font-semibold">${parseFloat(activity.total_amount).toFixed(2)}</span></span>
+                              )}
+                              {activity.payment_status && (
+                                <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold ${activity.payment_status.match(/success|completed|paid|succeeded/i) ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                  {activity.payment_status}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                         <div className="w-24 text-xs text-gray-400 whitespace-nowrap flex-shrink-0 text-right">{activity.time}</div>
                         <button
@@ -203,6 +233,22 @@ const ActivityMonitor = () => {
                       <span className="text-gray-900 break-all">{String(value)}</span>
                     </div>
                   ))}
+                {/* Offer-aware hints in details modal */}
+                {selectedActivity?.type === 'product' && activityDetails?.effective_price != null && activityDetails?.price != null && parseFloat(activityDetails.effective_price) !== parseFloat(activityDetails.price) && (
+                  <div className="flex">
+                    <span className="font-semibold w-40 text-gray-700">Offer price:</span>
+                    <span className="text-gray-900">
+                      <span className="text-green-700 font-semibold mr-2">${parseFloat(activityDetails.effective_price).toFixed(2)}</span>
+                      <span className="text-gray-400 line-through">${parseFloat(activityDetails.price).toFixed(2)}</span>
+                    </span>
+                  </div>
+                )}
+                {selectedActivity?.type === 'order' && activityDetails?.total_amount != null && (
+                  <div className="flex">
+                    <span className="font-semibold w-40 text-gray-700">Offer total amount:</span>
+                    <span className="text-gray-900">${parseFloat(activityDetails.total_amount).toFixed(2)}</span>
+                  </div>
+                )}
               </div>
             )}
           </div>

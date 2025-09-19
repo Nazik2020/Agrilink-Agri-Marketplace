@@ -51,51 +51,51 @@ const RightSection = ({
 
         {/* Signup Form */}
         <form onSubmit={onSubmit} className="space-y-6">
-          {/* Full Name */}
+          {/* First Name */}
           <div>
             <label
-              htmlFor="fullName"
+              htmlFor="firstName"
               className="block text-base font-medium text-gray-600 mb-2"
             >
-              Full Name
+              First Name
             </label>
             <input
               type="text"
-              id="fullName"
-              name="fullName"
-              value={formData.fullName}
+              id="firstName"
+              name="firstName"
+              value={formData.firstName}
               onChange={onInputChange}
-              placeholder="Enter your full name"
+              placeholder="Enter your first name"
               className={`w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                errors.fullName ? "border-red-500" : "border-gray-300"
+                errors.firstName ? "border-red-500" : "border-gray-300"
               }`}
             />
-            {errors.fullName && (
-              <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>
+            {errors.firstName && (
+              <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
             )}
           </div>
 
-          {/* Username */}
+          {/* Last Name */}
           <div>
             <label
-              htmlFor="userName"
+              htmlFor="lastName"
               className="block text-base font-medium text-gray-600 mb-2"
             >
-              Username
+              Last Name
             </label>
             <input
               type="text"
-              id="userName"
-              name="userName"
-              value={formData.userName}
+              id="lastName"
+              name="lastName"
+              value={formData.lastName}
               onChange={onInputChange}
-              placeholder="Enter your username"
+              placeholder="Enter your last name"
               className={`w-full px-4 py-2 border rounded-full focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-                errors.userName ? "border-red-500" : "border-gray-300"
+                errors.lastName ? "border-red-500" : "border-gray-300"
               }`}
             />
-            {errors.userName && (
-              <p className="mt-1 text-sm text-red-600">{errors.userName}</p>
+            {errors.lastName && (
+              <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
             )}
           </div>
 

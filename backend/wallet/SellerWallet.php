@@ -11,19 +11,30 @@ class SellerWallet {
         $this->seller_id = $seller_id;
     }
 
-    // Total products sold (completed orders)
+    // Total products sold (successful payments)
     public function getProductsSold() {
-        $stmt = $this->conn->prepare("SELECT SUM(quantity) as total_sold FROM orders WHERE seller_id = ? AND payment_status = 'completed'");
+        // Include common successful payment statuses to avoid zero totals when legacy data used different labels
+        $stmt = $this->conn->prepare(
+            "SELECT COALESCE(SUM(quantity), 0) as total_sold
+             FROM orders
+             WHERE seller_id = ?
+               AND COALESCE(payment_status, '') IN ('completed','paid','success','succeeded')"
+        );
         $stmt->execute([$this->seller_id]);
-        $row = $stmt->fetch();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? (int)$row['total_sold'] : 0;
     }
 
-    // Total earnings (sum of completed order amounts)
+    // Total earnings (sum of successful order amounts)
     public function getTotalEarnings() {
-        $stmt = $this->conn->prepare("SELECT SUM(total_amount) as earnings FROM orders WHERE seller_id = ? AND payment_status = 'completed'");
+        $stmt = $this->conn->prepare(
+            "SELECT COALESCE(SUM(total_amount), 0) as earnings
+             FROM orders
+             WHERE seller_id = ?
+               AND COALESCE(payment_status, '') IN ('completed','paid','success','succeeded')"
+        );
         $stmt->execute([$this->seller_id]);
-        $row = $stmt->fetch();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? (float)$row['earnings'] : 0.0;
     }
 
@@ -43,27 +54,38 @@ class SellerWallet {
     // Transaction history (sales and withdrawals)
     public function getTransactionHistory() {
         $history = [];
-        // Sales
-        $stmt = $this->conn->prepare("SELECT created_at as date, total_amount as amount, 'Sale' as type, payment_status as status FROM orders WHERE seller_id = ? AND payment_status = 'completed' ORDER BY created_at DESC");
+        // Sales (successful payments)
+        $stmt = $this->conn->prepare(
+            "SELECT created_at as date, total_amount as amount, 'Sale' as type, COALESCE(payment_status, 'completed') as status
+             FROM orders
+             WHERE seller_id = ?
+               AND COALESCE(payment_status, '') IN ('completed','paid','success','succeeded')
+             ORDER BY created_at DESC"
+        );
         $stmt->execute([$this->seller_id]);
-        $sales = $stmt->fetchAll();
+        $sales = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($sales as $sale) {
             $history[] = [
                 'date' => $sale['date'],
                 'type' => $sale['type'],
-                'amount' => $sale['amount'],
+                'amount' => (float)$sale['amount'],
                 'status' => $sale['status']
             ];
         }
         // Withdrawals
-        $stmt = $this->conn->prepare("SELECT withdrawal_date as date, amount, 'Withdrawal' as type, status FROM withdrawals WHERE seller_id = ? ORDER BY withdrawal_date DESC");
+        $stmt = $this->conn->prepare(
+            "SELECT withdrawal_date as date, amount, 'Withdrawal' as type, status
+             FROM withdrawals
+             WHERE seller_id = ?
+             ORDER BY withdrawal_date DESC"
+        );
         $stmt->execute([$this->seller_id]);
-        $withdrawals = $stmt->fetchAll();
+        $withdrawals = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($withdrawals as $w) {
             $history[] = [
                 'date' => $w['date'],
                 'type' => $w['type'],
-                'amount' => -$w['amount'], // negative for withdrawal
+                'amount' => -((float)$w['amount']), // negative for withdrawal
                 'status' => $w['status']
             ];
         }

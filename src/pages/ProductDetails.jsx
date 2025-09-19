@@ -866,6 +866,8 @@ function ProductDetails() {
             id: product.id,
             name: product.name,
             price: product.price,
+            effective_price: product.effective_price,
+            special_offer: product.special_offer,
             category: product.category,
             seller: { id: product.seller.id, name: product.seller.name }
           }}

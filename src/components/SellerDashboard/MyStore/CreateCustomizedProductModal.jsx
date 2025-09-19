@@ -40,14 +40,18 @@ const CreateCustomizedProductModal = ({ request, onClose, onSubmit }) => {
   useEffect(() => {
     if (request) {
       // Pre-populate form with request data
+      const basePrice = (request?.effective_price != null && !isNaN(parseFloat(request.effective_price)))
+        ? parseFloat(request.effective_price)
+        : parseFloat(request.original_price);
+      const initialOffer = request?.special_offer && request.special_offer !== '' ? request.special_offer : 'No Special Offer';
       setFormData({
         productName: `${request.product_name} - Customized`,
         productDescription: request.product_description,
         customizationDescription: request.customization_details,
-        price: (parseFloat(request.original_price) * 1.2).toFixed(2), // 20% markup
+        price: (basePrice * 1.2).toFixed(2), // 20% markup
         stock: request.quantity,
         category: request.category || 'Products',
-        specialOffer: 'No Special Offer'
+        specialOffer: initialOffer
       });
     }
   }, [request]);
@@ -198,10 +202,26 @@ const CreateCustomizedProductModal = ({ request, onClose, onSubmit }) => {
                 <p className="font-medium">{request.quantity}</p>
               </div>
               <div>
-                <span className="text-blue-600">Original Price:</span>
-                <p className="font-medium">${parseFloat(request.original_price).toFixed(2)}</p>
+                <span className="text-blue-600">Price at Request Time:</span>
+                <p className="font-medium">
+                  {request?.effective_price != null && parseFloat(request.effective_price) !== parseFloat(request.original_price) ? (
+                    <>
+                      <span className="text-green-700 font-semibold mr-2">${parseFloat(request.effective_price).toFixed(2)}</span>
+                      <span className="text-gray-400 line-through">${parseFloat(request.original_price).toFixed(2)}</span>
+                    </>
+                  ) : (
+                    <>${parseFloat(request.original_price).toFixed(2)}</>
+                  )}
+                </p>
               </div>
             </div>
+            {request?.special_offer && request.special_offer !== 'No Special Offer' && (
+              <div className="mt-2">
+                <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                  {request.special_offer}
+                </span>
+              </div>
+            )}
             <div className="mt-3">
               <span className="text-blue-600 font-medium">Customization Request:</span>
               <p className="text-blue-800 mt-1">{request.customization_details}</p>

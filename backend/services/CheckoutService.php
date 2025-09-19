@@ -1,4 +1,4 @@
-<?php
+                                                                                                                                                                                    <?php
 /**
  * Checkout Service - Orchestrates the complete checkout process
  * Handles business logic for orders and payments

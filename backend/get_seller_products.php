@@ -3,6 +3,7 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET");
 header("Content-Type: application/json; charset=UTF-8");
 require_once 'db.php'; // Make sure $conn is your PDO connection
+require_once __DIR__ . '/services/OfferPricing.php';
 
 $sellerId = $_GET['sellerId'] ?? null;
 
@@ -15,12 +16,18 @@ if (empty($sellerId)) {
 }
 
 try {
-    $stmt = $conn->prepare("SELECT id, product_name, price, stock, product_images FROM products WHERE seller_id = ? AND status = 'active'");
+    $stmt = $conn->prepare("SELECT id, product_name, price, stock, product_images, special_offer FROM products WHERE seller_id = ? AND status = 'active'");
     $stmt->execute([$sellerId]);
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     // Process product images
     foreach ($products as &$product) {
+        // Compute effective price (unit price for quantity 1) using OfferPricing
+        $basePrice = isset($product['price']) ? (float)$product['price'] : 0.0;
+        $specialOffer = $product['special_offer'] ?? null;
+        $pricing = OfferPricing::compute($basePrice, 1, $specialOffer);
+        $product['effective_price'] = $pricing['unit_price'];
+
         $images = json_decode($product['product_images'], true);
         
         if (is_array($images) && count($images) > 0) {

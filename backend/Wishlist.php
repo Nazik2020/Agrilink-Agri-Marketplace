@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/services/OfferPricing.php';
+
 class Wishlist {
     private $conn;
 
@@ -65,7 +67,16 @@ class Wishlist {
                 ORDER BY w.added_at DESC
             ");
             $stmt->execute([$customerId]);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($items as &$item) {
+                $basePrice = isset($item['price']) ? (float)$item['price'] : 0.0;
+                $specialOffer = $item['special_offer'] ?? null;
+                $pricing = OfferPricing::compute($basePrice, 1, $specialOffer);
+                $item['effective_price'] = $pricing['unit_price'];
+            }
+
+            return $items;
         } catch (PDOException $e) {
             error_log("Error getting wishlist: " . $e->getMessage());
             return [];

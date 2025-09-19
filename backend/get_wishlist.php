@@ -4,6 +4,7 @@ header("Content-Type: application/json");
 header("Access-Control-Allow-Headers: Content-Type");
 
 require 'db.php';
+// Wishlist.php includes OfferPricing and computes effective_price per item
 require 'Wishlist.php';
 
 // Enable error reporting for debugging

@@ -75,12 +75,13 @@ const Offers = ({ displayCount = 8 }) => {
       return;
     }
 
+    const priceToUse = product.effective_price != null ? parseFloat(product.effective_price) : parseFloat(product.price || 0);
     addToCart({
       id: product.id,
       name: product.product_name,
       seller: product.seller_name || "Unknown Seller",
       category: product.category || "Offers",
-      price: parseFloat(product.price || 0),
+      price: priceToUse,
       maxQuantity: 10,
     });
   };
@@ -222,12 +223,18 @@ const Offers = ({ displayCount = 8 }) => {
 
               <div className="flex items-end justify-between mt-auto">
                 <div>
-                  <span className="text-green-700 font-bold text-lg">
-                    ${parseFloat(product.price || 0).toFixed(2)}
-                  </span>
-                  {product.oldPrice && (
-                    <span className="text-gray-400 text-base line-through ml-2">
-                      ${parseFloat(product.oldPrice).toFixed(2)}
+                  {product.effective_price != null && parseFloat(product.effective_price) !== parseFloat(product.price || 0) ? (
+                    <>
+                      <span className="text-green-700 font-bold text-lg mr-2">
+                        ${parseFloat(product.effective_price).toFixed(2)}
+                      </span>
+                      <span className="text-gray-400 text-base line-through">
+                        ${parseFloat(product.price || 0).toFixed(2)}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-green-700 font-bold text-lg">
+                      ${parseFloat(product.price || 0).toFixed(2)}
                     </span>
                   )}
                 </div>

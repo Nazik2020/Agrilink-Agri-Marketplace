@@ -1,5 +1,6 @@
 <?php
 require_once '../db.php';
+require_once __DIR__ . '/../services/OfferPricing.php';
 
 class CustomizationRequest {
     private $conn;
@@ -37,7 +38,7 @@ class CustomizationRequest {
      */
     public function getSellerRequests($sellerId) {
         try {
-            $sql = "SELECT cr.*, p.product_name, p.product_description, p.price as original_price, 
+            $sql = "SELECT cr.*, p.product_name, p.product_description, p.price as original_price, p.special_offer,
                            c.full_name as customer_name, c.email as customer_email
                     FROM customization_requests cr
                     JOIN products p ON cr.product_id = p.id
@@ -47,10 +48,19 @@ class CustomizationRequest {
             
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([$sellerId]);
-            
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Compute effective price per request using current special offer
+            foreach ($rows as &$row) {
+                $base = isset($row['original_price']) ? (float)$row['original_price'] : 0.0;
+                $offer = $row['special_offer'] ?? null;
+                $calc = OfferPricing::compute($base, 1, $offer);
+                $row['effective_price'] = $calc['unit_price'];
+            }
+
             return [
                 'success' => true,
-                'requests' => $stmt->fetchAll(PDO::FETCH_ASSOC)
+                'requests' => $rows
             ];
         } catch (PDOException $e) {
             return [
@@ -65,7 +75,7 @@ class CustomizationRequest {
      */
     public function getCustomerRequests($customerId) {
         try {
-            $sql = "SELECT cr.*, p.product_name, p.product_description, p.price as original_price,
+            $sql = "SELECT cr.*, p.product_name, p.product_description, p.price as original_price, p.special_offer,
                            s.business_name as seller_name
                     FROM customization_requests cr
                     JOIN products p ON cr.product_id = p.id
@@ -75,10 +85,16 @@ class CustomizationRequest {
             
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([$customerId]);
-            
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($rows as &$row) {
+                $base = isset($row['original_price']) ? (float)$row['original_price'] : 0.0;
+                $offer = $row['special_offer'] ?? null;
+                $calc = OfferPricing::compute($base, 1, $offer);
+                $row['effective_price'] = $calc['unit_price'];
+            }
             return [
                 'success' => true,
-                'requests' => $stmt->fetchAll(PDO::FETCH_ASSOC)
+                'requests' => $rows
             ];
         } catch (PDOException $e) {
             return [
@@ -114,7 +130,7 @@ class CustomizationRequest {
      */
     public function getRequestById($requestId) {
         try {
-            $sql = "SELECT cr.*, p.product_name, p.product_description, p.price as original_price,
+            $sql = "SELECT cr.*, p.product_name, p.product_description, p.price as original_price, p.special_offer,
                            c.full_name as customer_name, c.email as customer_email,
                            s.business_name as seller_name
                     FROM customization_requests cr
@@ -129,6 +145,10 @@ class CustomizationRequest {
             $request = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($request) {
+                $base = isset($request['original_price']) ? (float)$request['original_price'] : 0.0;
+                $offer = $request['special_offer'] ?? null;
+                $calc = OfferPricing::compute($base, 1, $offer);
+                $request['effective_price'] = $calc['unit_price'];
                 return [
                     'success' => true,
                     'request' => $request

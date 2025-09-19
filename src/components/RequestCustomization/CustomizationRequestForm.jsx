@@ -134,7 +134,16 @@ const CustomizationRequestForm = ({ product, onClose, onSubmit }) => {
               </div>
               <div>
                 <span className="text-gray-600">Price:</span>
-                <p className="font-medium">${parseFloat(product.price).toFixed(2)}</p>
+                <p className="font-medium">
+                  {product?.effective_price != null && !isNaN(parseFloat(product.effective_price)) && parseFloat(product.effective_price) !== parseFloat(product.price) ? (
+                    <>
+                      <span className="text-green-700 font-semibold mr-2">${parseFloat(product.effective_price).toFixed(2)}</span>
+                      <span className="text-gray-400 line-through">${parseFloat(product.price).toFixed(2)}</span>
+                    </>
+                  ) : (
+                    <>${parseFloat(product.price).toFixed(2)}</>
+                  )}
+                </p>
               </div>
               <div>
                 <span className="text-gray-600">Category:</span>
@@ -145,6 +154,13 @@ const CustomizationRequestForm = ({ product, onClose, onSubmit }) => {
                 <p className="font-medium">{product.seller.name}</p>
               </div>
             </div>
+            {product?.special_offer && product.special_offer !== 'No Special Offer' && (
+              <div className="mt-2">
+                <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                  {product.special_offer}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Customization Details */}

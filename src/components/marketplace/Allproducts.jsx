@@ -53,12 +53,13 @@ const Allproducts = ({ displayCount = 8 }) => {
   }, []);
 
   const handleAddToCart = (product) => {
+    const priceToUse = product.effective_price != null ? parseFloat(product.effective_price) : parseFloat(product.price);
     addToCart({
       id: product.id,
       name: product.product_name,
       seller: product.seller_name,
       category: product.category,
-      price: parseFloat(product.price),
+      price: priceToUse,
       maxQuantity: 10, // Default max quantity
     });
   };
@@ -208,9 +209,20 @@ const Allproducts = ({ displayCount = 8 }) => {
             </p>
             <div className="flex items-end justify-between mt-auto">
               <div>
-                <span className="text-green-700 font-bold text-lg">
-                  ${parseFloat(product.price).toFixed(2)}
-                </span>
+                {product.effective_price != null && parseFloat(product.effective_price) !== parseFloat(product.price) ? (
+                  <>
+                    <span className="text-green-700 font-bold text-lg mr-2">
+                      ${parseFloat(product.effective_price).toFixed(2)}
+                    </span>
+                    <span className="text-gray-400 text-base line-through">
+                      ${parseFloat(product.price).toFixed(2)}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-green-700 font-bold text-lg">
+                    ${parseFloat(product.price).toFixed(2)}
+                  </span>
+                )}
               </div>
               <button
                 className={`flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold shadow transition text-base ${

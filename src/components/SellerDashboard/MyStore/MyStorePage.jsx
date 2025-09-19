@@ -448,7 +448,14 @@ export default function MyStorePage() {
                     {parseInt(product.stock) === 0 ? "Out of Stock" : "In Stock"}
                   </p>
                   <p className="text-gray-900 font-bold mb-2">
-                    ${parseFloat(product.price).toFixed(2)}
+                    {product.effective_price != null && parseFloat(product.effective_price) !== parseFloat(product.price) ? (
+                      <>
+                        <span className="text-green-700 mr-2">${parseFloat(product.effective_price).toFixed(2)}</span>
+                        <span className="text-gray-400 line-through">${parseFloat(product.price).toFixed(2)}</span>
+                      </>
+                    ) : (
+                      <span className="text-green-700">${parseFloat(product.price).toFixed(2)}</span>
+                    )}
                   </p>
 
                   {/* Buttons */}

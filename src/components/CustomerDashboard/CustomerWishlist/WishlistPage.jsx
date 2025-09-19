@@ -72,12 +72,13 @@ const WishlistPage = () => {
   const handleAddToCart = (item) => {
     try {
       // Prepare the product data for cart
+      const priceToUse = item.effective_price != null ? parseFloat(item.effective_price) : parseFloat(item.price);
       const productForCart = {
         id: item.product_id, 
         name: item.product_name,
         seller: item.seller_name || "Unknown Seller",
         category: item.category || "Product",
-        price: parseFloat(item.price),
+        price: priceToUse,
         maxQuantity: 10, 
         image: getProductImage(item.product_images),
       };
@@ -193,10 +194,10 @@ const WishlistPage = () => {
             {wishlist.map((item) => {
               const isItemLoading = localLoading[item.product_id];
               const inStock = isInStock(item);
-              const discount = calculateDiscount(
-                parseFloat(item.price),
-                parseFloat(item.price) * 1.2
-              ); 
+              const hasEffective = item.effective_price != null && parseFloat(item.effective_price) !== parseFloat(item.price);
+              const discount = hasEffective
+                ? calculateDiscount(parseFloat(item.effective_price), parseFloat(item.price))
+                : 0; 
 
               return (
                 <div
@@ -260,12 +261,12 @@ const WishlistPage = () => {
 
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-green-600">
-                          ${item.price}
+                        <span className="text-lg font-bold text-green-600 mr-2">
+                          ${hasEffective ? parseFloat(item.effective_price).toFixed(2) : parseFloat(item.price).toFixed(2)}
                         </span>
-                        {discount > 0 && (
+                        {hasEffective && (
                           <span className="text-sm text-gray-400 line-through">
-                            ${(parseFloat(item.price) * 1.2).toFixed(2)}
+                            ${parseFloat(item.price).toFixed(2)}
                           </span>
                         )}
                       </div>

@@ -15,12 +15,60 @@ const WalletOverview = () => {
     has_card_details: false,
   });
   const [loading, setLoading] = useState(true);
-  const seller_id = localStorage.getItem("seller_id"); // Or get from context/auth
+  const [error, setError] = useState(null);
+  const [sellerId, setSellerId] = useState(null);
+
+  // Resolve seller id from localStorage, sessionStorage fallbacks
+  useEffect(() => {
+    const resolveSellerId = () => {
+      try {
+        const ls = window.localStorage.getItem("seller_id");
+        if (ls) return ls;
+        const sellerStr = window.sessionStorage.getItem("seller");
+        if (sellerStr) {
+          const seller = JSON.parse(sellerStr);
+          if (seller && seller.id) return String(seller.id);
+        }
+        const userStr = window.sessionStorage.getItem("user");
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          if (user && user.role === "seller" && user.id) return String(user.id);
+        }
+      } catch (_) {}
+      return null;
+    };
+    setSellerId(resolveSellerId());
+
+    const onUserStateChanged = (e) => {
+      const { action, user } = e.detail || {};
+      if (action === "login" && user?.role === "seller" && user?.id) {
+        setSellerId(String(user.id));
+      }
+      if (action === "logout") {
+        setSellerId(null);
+        setWallet({
+          products_sold: 0,
+          total_earnings: 0,
+          available_balance: 0,
+          transaction_history: [],
+          has_card_details: false,
+        });
+      }
+    };
+    window.addEventListener("userStateChanged", onUserStateChanged);
+    return () => window.removeEventListener("userStateChanged", onUserStateChanged);
+  }, []);
 
   const fetchWallet = async () => {
     try {
+      setError(null);
+      if (!sellerId) {
+        setLoading(false);
+        setError("Missing seller ID. Please log in as a seller.");
+        return;
+      }
       const response = await axios.get(
-        `http://localhost/Agrilink-Agri-Marketplace/backend/wallet/get_seller_wallet.php?seller_id=${seller_id}`
+        `http://localhost/Agrilink-Agri-Marketplace/backend/wallet/get_seller_wallet.php?seller_id=${sellerId}`
       );
       if (response.data.success) {
         setWallet({
@@ -30,9 +78,12 @@ const WalletOverview = () => {
           transaction_history: response.data.transaction_history || [],
           has_card_details: response.data.has_card_details || false,
         });
+      } else {
+        setError(response.data.error || "Failed to load wallet data");
       }
     } catch (error) {
       console.error("Error fetching wallet data:", error);
+      setError("Failed to load wallet data");
     } finally {
       setLoading(false);
     }
@@ -40,7 +91,8 @@ const WalletOverview = () => {
 
   useEffect(() => {
     fetchWallet();
-  }, [seller_id]);
+    // re-fetch when seller changes
+  }, [sellerId]);
 
   return (
     <div>
@@ -75,6 +127,13 @@ const WalletOverview = () => {
           </p>
         </div>
       </div>
+
+      {/* Error Banner */}
+      {!loading && error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Card Status Warning */}
       {!loading && !wallet.has_card_details && wallet.available_balance > 0 && (

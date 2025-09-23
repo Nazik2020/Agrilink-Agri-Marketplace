@@ -45,11 +45,13 @@ const WithdrawModal = ({
   const [bankAccount, setBankAccount] = useState("");
   const [loading, setLoading] = useState(false);
   const [showAddBank, setShowAddBank] = useState(false);
-  const [cardholderName, setCardholderName] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvc, setCvc] = useState("");
-  const [hasCardDetails, setHasCardDetails] = useState(false);
+  const [accountName, setAccountName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [branchName, setBranchName] = useState("");
+  const [hasBankDetails, setHasBankDetails] = useState(false);
+  const [isEditingBank, setIsEditingBank] = useState(false);
+  const [editingBankId, setEditingBankId] = useState(null);
   const seller_id = localStorage.getItem("seller_id");
 
   // Popup state
@@ -61,13 +63,11 @@ const WithdrawModal = ({
     setPopupType(type);
   };
 
-  // Format card number with spaces every 4 digits and restrict to 16 digits
-  const handleCardNumberChange = (e) => {
+  // Format account number - remove non-digits and limit length
+  const handleAccountNumberChange = (e) => {
     let value = e.target.value.replace(/\D/g, ""); // Remove non-digits
-    value = value.slice(0, 16); // Restrict to 16 digits
-    // Add space every 4 digits
-    value = value.replace(/(.{4})/g, "$1 ").trim();
-    setCardNumber(value);
+    value = value.slice(0, 20); // Limit to 20 digits for account numbers
+    setAccountNumber(value);
   };
 
   useEffect(() => {
@@ -80,41 +80,46 @@ const WithdrawModal = ({
         .then((res) => {
           if (res.data.success) {
             setBankAccounts(res.data.accounts);
-            // Only show add bank form if no cards exist
+            // Only show add bank form if no accounts exist
             setShowAddBank(res.data.accounts.length === 0);
-            setHasCardDetails(res.data.accounts.length > 0);
+            setHasBankDetails(res.data.accounts.length > 0);
+            
+            // Auto-select the first bank account if available
+            if (res.data.accounts.length > 0) {
+              setBankAccount(res.data.accounts[0].account_number);
+            }
           }
         });
     }
   }, [isOpen, seller_id]);
 
   const handleAddBankAccount = async () => {
-    // Remove spaces from card number
-    const rawCardNumber = cardNumber.replace(/\s/g, "");
-    // Validate all fields
-    if (!cardholderName.trim()) { showPopup("Please enter seller name.", 'error'); return; }
-    if (!/^\d{16}$/.test(rawCardNumber)) { showPopup("Card number must be 16 digits.", 'error'); return; }
-    if (!/^\d{2}\/\d{2}$/.test(expiry)) { showPopup("Expiry must be in MM/YY format.", 'error'); return; }
-    if (!/^\d{3,4}$/.test(cvc)) { showPopup("CVC must be 3 or 4 digits.", 'error'); return; }
+    // Validate all required fields
+    if (!accountName.trim()) { showPopup("Please enter account holder name.", 'error'); return; }
+    if (!accountNumber.trim()) { showPopup("Please enter account number.", 'error'); return; }
+    if (!bankName.trim()) { showPopup("Please enter bank name.", 'error'); return; }
+    if (!branchName.trim()) { showPopup("Please enter branch name.", 'error'); return; }
+    if (!/^\d{8,20}$/.test(accountNumber)) { showPopup("Account number must be 8-20 digits.", 'error'); return; }
+    
     setLoading(true);
     try {
       const response = await axios.post(
         "http://localhost/Agrilink-Agri-Marketplace/backend/wallet/add_bank_account.php",
         {
           seller_id,
-          cardholder_name: cardholderName,
-          card_number: rawCardNumber,
-          expiry,
-          cvc,
+          account_name: accountName,
+          account_number: accountNumber,
+          bank_name: bankName,
+          branch_name: branchName,
         }
       );
       if (response.data.success) {
-        showPopup("Card details saved successfully! You can now withdraw funds.", 'success');
-        setCardholderName("");
-        setCardNumber("");
-        setExpiry("");
-        setCvc("");
-        setHasCardDetails(true);
+        showPopup("Bank account details saved successfully! You can now withdraw funds.", 'success');
+        setAccountName("");
+        setAccountNumber("");
+        setBankName("");
+        setBranchName("");
+        setHasBankDetails(true);
         // Refresh bank accounts
         const res = await axios.get(
           `http://localhost/Agrilink-Agri-Marketplace/backend/wallet/get_bank_accounts.php?seller_id=${seller_id}`
@@ -122,17 +127,100 @@ const WithdrawModal = ({
         setBankAccounts(res.data.accounts);
         setShowAddBank(false);
       } else {
-        showPopup(response.data.error || 'Failed to add card details.', 'error');
+        showPopup(response.data.error || 'Failed to add bank account details.', 'error');
       }
     } catch (err) {
-      showPopup("Failed to add card details.", 'error');
+      showPopup("Failed to add bank account details.", 'error');
     }
     setLoading(false);
   };
 
+  const handleEditBankAccount = (account) => {
+    setIsEditingBank(true);
+    setEditingBankId(account.id);
+    setAccountName(account.account_name);
+    setAccountNumber(account.account_number);
+    setBankName(account.bank_name);
+    setBranchName(account.branch_name);
+  };
+
+  const handleUpdateBankAccount = async () => {
+    // Validate all required fields
+    if (!accountName.trim()) { showPopup("Please enter account holder name.", 'error'); return; }
+    if (!accountNumber.trim()) { showPopup("Please enter account number.", 'error'); return; }
+    if (!bankName.trim()) { showPopup("Please enter bank name.", 'error'); return; }
+    if (!branchName.trim()) { showPopup("Please enter branch name.", 'error'); return; }
+    if (!/^\d{8,20}$/.test(accountNumber)) { showPopup("Account number must be 8-20 digits.", 'error'); return; }
+    
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        "http://localhost/Agrilink-Agri-Marketplace/backend/wallet/update_bank_account.php",
+        {
+          id: editingBankId,
+          seller_id,
+          account_name: accountName,
+          account_number: accountNumber,
+          bank_name: bankName,
+          branch_name: branchName,
+        }
+      );
+      if (response.data.success) {
+        showPopup("Bank account details updated successfully!", 'success');
+        setAccountName("");
+        setAccountNumber("");
+        setBankName("");
+        setBranchName("");
+        setIsEditingBank(false);
+        setEditingBankId(null);
+        // Refresh bank accounts
+        const res = await axios.get(
+          `http://localhost/Agrilink-Agri-Marketplace/backend/wallet/get_bank_accounts.php?seller_id=${seller_id}`
+        );
+        setBankAccounts(res.data.accounts);
+        if (res.data.accounts.length > 0) {
+          setBankAccount(res.data.accounts[0].account_number);
+        }
+      } else {
+        showPopup(response.data.error || 'Failed to update bank account details.', 'error');
+      }
+    } catch (err) {
+      showPopup("Failed to update bank account details.", 'error');
+    }
+    setLoading(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingBank(false);
+    setEditingBankId(null);
+    setAccountName("");
+    setAccountNumber("");
+    setBankName("");
+    setBranchName("");
+  };
+
   const handleWithdraw = async () => {
-  if (!amount || !bankAccount) { showPopup("Please enter amount and select bank account.", 'error'); return; }
-    if (!hasCardDetails) { showPopup("You must save your card details before withdrawing. Please click 'Save Card Details' first.", 'error'); return; }
+    if (!amount) { showPopup("Please enter amount to withdraw.", 'error'); return; }
+    
+    // Check if available balance is 0 or insufficient
+    const numericBalance = Number(availableBalance) || 0;
+    const requestedAmount = Number(amount) || 0;
+    
+    if (numericBalance <= 0) {
+      showPopup("Not enough available balance. Your current available balance is $0.00.", 'error'); 
+      return; 
+    }
+    
+    if (requestedAmount > numericBalance) {
+      showPopup(`Not enough available balance. You can withdraw up to $${numericBalance.toFixed(2)}.`, 'error'); 
+      return; 
+    }
+    
+    if (!hasBankDetails) { showPopup("You must save your bank account details before withdrawing. Please add your bank account first.", 'error'); return; }
+    
+    // Auto-select first bank account if not selected
+    const selectedBankAccount = bankAccount || (bankAccounts.length > 0 ? bankAccounts[0].account_number : '');
+    if (!selectedBankAccount) { showPopup("No bank account available. Please add your bank account first.", 'error'); return; }
     
     setLoading(true);
     try {
@@ -141,7 +229,7 @@ const WithdrawModal = ({
         {
           seller_id,
           amount,
-          bank_account: bankAccount,
+          bank_account: selectedBankAccount,
         }
       );
       if (response.data.success) {
@@ -215,72 +303,162 @@ const WithdrawModal = ({
                   maximumFractionDigits: 2,
                 })}
           </div>
+          {Number(availableBalance) <= 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-2">
+              <p className="text-red-800 text-sm">
+                <strong>⚠️ No Available Balance:</strong> You need to have completed orders to withdraw funds.
+              </p>
+            </div>
+          )}
         </div>
 
-        {!hasCardDetails ? (
+        {!hasBankDetails ? (
           <div className="mb-6">
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
               <p className="text-yellow-800 text-sm">
-                <strong>Important:</strong> You must save your card details before withdrawing funds.
+                <strong>Step 1:</strong> Please add your bank account details first to enable withdrawals.
               </p>
             </div>
-            <label className="block font-medium mb-1">Add Card Details</label>
+            <label className="block font-medium mb-1">Add Bank Account Details</label>
             <input
               type="text"
-              value={cardholderName}
-              onChange={(e) => setCardholderName(e.target.value)}
+              value={accountName}
+              onChange={(e) => setAccountName(e.target.value)}
               className="w-full border rounded-lg px-4 py-2 mb-2"
-              placeholder="Enter seller name"
+              placeholder="Account Holder Name"
             />
             <input
               type="text"
-              value={cardNumber}
-              onChange={handleCardNumberChange}
+              value={accountNumber}
+              onChange={handleAccountNumberChange}
               className="w-full border rounded-lg px-4 py-2 mb-2"
-              placeholder="Card Number"
-              maxLength={19} // 16 digits + 3 spaces
+              placeholder="Account Number"
+              maxLength={20}
               inputMode="numeric"
             />
-            <div className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={expiry}
-                onChange={(e) => setExpiry(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2"
-                placeholder="MM/YY"
-              />
-              <input
-                type="text"
-                value={cvc}
-                onChange={(e) => setCvc(e.target.value)}
-                className="w-full border rounded-lg px-4 py-2"
-                placeholder="CVC"
-              />
-            </div>
+            <input
+              type="text"
+              value={bankName}
+              onChange={(e) => setBankName(e.target.value)}
+              className="w-full border rounded-lg px-4 py-2 mb-2"
+              placeholder="Bank Name"
+            />
+            <input
+              type="text"
+              value={branchName}
+              onChange={(e) => setBranchName(e.target.value)}
+              className="w-full border rounded-lg px-4 py-2 mb-2"
+              placeholder="Branch Name"
+            />
             <button
               onClick={handleAddBankAccount}
               className="bg-green-500 text-white px-6 py-2 rounded-lg font-semibold w-full"
               disabled={loading}
             >
-              {loading ? "Saving..." : "Save Card Details"}
+              {loading ? "Saving..." : "Save Bank Account Details"}
             </button>
           </div>
         ) : (
           <div className="mb-6">
-            <label className="block font-medium mb-1">Select Bank Account</label>
-            <select
-              value={bankAccount}
-              onChange={(e) => setBankAccount(e.target.value)}
-              className="w-full border rounded-lg px-4 py-2"
-            >
-              <option value="">Select bank account</option>
-              {bankAccounts.map((acc) => (
-                <option key={acc.id} value={acc.card_number}>
-                  Card ending in{" "}
-                  {acc.card_number ? acc.card_number.slice(-4) : "----"}
-                </option>
-              ))}
-            </select>
+            {isEditingBank ? (
+              <div>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <p className="text-blue-800 text-sm">
+                    <strong>Edit Bank Account Details:</strong> Update your banking information.
+                  </p>
+                </div>
+                <label className="block font-medium mb-1">Edit Bank Account Details</label>
+                <input
+                  type="text"
+                  value={accountName}
+                  onChange={(e) => setAccountName(e.target.value)}
+                  className="w-full border rounded-lg px-4 py-2 mb-2"
+                  placeholder="Account Holder Name"
+                />
+                <input
+                  type="text"
+                  value={accountNumber}
+                  onChange={handleAccountNumberChange}
+                  className="w-full border rounded-lg px-4 py-2 mb-2"
+                  placeholder="Account Number"
+                  maxLength={20}
+                  inputMode="numeric"
+                />
+                <input
+                  type="text"
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  className="w-full border rounded-lg px-4 py-2 mb-2"
+                  placeholder="Bank Name"
+                />
+                <input
+                  type="text"
+                  value={branchName}
+                  onChange={(e) => setBranchName(e.target.value)}
+                  className="w-full border rounded-lg px-4 py-2 mb-2"
+                  placeholder="Branch Name"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleCancelEdit}
+                    className="bg-gray-500 text-white px-4 py-2 rounded-lg font-semibold flex-1"
+                    disabled={loading}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleUpdateBankAccount}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold flex-1"
+                    disabled={loading}
+                  >
+                    {loading ? "Updating..." : "Update Details"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-green-800 text-sm">
+                        <strong>✓ Bank Account Ready:</strong> Withdrawal will be processed to your saved account.
+                      </p>
+                      {bankAccounts.length > 0 && (
+                        <div className="mt-2 text-sm text-green-700">
+                          <p><strong>Account:</strong> {bankAccounts[0].account_name}</p>
+                          <p><strong>Bank:</strong> {bankAccounts[0].bank_name} - {bankAccounts[0].branch_name}</p>
+                          <p><strong>Account #:</strong> ****{bankAccounts[0].account_number.slice(-4)}</p>
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleEditBankAccount(bankAccounts[0])}
+                      className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600"
+                      disabled={loading}
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+            {!isEditingBank && bankAccounts.length > 1 && (
+              <div className="mb-4">
+                <label className="block font-medium mb-1">Select Bank Account</label>
+                <select
+                  value={bankAccount}
+                  onChange={(e) => setBankAccount(e.target.value)}
+                  className="w-full border rounded-lg px-4 py-2"
+                >
+                  {bankAccounts.map((acc) => (
+                    <option key={acc.id} value={acc.account_number}>
+                      {acc.bank_name} - Account ending in{" "}
+                      {acc.account_number ? acc.account_number.slice(-4) : "----"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         )}
 
@@ -292,17 +470,19 @@ const WithdrawModal = ({
           >
             Cancel
           </button>
-          <button
-            onClick={handleWithdraw}
-            className={`px-6 py-2 rounded-lg font-semibold ${
-              hasCardDetails 
-                ? "bg-green-500 text-white hover:bg-green-600" 
-                : "bg-gray-400 text-gray-600 cursor-not-allowed"
-            }`}
-            disabled={loading || !hasCardDetails}
-          >
-            {loading ? "Processing..." : "Withdraw"}
-          </button>
+          {!isEditingBank && (
+            <button
+              onClick={handleWithdraw}
+              className={`px-6 py-2 rounded-lg font-semibold ${
+                hasBankDetails && Number(availableBalance) > 0
+                  ? "bg-green-500 text-white hover:bg-green-600" 
+                  : "bg-gray-400 text-gray-600 cursor-not-allowed"
+              }`}
+              disabled={loading || !hasBankDetails || Number(availableBalance) <= 0}
+            >
+              {loading ? "Processing..." : Number(availableBalance) <= 0 ? "No Balance Available" : "Withdraw"}
+            </button>
+          )}
         </div>
       </div>
       {/* Success/Error Popup */}

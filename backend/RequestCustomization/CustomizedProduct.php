@@ -30,12 +30,12 @@ class CustomizedProduct {
                 ];
             }
             
-            // Create the customized product
+            // Create the customized product (special_offer removed)
             $sql = "INSERT INTO customized_products (
                         original_product_id, customization_request_id, seller_id, customer_id,
                         product_name, product_description, customization_description,
-                        price, stock, category, special_offer, product_images
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        price, stock, category, product_images
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([
@@ -49,7 +49,6 @@ class CustomizedProduct {
                 $customizationData['price'],
                 $customizationData['stock'],
                 $customizationData['category'],
-                $customizationData['special_offer'] ?? null,
                 $request['product_images'] // Use original product images
             ]);
             
@@ -196,7 +195,6 @@ class CustomizedProduct {
                         price = ?, 
                         stock = ?, 
                         category = ?, 
-                        special_offer = ?,
                         updated_at = CURRENT_TIMESTAMP
                     WHERE id = ?";
             
@@ -208,7 +206,6 @@ class CustomizedProduct {
                 $updateData['price'],
                 $updateData['stock'],
                 $updateData['category'],
-                $updateData['special_offer'] ?? null,
                 $productId
             ]);
             

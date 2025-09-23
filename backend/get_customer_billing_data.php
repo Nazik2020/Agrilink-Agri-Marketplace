@@ -77,7 +77,7 @@ try {
                 "email" => $customer['email'] ?: '',
                 "address" => $customer['address'] ?: '',
                 "contact" => $customer['contactno'] ?: '',
-                "country" => $customer['country'] ?: 'Sri Lanka',
+                "country" => $customer['country'] ?: '',
                 "postal_code" => $customer['postal_code'] ?: ''
             ]
         ]);

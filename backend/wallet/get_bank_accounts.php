@@ -11,7 +11,7 @@ if (!$seller_id) {
 }
 
 $db = getDbConnection();
-    $stmt = $db->prepare('SELECT id, cardholder_name, card_number, expiry, cvc FROM seller_bank_accounts WHERE seller_id = ?');
+    $stmt = $db->prepare('SELECT id, account_name, account_number, bank_name, branch_name FROM seller_bank_accounts WHERE seller_id = ?');
     $stmt->execute([$seller_id]);
     $accounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

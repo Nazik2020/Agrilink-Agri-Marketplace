@@ -1,170 +1,163 @@
 <?php
-require_once '../db.php';
-require_once __DIR__ . '/../services/OfferPricing.php';
+/**
+ * CustomizationRequest service
+ * Implements CRUD helpers used by API endpoints.
+ */
 
 class CustomizationRequest {
+    /** @var PDO */
     private $conn;
-    
-    public function __construct($db) {
-        $this->conn = $db;
+
+    public function __construct(PDO $conn) {
+        $this->conn = $conn;
     }
-    
+
     /**
      * Create a new customization request
      */
-    public function createRequest($customerId, $sellerId, $productId, $customizationDetails, $quantity, $notes = '') {
+    public function createRequest(int $customerId, int $sellerId, int $productId, string $details, int $quantity, string $notes = ''): array {
         try {
-            $sql = "INSERT INTO customization_requests (customer_id, seller_id, product_id, customization_details, quantity, notes) 
-                    VALUES (?, ?, ?, ?, ?, ?)";
-            
+            $sql = "INSERT INTO customization_requests (customer_id, seller_id, product_id, customization_details, quantity, notes) VALUES (?, ?, ?, ?, ?, ?)";
             $stmt = $this->conn->prepare($sql);
-            $stmt->execute([$customerId, $sellerId, $productId, $customizationDetails, $quantity, $notes]);
-            
+            $stmt->execute([$customerId, $sellerId, $productId, $details, $quantity, $notes]);
+
             return [
                 'success' => true,
                 'message' => 'Customization request submitted successfully',
-                'request_id' => $this->conn->lastInsertId()
+                'request_id' => (int)$this->conn->lastInsertId(),
             ];
         } catch (PDOException $e) {
             return [
                 'success' => false,
-                'message' => 'Error creating customization request: ' . $e->getMessage()
+                'message' => 'Error creating request: ' . $e->getMessage(),
             ];
         }
     }
-    
+
     /**
-     * Get all customization requests for a seller
+     * Return all requests for a seller (excluding deleted)
      */
-    public function getSellerRequests($sellerId) {
+    public function getSellerRequests(int $sellerId): array {
         try {
-            $sql = "SELECT cr.*, p.product_name, p.product_description, p.price as original_price, p.special_offer,
-                           c.full_name as customer_name, c.email as customer_email
+            $sql = "SELECT cr.*, p.product_name, p.product_description, p.category, p.price AS original_price, p.special_offer,
+                           c.full_name AS customer_name, c.email AS customer_email
                     FROM customization_requests cr
                     JOIN products p ON cr.product_id = p.id
                     JOIN customers c ON cr.customer_id = c.id
-                    WHERE cr.seller_id = ? AND (cr.status_of_request IS NULL OR cr.status_of_request != 'deleted')
+                    WHERE cr.seller_id = ? AND (cr.status_of_request IS NULL OR cr.status_of_request <> 'deleted')
                     ORDER BY cr.created_at DESC";
-            
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([$sellerId]);
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Compute effective price per request using current special offer
+            // Enrich with effective_price if there is a percentage or BxGy offer
             foreach ($rows as &$row) {
-                $base = isset($row['original_price']) ? (float)$row['original_price'] : 0.0;
-                $offer = $row['special_offer'] ?? null;
-                $calc = OfferPricing::compute($base, 1, $offer);
-                $row['effective_price'] = $calc['unit_price'];
+                $row['effective_price'] = $this->calculateEffectivePrice($row['original_price'], $row['special_offer'] ?? '');
             }
 
             return [
                 'success' => true,
-                'requests' => $rows
+                'requests' => $rows,
             ];
         } catch (PDOException $e) {
             return [
                 'success' => false,
-                'message' => 'Error fetching customization requests: ' . $e->getMessage()
+                'message' => 'Error fetching seller requests: ' . $e->getMessage(),
             ];
         }
     }
-    
+
     /**
-     * Get customization requests for a customer
+     * Update status (pending | accepted | declined)
      */
-    public function getCustomerRequests($customerId) {
+    public function updateStatus(int $requestId, string $status): array {
         try {
-            $sql = "SELECT cr.*, p.product_name, p.product_description, p.price as original_price, p.special_offer,
-                           s.business_name as seller_name
-                    FROM customization_requests cr
-                    JOIN products p ON cr.product_id = p.id
-                    JOIN sellers s ON cr.seller_id = s.id
-                    WHERE cr.customer_id = ? AND (cr.status_of_request IS NULL OR cr.status_of_request != 'deleted')
-                    ORDER BY cr.created_at DESC";
-            
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute([$customerId]);
-            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            foreach ($rows as &$row) {
-                $base = isset($row['original_price']) ? (float)$row['original_price'] : 0.0;
-                $offer = $row['special_offer'] ?? null;
-                $calc = OfferPricing::compute($base, 1, $offer);
-                $row['effective_price'] = $calc['unit_price'];
-            }
-            return [
-                'success' => true,
-                'requests' => $rows
-            ];
-        } catch (PDOException $e) {
-            return [
-                'success' => false,
-                'message' => 'Error fetching customer requests: ' . $e->getMessage()
-            ];
-        }
-    }
-    
-    /**
-     * Update request status (accept/decline)
-     */
-    public function updateStatus($requestId, $status) {
-        try {
-            $sql = "UPDATE customization_requests SET status = ? WHERE id = ?";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute([$status, $requestId]);
-            
-            return [
-                'success' => true,
-                'message' => 'Request status updated successfully'
-            ];
-        } catch (PDOException $e) {
-            return [
-                'success' => false,
-                'message' => 'Error updating request status: ' . $e->getMessage()
-            ];
-        }
-    }
-    
-    /**
-     * Get request by ID
-     */
-    public function getRequestById($requestId) {
-        try {
-            $sql = "SELECT cr.*, p.product_name, p.product_description, p.price as original_price, p.special_offer,
-                           c.full_name as customer_name, c.email as customer_email,
-                           s.business_name as seller_name
-                    FROM customization_requests cr
-                    JOIN products p ON cr.product_id = p.id
-                    JOIN customers c ON cr.customer_id = c.id
-                    JOIN sellers s ON cr.seller_id = s.id
-                    WHERE cr.id = ?";
-            
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute([$requestId]);
-            
-            $request = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if ($request) {
-                $base = isset($request['original_price']) ? (float)$request['original_price'] : 0.0;
-                $offer = $request['special_offer'] ?? null;
-                $calc = OfferPricing::compute($base, 1, $offer);
-                $request['effective_price'] = $calc['unit_price'];
-                return [
-                    'success' => true,
-                    'request' => $request
-                ];
-            } else {
+            $valid = ['pending', 'accepted', 'declined'];
+            if (!in_array($status, $valid, true)) {
                 return [
                     'success' => false,
-                    'message' => 'Request not found'
+                    'message' => 'Invalid status',
                 ];
             }
+
+            $stmt = $this->conn->prepare("UPDATE customization_requests SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?");
+            $stmt->execute([$status, $requestId]);
+
+            return [
+                'success' => true,
+                'message' => 'Request status updated successfully',
+            ];
         } catch (PDOException $e) {
             return [
                 'success' => false,
-                'message' => 'Error fetching request: ' . $e->getMessage()
+                'message' => 'Error updating status: ' . $e->getMessage(),
             ];
         }
     }
+
+    /**
+     * Get request by ID with basic joins for notifications
+     */
+    public function getRequestById(int $requestId): array {
+        try {
+            $sql = "SELECT cr.*, p.product_name, s.business_name AS seller_name
+                    FROM customization_requests cr
+                    JOIN products p ON cr.product_id = p.id
+                    JOIN sellers s ON cr.seller_id = s.id
+                    WHERE cr.id = ?";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([$requestId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$row) {
+                return [
+                    'success' => false,
+                    'message' => 'Request not found',
+                ];
+            }
+
+            return [
+                'success' => true,
+                'request' => $row,
+            ];
+        } catch (PDOException $e) {
+            return [
+                'success' => false,
+                'message' => 'Error fetching request: ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    private function calculateEffectivePrice($originalPrice, $offer) {
+        if ($originalPrice === null) return null;
+        $price = (float)$originalPrice;
+        if (!$offer) return $price;
+
+        // Handle "10% Off" etc.
+        if (preg_match('/^(\d{1,2})%\s*Off$/i', trim($offer), $m)) {
+            $percent = (float)$m[1];
+            if ($percent >= 0 && $percent <= 90) {
+                return round($price * (1 - $percent / 100), 2);
+            }
+            return $price;
+        }
+
+        // Handle "Buy X Get Y Free"
+        if (preg_match('/^Buy\s*(\d+)\s*Get\s*(\d+)\s*Free$/i', trim($offer), $m)) {
+            $buy = (int)$m[1];
+            $free = (int)$m[2];
+            if ($buy > 0) {
+                $unit = $price * $buy / ($buy + $free);
+                return round($unit, 2);
+            }
+            return $price;
+        }
+
+        // Unknown offers -> keep original
+        return $price;
+    }
 }
+
 ?>
+
+

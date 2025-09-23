@@ -5,6 +5,7 @@ const categories = ["Products", "Seeds", "Offers", "Fertilizer"];
 
 const specialOfferOptions = [
   "No Special Offer",
+  "5% Off",
   "10% Off",
   "15% Off", 
   "20% Off",
@@ -12,10 +13,7 @@ const specialOfferOptions = [
   "30% Off",
   "Buy 1 Get 1 Free",
   "Buy 2 Get 1 Free",
-  "Flash Sale",
-  "Limited Time Offer",
-  "Seasonal Discount",
-  "Bulk Discount"
+  "Limited Time Offer"
 ];
 
 const PopupMessage = ({ message, type, onClose }) => {

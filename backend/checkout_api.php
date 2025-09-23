@@ -44,7 +44,12 @@ try {
         
         // Stripe test cards
         $validCards = [
-            '4242424242424242' => 'success',
+            // Success cards (brand-agnostic mock)
+            '4242424242424242' => 'success', // Visa
+            '5555555555554444' => 'success', // Mastercard
+            '378282246310005'  => 'success', // American Express
+
+            // Decline scenario cards
             '4000000000000002' => 'Your card was declined.',
             '4000000000009995' => 'Your card has insufficient funds.',
             '4000000000009987' => 'Your card was reported lost or stolen.',
@@ -65,7 +70,7 @@ try {
         } else {
             echo json_encode([
                 "success" => false,
-                "error" => "Invalid card number. Use test card: 4242 4242 4242 4242"
+                "error" => "Invalid card number. Use test cards: 4242 4242 4242 4242 (Visa), 5555 5555 5555 4444 (Mastercard), 3782 822463 10005 (AmEx)"
             ]);
         }
     } else {

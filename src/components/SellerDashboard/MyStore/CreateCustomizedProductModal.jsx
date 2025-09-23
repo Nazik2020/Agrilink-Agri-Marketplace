@@ -4,20 +4,7 @@ import { X, ChevronDown, CheckCircle } from 'lucide-react';
 
 const categories = ["Products", "Seeds", "Offers", "Fertilizer"];
 
-const specialOfferOptions = [
-  "No Special Offer",
-  "10% Off",
-  "15% Off", 
-  "20% Off",
-  "25% Off",
-  "30% Off",
-  "Buy 1 Get 1 Free",
-  "Buy 2 Get 1 Free",
-  "Flash Sale",
-  "Limited Time Offer",
-  "Seasonal Discount",
-  "Bulk Discount"
-];
+// Special offer removed for customized products per requirements
 
 const CreateCustomizedProductModal = ({ request, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -27,15 +14,15 @@ const CreateCustomizedProductModal = ({ request, onClose, onSubmit }) => {
     price: '',
     stock: '',
     category: '',
-    specialOffer: 'No Special Offer'
+    // Removed: specialOffer
   });
   const [errors, setErrors] = useState({});
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-  const [showSpecialOfferDropdown, setShowSpecialOfferDropdown] = useState(false);
+  // Removed: special offer dropdown
   const [isLoading, setIsLoading] = useState(false);
 
   const categoryDropdownRef = useRef();
-  const specialOfferDropdownRef = useRef();
+  // Removed: special offer ref
 
   useEffect(() => {
     if (request) {
@@ -43,7 +30,6 @@ const CreateCustomizedProductModal = ({ request, onClose, onSubmit }) => {
       const basePrice = (request?.effective_price != null && !isNaN(parseFloat(request.effective_price)))
         ? parseFloat(request.effective_price)
         : parseFloat(request.original_price);
-      const initialOffer = request?.special_offer && request.special_offer !== '' ? request.special_offer : 'No Special Offer';
       setFormData({
         // Pre-fill product name for clarity; seller can still edit
         productName: `${request.product_name} - Customized`,
@@ -54,8 +40,7 @@ const CreateCustomizedProductModal = ({ request, onClose, onSubmit }) => {
         // Leave price empty so seller can input their offered price
         price: '',
         stock: request.quantity,
-        category: request.category || 'Products',
-        specialOffer: initialOffer
+        category: request.category || 'Products'
       });
     }
   }, [request]);
@@ -65,9 +50,7 @@ const CreateCustomizedProductModal = ({ request, onClose, onSubmit }) => {
       if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target)) {
         setShowCategoryDropdown(false);
       }
-      if (specialOfferDropdownRef.current && !specialOfferDropdownRef.current.contains(event.target)) {
-        setShowSpecialOfferDropdown(false);
-      }
+      // no-op for removed special offer UI
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
@@ -87,11 +70,7 @@ const CreateCustomizedProductModal = ({ request, onClose, onSubmit }) => {
     setErrors(prev => ({ ...prev, category: "" }));
   };
 
-  const handleSpecialOfferChange = (offer) => {
-    setFormData(prev => ({ ...prev, specialOffer: offer }));
-    setShowSpecialOfferDropdown(false);
-    setErrors(prev => ({ ...prev, specialOffer: "" }));
-  };
+  // Removed: handleSpecialOfferChange
 
   const validateForm = () => {
     const newErrors = {};
@@ -146,8 +125,7 @@ const CreateCustomizedProductModal = ({ request, onClose, onSubmit }) => {
         customization_description: formData.customizationDescription.trim(),
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock, 10),
-        category: formData.category,
-        special_offer: formData.specialOffer === 'No Special Offer' ? '' : formData.specialOffer
+        category: formData.category
       };
 
       await onSubmit(productData);
@@ -219,13 +197,7 @@ const CreateCustomizedProductModal = ({ request, onClose, onSubmit }) => {
                 </p>
               </div>
             </div>
-            {request?.special_offer && request.special_offer !== 'No Special Offer' && (
-              <div className="mt-2">
-                <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-0.5 rounded-full">
-                  {request.special_offer}
-                </span>
-              </div>
-            )}
+            {/* Special offer display removed for customized flow */}
             <div className="mt-3">
               <span className="text-blue-600 font-medium">Customization Request:</span>
               <p className="text-blue-800 mt-1">{request.customization_details}</p>
@@ -344,46 +316,7 @@ const CreateCustomizedProductModal = ({ request, onClose, onSubmit }) => {
                 )}
               </div>
 
-              {/* Special Offer Dropdown */}
-              <div className="space-y-2" ref={specialOfferDropdownRef}>
-                <label className="block text-base font-semibold text-gray-700">
-                  Special Offer
-                </label>
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => !isLoading && setShowSpecialOfferDropdown(!showSpecialOfferDropdown)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-xl text-left transition-all duration-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 flex items-center justify-between disabled:bg-gray-50 disabled:cursor-not-allowed"
-                    disabled={isLoading}
-                  >
-                    <span className={formData.specialOffer ? "text-gray-900" : "text-gray-500"}>
-                      {formData.specialOffer || "No Special Offer"}
-                    </span>
-                    <ChevronDown
-                      size={20}
-                      className={`transition-transform duration-300 ${
-                        showSpecialOfferDropdown ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-                  {showSpecialOfferDropdown && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-xl shadow-lg max-h-60 overflow-y-auto">
-                      {specialOfferOptions.map((offer) => (
-                        <button
-                          key={offer}
-                          type="button"
-                          onClick={() => handleSpecialOfferChange(offer)}
-                          className={`w-full px-4 py-3 text-left hover:bg-green-50 hover:text-green-600 transition-colors duration-200 first:rounded-t-xl last:rounded-b-xl ${
-                            formData.specialOffer === offer ? 'bg-green-50 text-green-600 font-medium' : ''
-                          }`}
-                        >
-                          {offer}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+              {/* Special Offer removed */}
             </div>
           </div>
 

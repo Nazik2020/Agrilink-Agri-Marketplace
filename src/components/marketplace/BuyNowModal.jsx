@@ -46,7 +46,7 @@ const BuyNowModal = ({
     billing_email: "",
     billing_address: "",
     billing_postal_code: "",
-    billing_country: "United States",
+    billing_country: "",
 
     // Card Information
     card_number: "",
@@ -72,10 +72,15 @@ const BuyNowModal = ({
   const totalAmount = subtotal;
 
   const allowedCards = {
-    4242424242424242: "success",
+    // Success test cards
+    4242424242424242: "success", // Visa
+    5555555555554444: "success", // Mastercard
+    378282246310005: "success", // American Express
+
+    // Decline scenario test cards
     4000000000000002: "Your card was declined.",
     4000000000009995: "Insufficient funds.",
-    4000000000009987: "Card expired.",
+    4000000000009987: "Card reported lost or stolen.",
   };
 
   // Load customer data when modal opens
@@ -160,7 +165,7 @@ const BuyNowModal = ({
           billing_email: customerInfo.email || "",
           billing_address: customerInfo.address || "",
           billing_postal_code: customerInfo.postal_code || "",
-          billing_country: customerInfo.country || "Sri Lanka",
+          billing_country: customerInfo.country || "",
           customer_id: customerId,
         }));
 
@@ -784,7 +789,7 @@ const BuyNowModal = ({
                         onChange={handleInputChange}
                         className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
                         placeholder="John Doe"
-                        disabled={!!customerData}
+                        disabled={false}
                       />
                     </div>
                     <div>
@@ -802,7 +807,7 @@ const BuyNowModal = ({
                         onChange={handleInputChange}
                         className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
                         placeholder="john@example.com"
-                        disabled={!!customerData}
+                        disabled={true}
                       />
                     </div>
                     <div>
@@ -820,7 +825,7 @@ const BuyNowModal = ({
                         onChange={handleInputChange}
                         className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
                         placeholder="123 Main St"
-                        disabled={!!customerData}
+                        disabled={false}
                       />
                     </div>
                     <div className="flex space-x-4">
@@ -835,7 +840,7 @@ const BuyNowModal = ({
                           onChange={handleInputChange}
                           className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
                           placeholder="12345"
-                          disabled={!!customerData}
+                          disabled={false}
                         />
                       </div>
                       <div className="flex-1">
@@ -849,7 +854,7 @@ const BuyNowModal = ({
                           onChange={handleInputChange}
                           className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
                           placeholder="United States"
-                          disabled={!!customerData}
+                          disabled={false}
                         />
                       </div>
                     </div>
@@ -869,7 +874,12 @@ const BuyNowModal = ({
                 <button
                   onClick={() => setStep(2)}
                   className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
-                  disabled={loading || !!error || customerDataLoading}
+                  disabled={
+                    loading || customerDataLoading ||
+                    !formData.billing_name || !formData.billing_email ||
+                    !formData.billing_address || !formData.billing_postal_code ||
+                    !formData.billing_country
+                  }
                 >
                   Next
                 </button>

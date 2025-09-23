@@ -56,7 +56,8 @@ const WalletOverview = () => {
       }
     };
     window.addEventListener("userStateChanged", onUserStateChanged);
-    return () => window.removeEventListener("userStateChanged", onUserStateChanged);
+    return () =>
+      window.removeEventListener("userStateChanged", onUserStateChanged);
   }, []);
 
   const fetchWallet = async () => {
@@ -154,20 +155,19 @@ const WalletOverview = () => {
             </div>
             <div className="ml-3">
               <h3 className="text-sm font-medium text-yellow-800">
-                Card Details Required
+                Bank Details Required
               </h3>
               <div className="mt-2 text-sm text-yellow-700">
                 <p>
-                  You need to save your card details before withdrawing funds.
-                  Click "Withdraw Amount" to add your card information.
+                  You need to save your Bank Account details before withdrawing
+                  funds. Click "Withdraw Amount" to add your Bank Account
+                  information.
                 </p>
               </div>
             </div>
           </div>
         </div>
       )}
-
-
 
       {/* Withdraw Button */}
       <div className="mt-10 mb-10 flex justify-center">

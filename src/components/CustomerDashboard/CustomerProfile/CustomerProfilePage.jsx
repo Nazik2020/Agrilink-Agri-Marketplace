@@ -120,6 +120,17 @@ const CustomerProfilePage = () => {
             country: data.profile.country || "",
             postalCode: data.profile.postal_code || "",
           }));
+          // Sync sidebar/name with latest profile info immediately
+          try {
+            const user = JSON.parse(sessionStorage.getItem("user")) || {};
+            const newFullName = data.profile.full_name || user.full_name;
+            if (newFullName && user.full_name !== newFullName) {
+              user.full_name = newFullName;
+              sessionStorage.setItem("user", JSON.stringify(user));
+              window.dispatchEvent(new Event("storage"));
+              window.dispatchEvent(new Event("userStateChanged"));
+            }
+          } catch (e) {}
           if (data.profile.profile_image) {
             let imgUrl = data.profile.profile_image;
             if (!/^https?:\/\//i.test(imgUrl)) {

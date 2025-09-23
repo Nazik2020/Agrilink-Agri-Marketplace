@@ -70,11 +70,18 @@ const CustomizationRequestsSection = ({ sellerId }) => {
           setShowCreateModal(true);
         }
       } else {
-        setToast({ type: 'error', message: 'Failed to update status: ' + (data.message || 'Unknown error') });
+        setToast({
+          type: "error",
+          message:
+            "Failed to update status: " + (data.message || "Unknown error"),
+        });
         setTimeout(() => setToast(null), 3500);
       }
     } catch (error) {
-      setToast({ type: 'error', message: 'Error updating status: ' + error.message });
+      setToast({
+        type: "error",
+        message: "Error updating status: " + error.message,
+      });
       setTimeout(() => setToast(null), 3500);
     }
   };
@@ -98,7 +105,10 @@ const CustomizationRequestsSection = ({ sellerId }) => {
       const data = await response.json();
 
       if (data.success) {
-        setToast({ type: 'success', message: 'Customized product created successfully!' });
+        setToast({
+          type: "success",
+          message: "Customized product created successfully!",
+        });
         // auto-dismiss after 2.5s
         setTimeout(() => setToast(null), 2500);
         setShowCreateModal(false);
@@ -114,11 +124,19 @@ const CustomizationRequestsSection = ({ sellerId }) => {
         // Refresh the requests list from server for safety
         fetchCustomizationRequests();
       } else {
-        setToast({ type: 'error', message: 'Failed to create customized product: ' + (data.message || 'Unknown error') });
+        setToast({
+          type: "error",
+          message:
+            "Failed to create customized product: " +
+            (data.message || "Unknown error"),
+        });
         setTimeout(() => setToast(null), 3500);
       }
     } catch (error) {
-      setToast({ type: 'error', message: 'Error creating customized product: ' + error.message });
+      setToast({
+        type: "error",
+        message: "Error creating customized product: " + error.message,
+      });
       setTimeout(() => setToast(null), 3500);
     }
   };
@@ -149,14 +167,24 @@ const CustomizationRequestsSection = ({ sellerId }) => {
       if (data.success) {
         // Remove from local state
         setRequests((prev) => prev.filter((req) => req.id !== requestId));
-        setToast({ type: 'success', message: 'Customization request deleted successfully!' });
+        setToast({
+          type: "success",
+          message: "Customization request deleted successfully!",
+        });
         setTimeout(() => setToast(null), 2500);
       } else {
-        setToast({ type: 'error', message: 'Failed to delete request: ' + (data.message || 'Unknown error') });
+        setToast({
+          type: "error",
+          message:
+            "Failed to delete request: " + (data.message || "Unknown error"),
+        });
         setTimeout(() => setToast(null), 3500);
       }
     } catch (error) {
-      setToast({ type: 'error', message: 'Error deleting request: ' + error.message });
+      setToast({
+        type: "error",
+        message: "Error deleting request: " + error.message,
+      });
       setTimeout(() => setToast(null), 3500);
     }
   };
@@ -239,11 +267,13 @@ const CustomizationRequestsSection = ({ sellerId }) => {
   return (
     <div className="space-y-6">
       {toast && (
-        <div className={`fixed top-4 right-4 z-[100] px-4 py-3 rounded-xl shadow-lg border text-sm font-medium transition-all ${
-          toast.type === 'success'
-            ? 'bg-green-50 border-green-200 text-green-800'
-            : 'bg-red-50 border-red-200 text-red-800'
-        }`}>
+        <div
+          className={`fixed top-4 right-4 z-[100] px-4 py-3 rounded-xl shadow-lg border text-sm font-medium transition-all ${
+            toast.type === "success"
+              ? "bg-green-50 border-green-200 text-green-800"
+              : "bg-red-50 border-red-200 text-red-800"
+          }`}
+        >
           {toast.message}
         </div>
       )}
@@ -287,10 +317,16 @@ const CustomizationRequestsSection = ({ sellerId }) => {
                   <div>
                     <span className="font-medium">Price:</span>
                     <p>
-                      {request?.effective_price != null && parseFloat(request.effective_price) !== parseFloat(request.original_price) ? (
+                      {request?.effective_price != null &&
+                      parseFloat(request.effective_price) !==
+                        parseFloat(request.original_price) ? (
                         <>
-                          <span className="text-green-700 font-semibold mr-2">${parseFloat(request.effective_price).toFixed(2)}</span>
-                          <span className="text-gray-400 line-through">${parseFloat(request.original_price).toFixed(2)}</span>
+                          <span className="text-green-700 font-semibold mr-2">
+                            ${parseFloat(request.effective_price).toFixed(2)}
+                          </span>
+                          <span className="text-gray-400 line-through">
+                            ${parseFloat(request.original_price).toFixed(2)}
+                          </span>
                         </>
                       ) : (
                         <>${parseFloat(request.original_price).toFixed(2)}</>
@@ -306,13 +342,14 @@ const CustomizationRequestsSection = ({ sellerId }) => {
             </div>
 
             <div className="space-y-3 mb-4">
-              {request?.special_offer && request.special_offer !== 'No Special Offer' && (
-                <div>
-                  <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-0.5 rounded-full">
-                    {request.special_offer}
-                  </span>
-                </div>
-              )}
+              {request?.special_offer &&
+                request.special_offer !== "No Special Offer" && (
+                  <div>
+                    <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-0.5 rounded-full">
+                      {request.special_offer}
+                    </span>
+                  </div>
+                )}
               <div>
                 <span className="font-medium text-gray-700">
                   Customization Details:

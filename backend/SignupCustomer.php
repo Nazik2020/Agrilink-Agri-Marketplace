@@ -26,6 +26,14 @@ if (empty($full_name) || empty($username) || empty($email) || empty($password)) 
 $customer = new User($conn, "customers");
 
 try {
+    // Cross-table uniqueness: prevent email reuse across customers and sellers
+    $check = $conn->prepare("SELECT 1 FROM customers WHERE email = ? UNION ALL SELECT 1 FROM sellers WHERE email = ? LIMIT 1");
+    $check->execute([$email, $email]);
+    if ($check->fetch()) {
+        echo json_encode(["success" => false, "message" => "Email already exists"]);
+        exit;
+    }
+
     $customer->create($data);
     echo json_encode(["success" => true, "message" => "Customer registered successfully"]);
 } catch (PDOException $e) {

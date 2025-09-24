@@ -29,6 +29,14 @@ $email = $data['email'];
 $password = password_hash($data['password'], PASSWORD_BCRYPT);
 
 try {
+  // Cross-table uniqueness: prevent email reuse across sellers and customers
+  $check = $conn->prepare("SELECT 1 FROM sellers WHERE email = ? UNION ALL SELECT 1 FROM customers WHERE email = ? LIMIT 1");
+  $check->execute([$email, $email]);
+  if ($check->fetch()) {
+    echo json_encode(["success" => false, "message" => "Email already exists"]);
+    exit;
+  }
+
   $stmt = $conn->prepare("INSERT INTO sellers (username, business_name, business_description, country, email, password)
                           VALUES (?, ?, ?, ?, ?, ?)");
   $stmt->execute([$username, $business_name, $business_description, $country, $email, $password]);

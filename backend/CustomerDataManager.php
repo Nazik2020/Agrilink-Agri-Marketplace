@@ -1,7 +1,7 @@
 <?php
 /**
  * CustomerDataManager Class
- * Handles customer data operations following OOP principles
+ * Handles customer data operations
  */
 class CustomerDataManager {
     private $conn;

@@ -1,7 +1,7 @@
 <?php
 /**
- * Get Order Details - OOP Implementation
- * Fetches comprehensive order information using clean OOP code
+ * Get Order Details
+ * Fetches comprehensive order information
  */
 
 // Include required classes

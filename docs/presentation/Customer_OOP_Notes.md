@@ -3,6 +3,7 @@
 Use this as talking points during the panel. All paths are relative to the repo root.
 
 ## Scope (My Part)
+
 - Backend customer domain and endpoints:
   - `backend/Customer.php`
   - `backend/CustomerDataManager.php`
@@ -15,6 +16,7 @@ Use this as talking points during the panel. All paths are relative to the repo 
   - Product context using customer identity: `src/pages/ProductDetails.jsx`, wishlist in `src/components/wishlist/WishlistContext.jsx`
 
 ## OOP Used (What + Where)
+
 - Encapsulation (data hiding)
   - `Customer` holds a private DB handle and exposes intent methods only:
     ```php
@@ -42,12 +44,14 @@ Use this as talking points during the panel. All paths are relative to the repo 
   - Try/catch around `PDOException` and `Exception` with consistent JSON error payloads.
 
 ## Key Design Choices (Logic)
+
 - Profile update does not allow changing email (acts as stable identity).
 - `validateCustomerData()` allows checkout with minimal data but surfaces missing billing fields.
 - Secure auth: `Login.php` uses `password_verify` and persistent login via HMAC‑hashed remember token (HTTP‑only cookie).
 - Prepared statements everywhere to prevent SQL injection.
 
 ## Request Flows (End‑to‑End)
+
 - Fetch profile
   1. UI calls `GET /backend/get_customer_profile.php` (JSON body with `email`).
   2. Script builds `Customer` and runs `getByEmail()` → returns profile JSON.
@@ -60,6 +64,7 @@ Use this as talking points during the panel. All paths are relative to the repo 
   3. UI normalizes user object in `AuthService.js`.
 
 ## Likely Panel Q&A (Short Answers)
+
 - Q: Which OOP concepts did you use and why?
   - Encapsulation to protect DB handle; abstraction to expose meaningful customer operations; composition to inject dependencies; SRP to separate persistence vs. domain logic; a static factory for convenient creation.
 - Q: Why split `Customer` and `CustomerDataManager`?
@@ -74,15 +79,18 @@ Use this as talking points during the panel. All paths are relative to the repo 
   - Improves conversion; `validateCustomerData()` communicates what’s missing while not blocking the path. Business choice reflected in code.
 
 ## Quick Smoke Tests (PowerShell)
+
 Run from repo root. Make sure XAMPP Apache + MySQL are running and tables exist.
 
 - Get profile
+
 ```powershell
 $body = @{ email = "alice@example.com" } | ConvertTo-Json
 Invoke-WebRequest -Uri "http://localhost/Agrilink-Agri-Marketplace/backend/get_customer_profile.php" -Method Post -ContentType "application/json" -Body $body | Select-Object -ExpandProperty Content
 ```
 
 - Update profile (JSON)
+
 ```powershell
 $body = @{
   originalEmail = "alice@example.com"
@@ -96,7 +104,8 @@ $body = @{
 Invoke-WebRequest -Uri "http://localhost/Agrilink-Agri-Marketplace/backend/update_customer_profile.php" -Method Post -ContentType "application/json" -Body $body | Select-Object -ExpandProperty Content
 ```
 
- - Update profile with image (multipart)
+- Update profile with image (multipart)
+
 ```powershell
 $Form = @{
   originalEmail = "alice@example.com"
@@ -112,17 +121,20 @@ Invoke-WebRequest -Uri "http://localhost/Agrilink-Agri-Marketplace/backend/updat
 ```
 
 - Login (for context)
+
 ```powershell
 $body = @{ email = "alice@example.com"; password = "<password>"; rememberMe = $true } | ConvertTo-Json
 Invoke-WebRequest -Uri "http://localhost/Agrilink-Agri-Marketplace/backend/Login.php" -Method Post -ContentType "application/json" -Body $body -SessionVariable sess | Select-Object -ExpandProperty Content
 ```
 
 ## What To Highlight Live
+
 - Show `validateCustomerData()` returning both `hasCompleteProfile` and a `missingFields` list.
 - Explain image upload safety: allowed MIME types, unique filenames, controlled folder, and the response returning the relative path.
 - Mention remember‑me token hashing and HTTP‑only cookie.
 
 ## Extension Ideas (If asked)
+
 - Extract an interface for repositories (e.g., `CustomerRepositoryInterface`) to swap persistence layers.
 - Add PHPUnit tests around `CustomerDataManager` (validation and billing shaping) using a mock/stub PDO.
 - Move CORS and error format to a dedicated middleware class for consistency.

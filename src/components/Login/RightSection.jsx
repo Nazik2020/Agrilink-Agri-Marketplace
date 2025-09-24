@@ -2,15 +2,18 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import Logo from "../../assets/Login/AgriLink.png";
+import authService from "../../services/AuthService";
 
 export default function RightSection() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    rememberMe: false,
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [remember, setRemember] = useState(false);
   const navigate = useNavigate();
 
   const handleInputChange = (e) => {
@@ -25,6 +28,10 @@ export default function RightSection() {
         [name]: "",
       }));
     }
+  };
+
+  const handleRememberChange = (e) => {
+    setRemember(e.target.checked);
   };
 
   const validateForm = () => {
@@ -56,28 +63,16 @@ export default function RightSection() {
         {
           email: formData.email,
           password: formData.password,
-        }
+          rememberMe: formData.rememberMe,
+        },
+        { withCredentials: true }
       );
 
       if (res.data.success) {
         setMessage(res.data.message);
-        
-        // Store user data in sessionStorage
-        sessionStorage.setItem("user", JSON.stringify(res.data.user));
-        
-      
-        if (res.data.user && res.data.user.role === "seller") {
-          // Store the complete seller data
-          sessionStorage.setItem("seller", JSON.stringify(res.data.user));
-          console.log("Seller data stored:", res.data.user); // Debug log
-        }
-        
-        // Dispatch custom event to notify other components
-        window.dispatchEvent(
-          new CustomEvent("userStateChanged", {
-            detail: { action: "login", user: res.data.user },
-          })
-        );
+
+        // Use AuthService to handle login
+        authService.handleSuccessfulAuth(res.data.user);
 
         // Set seller_id in localStorage if user is a seller
         if (
@@ -273,12 +268,25 @@ export default function RightSection() {
               )}
             </div>
 
-            <Link
-              to="/ForgotPassword"
-              className="text-green-600 text-sm block text-right"
-            >
-              Forgot Password?
-            </Link>
+            {/* Remember Me checkbox */}
+            <div className="flex items-center justify-between mt-3">
+              <label className="inline-flex items-center gap-2 select-none">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={handleRememberChange}
+                  className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                />
+                <span className="text-sm text-gray-700">Remember Me</span>
+              </label>
+
+              <Link
+                to="/ForgotPassword"
+                className="text-green-600 text-sm"
+              >
+                Forgot Password?
+              </Link>
+            </div>
 
             <button
               type="submit"
@@ -300,3 +308,5 @@ export default function RightSection() {
     </div>
   );
 }
+
+// Keys used here should be cleared by logout: 'remember', possibly 'customer','seller','token'

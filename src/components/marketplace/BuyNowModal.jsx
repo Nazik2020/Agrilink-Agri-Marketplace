@@ -13,6 +13,11 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { useCart } from "../cart/CartContext";
+import {
+  validateCardAll,
+  detectCardBrand,
+  CARD_BRANDS,
+} from "../../utils/cardValidation";
 
 const BuyNowModal = ({
   isOpen,
@@ -32,12 +37,17 @@ const BuyNowModal = ({
   } = useCart();
 
   // State management - ALL HOOKS MUST BE AT THE TOP
-  const [step, setStep] = useState(1); 
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [stripeKey, setStripeKey] = useState("");
   const [customerData, setCustomerData] = useState(null);
   const [customerDataLoading, setCustomerDataLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
+  const [cardBrand, setCardBrand] = React.useState(CARD_BRANDS.unknown);
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
+  const [cvc, setCvc] = useState("");
 
   // Form data
   const [formData, setFormData] = useState({
@@ -72,15 +82,17 @@ const BuyNowModal = ({
   const totalAmount = subtotal;
 
   const allowedCards = {
-    // Success test cards
-    4242424242424242: "success", // Visa
-    5555555555554444: "success", // Mastercard
-    378282246310005: "success", // American Express
-
-    // Decline scenario test cards
+    // Visa
+    4242424242424242: "success",
     4000000000000002: "Your card was declined.",
     4000000000009995: "Insufficient funds.",
-    4000000000009987: "Card reported lost or stolen.",
+    4000000000009987: "Card expired.",
+    // Mastercard
+    5555555555554444: "success",
+    5105105105105100: "success",
+    // American Express (15-digit). We compare against digits only later, so ok
+    378282246310005: "success",
+    371449635398431: "success",
   };
 
   // Load customer data when modal opens
@@ -115,7 +127,6 @@ const BuyNowModal = ({
 
   // Add safety checks for props
   if (!onClose || typeof onClose !== "function") {
-    
     return null;
   }
 
@@ -136,8 +147,7 @@ const BuyNowModal = ({
         try {
           const user = JSON.parse(userString);
           customerEmail = user.email;
-        } catch (e) {
-        }
+        } catch (e) {}
       }
 
       const response = await axios.post(
@@ -178,7 +188,6 @@ const BuyNowModal = ({
         setCustomerData(null);
       }
     } catch (error) {
-
       // Show error and prevent checkout if no profile found
       setError(
         "Unable to load your profile information. Please complete your profile before checkout."
@@ -210,28 +219,50 @@ const BuyNowModal = ({
     }));
   };
 
-  // Format card number input
-  const handleCardNumberChange = (e) => {
-    let value = e.target.value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
-    const formattedValue = value.match(/.{1,4}/g)?.join(" ") || value;
+  // Format card number input respecting brand-specific lengths
+  const formatCardNumber = (value, brandHint) => {
+    const raw = (value || "").replace(/\D/g, "");
+    const detected = detectCardBrand(raw);
+    const brand = brandHint || detected;
+    const maxDigits = brand === CARD_BRANDS.amex ? 15 : 16; // Amex 15, others 16
+    const digits = raw.slice(0, maxDigits);
+    if (brand === CARD_BRANDS.amex) {
+      // Amex format: 4-6-5 → xxxx xxxxxx xxxxx
+      const p1 = digits.slice(0, 4);
+      const p2 = digits.slice(4, 10);
+      const p3 = digits.slice(10);
+      return [p1, p2, p3].filter(Boolean).join(" ").trim();
+    }
+    // Default format: groups of 4 → xxxx xxxx xxxx xxxx
+    return digits.replace(/(.{4})/g, "$1 ").trim();
+  };
 
-    setFormData((prev) => ({
-      ...prev,
-      card_number: formattedValue,
-    }));
+  const handleCardNumberChange = (e) => {
+    const inputVal = e.target.value;
+    const digits = (inputVal || "").replace(/\D/g, "");
+    const brand = detectCardBrand(digits);
+    const formatted = formatCardNumber(digits, brand);
+    setCardBrand(brand);
+    setCardNumber(formatted);
+    setFormData((prev) => ({ ...prev, card_number: formatted }));
+    if (paymentError) setPaymentError("");
   };
 
   // Format expiry date input
   const handleExpiryChange = (e) => {
-    let value = e.target.value.replace(/\D/g, "");
-    if (value.length >= 2) {
-      value = value.substring(0, 2) + "/" + value.substring(2, 4);
-    }
+    let val = e.target.value.replace(/[^\d/]/g, "").slice(0, 5);
+    if (/^\d{2}$/.test(val)) val = val + "/";
+    setExpiryDate(val);
+    setFormData((prev) => ({ ...prev, card_expiry: val }));
+    if (paymentError) setPaymentError("");
+  };
 
-    setFormData((prev) => ({
-      ...prev,
-      card_expiry: value,
-    }));
+  const handleCvcChange = (e) => {
+    const max = cardBrand === CARD_BRANDS.amex ? 4 : 3;
+    const newVal = e.target.value.replace(/\D/g, "").slice(0, max);
+    setCvc(newVal);
+    setFormData((prev) => ({ ...prev, card_cvc: newVal }));
+    if (paymentError) setPaymentError("");
   };
 
   // Validate form
@@ -262,20 +293,66 @@ const BuyNowModal = ({
     return errors;
   };
 
-  const handlePayment = async () => {
+  // Helper to safely get current payment input values even if your variable names differ
+  const getPaymentInputs = () => {
+    const number =
+      typeof cardNumber !== "undefined"
+        ? cardNumber
+        : typeof cardNum !== "undefined"
+        ? cardNum
+        : typeof card_no !== "undefined"
+        ? card_no
+        : "";
+
+    const expiry =
+      typeof expiryDate !== "undefined"
+        ? expiryDate
+        : typeof expiry !== "undefined"
+        ? expiry
+        : typeof exp !== "undefined"
+        ? exp
+        : "";
+
+    const cvcVal =
+      typeof cvc !== "undefined"
+        ? cvc
+        : typeof cvv !== "undefined"
+        ? cvv
+        : typeof securityCode !== "undefined"
+        ? securityCode
+        : "";
+
+    return { number, expiry, cvc: cvcVal };
+  };
+
+  // Preserve original handler if declared earlier
+  const __originalHandlePayment =
+    typeof handlePayment === "function" ? handlePayment : null;
+
+  // Validate before submitting
+  async function handlePayment(event) {
+    const { number, expiry, cvc: cvcVal } = getPaymentInputs();
+    const { valid, error } = validateCardAll({ number, expiry, cvc: cvcVal });
+    if (!valid) {
+      if (typeof setPaymentError === "function") setPaymentError(error);
+      return;
+    }
+    if (__originalHandlePayment && __originalHandlePayment !== handlePayment) {
+      return __originalHandlePayment(event);
+    }
     try {
       setLoading(true);
       setError("");
 
-      const cardNumber = (formData.card_number || "").replace(/\s+/g, "");
-      if (!cardNumber) {
+      const cardNumberClean = (cardNumber || formData.card_number || "").replace(/\s+/g, "");
+      if (!cardNumberClean) {
         setError("Please enter a card number.");
         setLoading(false);
         return;
       }
 
       // Check if card number is in allowed list
-      if (!allowedCards.hasOwnProperty(cardNumber)) {
+      if (!allowedCards.hasOwnProperty(cardNumberClean)) {
         setError("Invalid card number. Please enter a valid card number.");
         setLoading(false);
         return;
@@ -285,7 +362,7 @@ const BuyNowModal = ({
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Check card result
-      if (allowedCards[cardNumber] === "success") {
+      if (allowedCards[cardNumberClean] === "success") {
         // SUCCESS - Payment approved
         console.log("Payment successful!");
 
@@ -374,12 +451,18 @@ const BuyNowModal = ({
           if (debugArr.length > 0) {
             // Use backend-provided decrease (deliverQty)
             debugArr.forEach((entry) => {
-              const productId = entry?.item?.product_id || entry?.product_id || entry?.debug?.product_id || null;
+              const productId =
+                entry?.item?.product_id ||
+                entry?.product_id ||
+                entry?.debug?.product_id ||
+                null;
               const deliveredQuantity = entry?.debug?.quantity ?? null;
               const fallbackQty = (() => {
                 // try to find from purchasedProducts if needed
                 if (!productId) return null;
-                const m = purchasedProducts.find((pp) => String(pp.productId) === String(productId));
+                const m = purchasedProducts.find(
+                  (pp) => String(pp.productId) === String(productId)
+                );
                 return m ? m.quantity : null;
               })();
               if (productId) {
@@ -398,7 +481,9 @@ const BuyNowModal = ({
             // Fallback to local quantities if backend didn't return debug info
             purchasedProducts.forEach(({ productId, quantity }) => {
               window.dispatchEvent(
-                new CustomEvent("orderPaid", { detail: { productId, quantity } })
+                new CustomEvent("orderPaid", {
+                  detail: { productId, quantity },
+                })
               );
             });
           }
@@ -407,7 +492,9 @@ const BuyNowModal = ({
           if (purchasedProducts.length > 0) {
             purchasedProducts.forEach(({ productId, quantity }) => {
               window.dispatchEvent(
-                new CustomEvent("orderPaid", { detail: { productId, quantity } })
+                new CustomEvent("orderPaid", {
+                  detail: { productId, quantity },
+                })
               );
             });
           }
@@ -419,7 +506,12 @@ const BuyNowModal = ({
 
         // Tell backend to close customized visibility if this was a customized product
         try {
-          if (!isCartCheckout && product && product.is_customized && product.id) {
+          if (
+            !isCartCheckout &&
+            product &&
+            product.is_customized &&
+            product.id
+          ) {
             await axios.post(
               `${API_BASE}/backend/RequestCustomization/close_after_purchase.php`,
               { customized_product_id: product.id }
@@ -437,7 +529,7 @@ const BuyNowModal = ({
             }
           }
         } catch (e) {
-          console.warn('close_after_purchase notify failed', e);
+          console.warn("close_after_purchase notify failed", e);
         }
 
         setStep(3); // Go to success page
@@ -452,7 +544,7 @@ const BuyNowModal = ({
       setError("Payment processing failed. Please try again.");
       setLoading(false);
     }
-  };
+  }
 
   // Reset modal when closed
   const handleClose = () => {
@@ -663,11 +755,15 @@ const BuyNowModal = ({
                     <div className="border-t border-green-200 mt-4 pt-4 space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Subtotal:</span>
-                        <span className="font-semibold">${subtotal.toFixed(2)}</span>
+                        <span className="font-semibold">
+                          ${subtotal.toFixed(2)}
+                        </span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">Shipping:</span>
-                        <span className="italic text-gray-600">Will be informed later</span>
+                        <span className="italic text-gray-600">
+                          Will be informed later
+                        </span>
                       </div>
                       <div className="flex justify-between items-center text-lg">
                         <span className="font-bold text-gray-800">Total:</span>
@@ -752,7 +848,9 @@ const BuyNowModal = ({
                   </div>
                   <div>
                     <span className="font-semibold">Shipping:</span>
-                    <span className="ml-1 italic text-gray-600">Will be informed later</span>
+                    <span className="ml-1 italic text-gray-600">
+                      Will be informed later
+                    </span>
                   </div>
                   <div className="font-bold text-lg">
                     Total: ${totalAmount.toFixed(2)}
@@ -875,9 +973,12 @@ const BuyNowModal = ({
                   onClick={() => setStep(2)}
                   className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
                   disabled={
-                    loading || customerDataLoading ||
-                    !formData.billing_name || !formData.billing_email ||
-                    !formData.billing_address || !formData.billing_postal_code ||
+                    loading ||
+                    customerDataLoading ||
+                    !formData.billing_name ||
+                    !formData.billing_email ||
+                    !formData.billing_address ||
+                    !formData.billing_postal_code ||
                     !formData.billing_country
                   }
                 >
@@ -897,6 +998,11 @@ const BuyNowModal = ({
                   {error}
                 </div>
               )}
+              {paymentError && (
+                <div className="bg-red-100 text-red-700 p-2 rounded mb-4">
+                  {paymentError}
+                </div>
+              )}
 
               <form className="space-y-4">
                 <div>
@@ -908,9 +1014,14 @@ const BuyNowModal = ({
                     name="card_number"
                     value={formData.card_number}
                     onChange={handleCardNumberChange}
-                    maxLength={19}
+                    // Max length includes spaces: 19 for 16-digit cards, 17 for Amex (15 digits)
+                    maxLength={cardBrand === CARD_BRANDS.amex ? 17 : 19}
                     placeholder="Enter card number"
                     className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
+                    inputMode="numeric"
+                    autoComplete="cc-number"
+                    readOnly={false}
+                    disabled={false}
                   />
                 </div>
                 <div className="flex space-x-4">
@@ -935,9 +1046,11 @@ const BuyNowModal = ({
                     <input
                       type="text"
                       name="card_cvc"
-                      value={formData.card_cvc}
-                      onChange={handleInputChange}
-                      maxLength={4}
+                      value={cvc}
+                      onChange={handleCvcChange}
+                      inputMode="numeric"
+                      autoComplete="cc-csc"
+                      maxLength={cardBrand === CARD_BRANDS.amex ? 4 : 3}
                       placeholder="CVC"
                       className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-600"
                     />

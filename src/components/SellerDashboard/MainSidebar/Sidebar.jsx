@@ -77,10 +77,25 @@ const Sidebar = () => {
     
     // Listen for custom user state changes
     const handleUserStateChange = (event) => {
-      if (event.detail && event.detail.action === "login" && event.detail.user) {
-        console.log("User state changed:", event.detail.user); // Debug log
-        if (event.detail.user.role === "seller") {
-          setSellerData(event.detail.user);
+      const detail = event.detail || {};
+      if (detail && (detail.action === "login" || detail.action === "auto_login") && detail.user) {
+        const user = detail.user;
+        console.log("User state changed:", user); // Debug log
+        if (user.role === "seller") {
+          // Normalize to the shape this sidebar expects
+          const sellerObj = {
+            id: user.id,
+            email: user.email || "",
+            username: user.username || user.business_name || user.name || "Seller",
+            business_name: user.business_name || user.name || "Seller",
+            business_logo: user.business_logo || user.profile_image || user.profile_picture || null,
+            country: user.country || "",
+            contact_number: user.contact_number || "",
+            address: user.address || ""
+          };
+          setSellerData(sellerObj);
+          // Also sync sessionStorage for pages that read it directly
+          try { sessionStorage.setItem("seller", JSON.stringify(sellerObj)); } catch (_) {}
           setLogoVersion(Date.now());
         }
       }
@@ -142,7 +157,7 @@ const Sidebar = () => {
 
   // Get current seller logo URL
   const getSellerLogoUrl = () => {
-    const logoPath = sellerData.business_logo || sellerData.profile_picture;
+    const logoPath = sellerData.business_logo || sellerData.profile_image || sellerData.profile_picture;
     return logoPath ? buildLogoUrl(logoPath) : getDefaultProfileImage();
   };
 

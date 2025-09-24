@@ -30,6 +30,19 @@ try {
         }
     }
     
+    // Check seller status (block if banned)
+    $sellerId = (int)$input['seller_id'];
+    $sellerStmt = $conn->prepare('SELECT status, business_name FROM sellers WHERE id = ? LIMIT 1');
+    $sellerStmt->execute([$sellerId]);
+    $seller = $sellerStmt->fetch(PDO::FETCH_ASSOC);
+    if ($seller && isset($seller['status']) && $seller['status'] === 'banned') {
+        echo json_encode([
+            'success' => false,
+            'message' => 'This seller is currently disabled. For further information, contact the seller.'
+        ]);
+        exit;
+    }
+
     $customizationRequest = new CustomizationRequest($conn);
     $result = $customizationRequest->createRequest(
         $input['customer_id'],
@@ -78,5 +91,6 @@ try {
     ]);
 }
 ?>
+
 
 

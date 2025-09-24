@@ -73,11 +73,62 @@ export default function MyStorePage() {
 
   const navigate = useNavigate();
 
+  // On mount, try to resolve seller from storage, and subscribe for auth events
   useEffect(() => {
-    const sessionSeller = sessionStorage.getItem("seller");
-    if (sessionSeller) {
-      setSeller(JSON.parse(sessionSeller));
-    }
+    const loadSellerFromStorage = () => {
+      try {
+        const sessionSeller = sessionStorage.getItem("seller");
+        if (sessionSeller) {
+          setSeller(JSON.parse(sessionSeller));
+          return true;
+        }
+        // Fallback: if unified user exists and is a seller, normalize
+        const userStr = sessionStorage.getItem("user");
+        if (userStr) {
+          const u = JSON.parse(userStr);
+          if (u && (u.role === 'seller' || u.user_type === 'seller')) {
+            const sellerObj = {
+              id: u.id,
+              email: u.email || '',
+              username: u.username || u.business_name || u.name || 'Seller',
+              business_name: u.business_name || u.name || 'Seller',
+              business_logo: u.business_logo || u.profile_image || u.profile_picture || null,
+              country: u.country || '',
+              contact_number: u.contact_number || '',
+              address: u.address || ''
+            };
+            sessionStorage.setItem('seller', JSON.stringify(sellerObj));
+            setSeller(sellerObj);
+            return true;
+          }
+        }
+      } catch (_) {}
+      return false;
+    };
+
+    // Initial load
+    const resolved = loadSellerFromStorage();
+
+    // Listen to auth events for auto-login in new tab
+    const onUserState = (e) => {
+      const { action, user } = e.detail || {};
+      if ((action === 'login' || action === 'auto_login') && user && user.role === 'seller') {
+        // Storage already updated by AuthService; re-read
+        loadSellerFromStorage();
+      }
+      if (action === 'logout') {
+        setSeller(null);
+      }
+    };
+    window.addEventListener('userStateChanged', onUserState);
+    // Also react to storage events (other tabs)
+    const onStorage = () => loadSellerFromStorage();
+    window.addEventListener('storage', onStorage);
+
+    return () => {
+      window.removeEventListener('userStateChanged', onUserState);
+      window.removeEventListener('storage', onStorage);
+    };
   }, []);
 
   useEffect(() => {
@@ -301,7 +352,7 @@ export default function MyStorePage() {
   if (!seller) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
-        <p>Please login to view your store.</p>
+        <p>Loading your store...</p>
       </div>
     );
   }

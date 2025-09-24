@@ -11,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/review_and_ratings/Review.php';
+require_once __DIR__ . '/utils/purchase_guard.php';
 
 try {
     $input = json_decode(file_get_contents('php://input'), true);
@@ -37,12 +38,7 @@ try {
     }
 
     // Restrict reviews to buyers with successful payment only
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM orders WHERE customer_id = ? AND product_id = ? AND payment_status = 'success'");
-    $stmt->execute([$customerId, $productId]);
-    if ($stmt->fetchColumn() == 0) {
-        echo json_encode(["success" => false, "message" => "Please make sure you bought this product."]);
-        exit;
-    }
+    enforcePurchasedOrFail($conn, (int)$customerId, (int)$productId);
 
     $review = new Review($conn);
     try {

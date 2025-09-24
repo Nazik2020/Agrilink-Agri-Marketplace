@@ -18,6 +18,8 @@ import Logo from "../../assets/navbar/agrilink_logo.png";
 import { useCart } from "../cart/CartContext";
 import { useWishlist } from "../wishlist/WishlistContext";
 import { API_CONFIG } from "../../config/api";
+import authService from "../../services/AuthService";
+import { logoutAllCustomers } from "../../utils/authSession";
 
 // User Management Class following OOP principles
 class UserManager {
@@ -26,7 +28,6 @@ class UserManager {
     this.sellerStorageKey = "seller_id";
   }
 
-  
   getCurrentUser() {
     try {
       const userString = sessionStorage.getItem(this.storageKey);
@@ -37,17 +38,15 @@ class UserManager {
     }
   }
 
-  
   isCustomerLoggedIn() {
     const user = this.getCurrentUser();
     return user && user.role === "customer";
   }
 
-  
   logout() {
     sessionStorage.removeItem(this.storageKey);
     sessionStorage.removeItem(this.sellerStorageKey);
-    
+
     window.dispatchEvent(
       new CustomEvent("userStateChanged", {
         detail: { action: "logout" },
@@ -55,10 +54,9 @@ class UserManager {
     );
   }
 
-  
   login(userData) {
     sessionStorage.setItem(this.storageKey, JSON.stringify(userData));
-    
+
     window.dispatchEvent(
       new CustomEvent("userStateChanged", {
         detail: { action: "login", user: userData },
@@ -66,7 +64,6 @@ class UserManager {
     );
   }
 }
-
 
 const userManager = new UserManager();
 
@@ -81,10 +78,8 @@ const Navbar = () => {
   const { wishlistCount } = useWishlist();
   const navigate = useNavigate();
 
-
   useEffect(() => {
     const updateUserState = () => {
-
       let currentUser = userManager.getCurrentUser();
 
       if (currentUser && currentUser.role === "seller") {
@@ -98,9 +93,7 @@ const Navbar = () => {
       setUser(currentUser);
     };
 
-
     updateUserState();
-
 
     const handleUserStateChange = (event) => {
       updateUserState();
@@ -112,17 +105,14 @@ const Navbar = () => {
       }
     };
 
-
     window.addEventListener("userStateChanged", handleUserStateChange);
     window.addEventListener("storage", handleStorageChange);
-
 
     return () => {
       window.removeEventListener("userStateChanged", handleUserStateChange);
       window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
-
 
   useEffect(() => {
     const handleScroll = () => {
@@ -132,9 +122,9 @@ const Navbar = () => {
         return;
       }
       if (window.scrollY > lastScrollY) {
-  setShowNavbar(false);
+        setShowNavbar(false);
       } else {
-  setShowNavbar(true);
+        setShowNavbar(true);
       }
       setLastScrollY(window.scrollY);
     };
@@ -142,21 +132,24 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
-
   const handleCartClick = () => {
     toggleCart();
     setIsMenuOpen(false);
   };
 
-
-  const handleLogout = () => {
-    userManager.logout();
+  const handleLogout = async () => {
+    await authService.logout();
     setUser(null);
     setIsAccountDropdownOpen(false);
     setIsMenuOpen(false);
     navigate("/");
   };
 
+  const handleFullLogout = (e) => {
+    e?.preventDefault?.();
+    logoutAllCustomers();
+    navigate("/", { replace: true });
+  };
 
   const getDashboardLink = () => {
     if (!user) return "/";
@@ -181,10 +174,10 @@ const Navbar = () => {
   // Build absolute URL for a stored relative image path
   const buildProfileImgUrl = (path) => {
     if (!path) return null;
-    if (/^https?:\/\//i.test(path)) return path; 
+    if (/^https?:\/\//i.test(path)) return path;
     const base = API_CONFIG.BASE_URL.replace(/\/$/, "");
     const rel = path.replace(/^\/?/, "");
-    return `${base}/${rel}?t=${Date.now()}`; 
+    return `${base}/${rel}?t=${Date.now()}`;
   };
 
   // User profile image getter (supports customer and seller)
@@ -224,25 +217,20 @@ const Navbar = () => {
     >
       <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between">
         {" "}
-       
         {/* Logo */}
         <Link
           to="/"
           className="flex items-center gap-2 hover:opacity-80 transition-opacity"
         >
           <img src={Logo} alt="Agrilink logo" className="w-12 h-12" />{" "}
-          
           <div className="w-px h-10 bg-gray-300"></div>{" "}
-          
           <div className="flex flex-col leading-tight">
             <span className="text-gray-600 font-semibold text-base">
               {" "}
-              
               Agricultural
             </span>
             <span className="text-gray-600 font-semibold text-base">
               {" "}
-             
               Marketplace
             </span>
           </div>
@@ -376,13 +364,15 @@ const Navbar = () => {
                         <span className="text-sm font-medium">Dashboard</span>
                       </Link>
 
-                      <button
-                        onClick={handleLogout}
+                      {/* Ensure the logout dropdown item is a Link to /logout */}
+                      <Link
+                        to="/logout"
                         className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-red-50 transition-colors duration-200 w-full text-left"
+                        onClick={() => setIsAccountDropdownOpen(false)}
                       >
                         <FaSignOutAlt className="text-red-600 text-sm" />
                         <span className="text-sm font-medium">Logout</span>
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 )}
@@ -531,13 +521,15 @@ const Navbar = () => {
                   <FaTachometerAlt className="text-green-600 text-sm" />
                   <span className="font-medium text-sm">Dashboard</span>
                 </Link>
-                <button
-                  onClick={handleLogout}
+                {/* Ensure the logout item is a Link to /logout */}
+                <Link
+                  to="/logout"
                   className="flex items-center gap-3 py-2 text-gray-700 hover:text-red-600 transition-colors duration-200 w-full text-left"
+                  onClick={() => setIsMenuOpen(false)}
                 >
                   <FaSignOutAlt className="text-red-600 text-sm" />
                   <span className="font-medium text-sm">Logout</span>
-                </button>
+                </Link>
               </div>
             ) : (
               <div className="pt-2 border-t border-gray-200 flex flex-col gap-2">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Package, Loader, AlertCircle, RefreshCw } from "lucide-react";
 import axios from "axios";
+import authService from "../../../services/AuthService";
 
 const OrderHistoryPage = () => {
   const [orderItems, setOrderItems] = useState([]);
@@ -8,21 +9,13 @@ const OrderHistoryPage = () => {
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Get customer ID from sessionStorage (matching CartContext pattern)
+  // Get customer ID from AuthService
   const getCustomerId = () => {
-    try {
-      const userString = sessionStorage.getItem("user");
-      if (userString) {
-        const user = JSON.parse(userString);
-        // Check both 'role' and 'user_type' 
-        if (user.role === "customer" || user.user_type === "customer") {
-          return user.id;
-        }
-      }
-    } catch (error) {
-      console.error("Error parsing user from sessionStorage:", error);
+    const currentUser = authService.getCurrentUser();
+    if (currentUser && (currentUser.role === "customer" || currentUser.user_type === "customer")) {
+      return currentUser.id;
     }
-    return null; // Return null if no valid customer found
+    return null;
   };
 
 

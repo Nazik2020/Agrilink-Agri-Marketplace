@@ -3,6 +3,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { User, Heart, ShoppingBag, Bell, LogOut, Package } from "lucide-react";
 import customer from "../../../assets/CustomerDashboard/3412435.jpg";
 import { API_CONFIG } from "../../../config/api";
+import authService from "../../../services/AuthService";
+import { exitCustomerDashboardOnly } from "../../../utils/authSession";
 
 const CustomerSidebar = () => {
   const navigate = useNavigate();
@@ -15,23 +17,18 @@ const CustomerSidebar = () => {
   const buildImgUrl = (raw) => {
     if (!raw) return null;
     if (/^https?:\/\//i.test(raw)) return raw;
-    const base = API_CONFIG.BASE_URL.replace(/\/$/, "");
-    const rel = String(raw).replace(/^\/?/, "");
-    return `${base}/${rel}?t=${Date.now()}`;
+    // Use the same URL construction as CustomerProfilePage
+    return `http://localhost/Agrilink-Agri-Marketplace/backend/get_image.php?path=${encodeURIComponent(raw)}`;
   };
 
   useEffect(() => {
     const loadFromSession = () => {
-      try {
-        const user = JSON.parse(sessionStorage.getItem("user"));
-        if (user) {
-          setUsername(user.full_name || user.username || "Customer");
-          if (user.profile_image) {
-            setProfileImage(buildImgUrl(user.profile_image));
-          }
+      const user = authService.getCurrentUser();
+      if (user) {
+        setUsername(user.full_name || user.username || "Customer");
+        if (user.profile_image) {
+          setProfileImage(buildImgUrl(user.profile_image));
         }
-      } catch (e) {
-        // Error parsing user from sessionStorage
       }
     };
 
@@ -47,9 +44,10 @@ const CustomerSidebar = () => {
     };
   }, []);
 
-  const handleLogout = () => {
-    // Customer logged out
-    navigate("/marketplace");
+  const handleDashboardExit = (e) => {
+    e?.preventDefault?.();
+    exitCustomerDashboardOnly();
+    navigate("/", { replace: true });
   };
 
   const menuItems = [
@@ -134,7 +132,7 @@ const CustomerSidebar = () => {
 
         {/* Logout Button */}
         <button
-          onClick={handleLogout}
+          onClick={handleDashboardExit}
           className="flex items-center w-full px-4 py-2 rounded-full text-gray-600 hover:bg-red-50 hover:text-red-600 hover:shadow-sm hover:translate-x-1 transition-all duration-300 group"
         >
           <LogOut

@@ -3,6 +3,7 @@ import { Heart, ShoppingCart, Trash2, Star, Loader2 } from "lucide-react";
 import { useWishlist } from "../../wishlist/WishlistContext";
 import { useCart } from "../../cart/CartContext";
 import axios from "axios";
+import authService from "../../../services/AuthService";
 
 const WishlistPage = () => {
   const { wishlist, loading, removeFromWishlist, loadWishlist } = useWishlist();
@@ -18,18 +19,12 @@ const WishlistPage = () => {
     console.log("WishlistPage: Guest wishlist in localStorage:", guestWishlist);
 
    
-    const userString = sessionStorage.getItem("user");
-    console.log("WishlistPage: User from localStorage:", userString);
+    const currentUser = authService.getCurrentUser();
+    console.log("WishlistPage: User from AuthService:", currentUser);
 
-    if (userString) {
-      try {
-        const user = JSON.parse(userString);
-        console.log("WishlistPage: Parsed user:", user);
-        console.log("WishlistPage: User role:", user.role);
-        console.log("WishlistPage: User ID:", user.id);
-      } catch (error) {
-        // Error parsing user
-      }
+    if (currentUser) {
+      console.log("WishlistPage: User role:", currentUser.role);
+      console.log("WishlistPage: User ID:", currentUser.id);
     }
 
   }, []); 
@@ -69,30 +64,32 @@ const WishlistPage = () => {
   };
 
   // Add item to cart from wishlist
-  const handleAddToCart = (item) => {
+  const handleAddToCart = async (item) => {
+    setLocalLoading((prev) => ({ ...prev, [item.product_id]: true }));
     try {
-      // Prepare the product data for cart
       const priceToUse = item.effective_price != null ? parseFloat(item.effective_price) : parseFloat(item.price);
       const productForCart = {
-        id: item.product_id, 
+        id: item.product_id,
         name: item.product_name,
         seller: item.seller_name || "Unknown Seller",
         category: item.category || "Product",
         price: priceToUse,
-        maxQuantity: 10, 
+        maxQuantity: 10,
         image: getProductImage(item.product_images),
       };
 
-      // Add to cart using the cart context
-      addToCart(productForCart);
-
-      // Show success message
-      showToast(`${item.product_name} added to cart successfully!`, "success");
-
-      console.log("Added to cart from wishlist:", productForCart);
+      const result = await addToCart(productForCart, { suppressPopup: true });
+      if (result && result.success) {
+        showToast(`${item.product_name} added to cart successfully!`, "success");
+      } else {
+        // Do not show success toast; optionally show error toast
+        const msg = result?.message || "Failed to add item to cart";
+        showToast(msg, "error");
+      }
     } catch (error) {
-      // Error adding to cart
       showToast("Error adding item to cart", "error");
+    } finally {
+      setLocalLoading((prev) => ({ ...prev, [item.product_id]: false }));
     }
   };
 

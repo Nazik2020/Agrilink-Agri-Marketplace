@@ -5,6 +5,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Methods: POST");
 
 require 'db.php';
+require_once __DIR__ . '/utils/purchase_guard.php';
 
 $data = json_decode(file_get_contents("php://input"), true);
 
@@ -28,6 +29,8 @@ if (!in_array($category, $valid_categories)) {
 }
 
 try {
+    // Check if the customer has purchased the product
+    enforcePurchasedOrFail($conn, (int)$flagged_by_customer_id, (int)$product_id);
 
     // Insert the flag
     $stmt = $conn->prepare("INSERT INTO flags (flagged_by_customer_id, seller_id, product_id, category, reason) VALUES (?, ?, ?, ?, ?)");

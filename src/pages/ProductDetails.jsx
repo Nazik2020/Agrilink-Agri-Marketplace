@@ -315,6 +315,25 @@ function ProductDetails() {
     setShowCustomizationRequest(false);
   };
 
+  // Open customization request modal with seller ban check
+  const handleOpenCustomizationRequest = async () => {
+    if (!product || product.stock <= 0) return;
+    try {
+      const resp = await axios.get(`${API_BASE}/backend/get_seller_profile.php`, {
+        params: { seller_id: product.seller.id },
+      });
+      const status = resp?.data?.seller?.status;
+      if (status === 'banned') {
+        showPopup('This seller is currently disabled. For further information, contact the seller.', 'error');
+        return;
+      }
+      setShowCustomizationRequest(true);
+    } catch (e) {
+      // If the status cannot be checked, fall back to opening and let backend validate
+      setShowCustomizationRequest(true);
+    }
+  };
+
   const handleSaveEdit = async (reviewId) => {
     if (!editReviewText.trim()) {
       showPopup("Review cannot be empty.", 'error');
@@ -649,11 +668,7 @@ function ProductDetails() {
             {currentUser && currentUser.role === "customer" ? (
               <button
                 disabled={product.stock === 0}
-                onClick={() => {
-                  if (product.stock > 0) {
-                    setShowCustomizationRequest(true);
-                  }
-                }}
+                onClick={handleOpenCustomizationRequest}
                 aria-disabled={product.stock === 0}
                 title={product.stock === 0 ? "Out of Stock - Customization Unavailable" : "Request Customization"}
                 className={`w-full border border-gray-300 py-3 rounded-lg text-lg font-semibold transition

@@ -59,15 +59,25 @@ class Cart {
             $isCustomized = false;
 
             // Check if it's a customized product first (no special offers apply)
-            $stmt = $this->conn->prepare("SELECT price FROM customized_products WHERE id = ?");
+            $stmt = $this->conn->prepare("SELECT price, seller_id FROM customized_products WHERE id = ?");
             $stmt->execute([$productId]);
             $customizedProduct = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($customizedProduct) {
                 $isCustomized = true;
                 $basePrice = (float)$customizedProduct['price'];
+                // Verify seller is not banned
+                $s = $this->conn->prepare("SELECT status FROM sellers WHERE id = ? LIMIT 1");
+                $s->execute([$customizedProduct['seller_id']]);
+                $sellerRow = $s->fetch(PDO::FETCH_ASSOC);
+                if ($sellerRow && isset($sellerRow['status']) && $sellerRow['status'] === 'banned') {
+                    return [
+                        "success" => false,
+                        "message" => "This seller is currently disabled. For further information, contact the seller."
+                    ];
+                }
             } else {
                 // Regular product: get price and special_offer
-                $stmt = $this->conn->prepare("SELECT price, special_offer FROM products WHERE id = ?");
+                $stmt = $this->conn->prepare("SELECT price, special_offer, seller_id FROM products WHERE id = ?");
                 $stmt->execute([$productId]);
                 $product = $stmt->fetch(PDO::FETCH_ASSOC);
                 if (!$product) {
@@ -76,6 +86,16 @@ class Cart {
                 }
                 $basePrice = (float)$product['price'];
                 $specialOffer = $product['special_offer'] ?? null;
+                // Verify seller is not banned
+                $s = $this->conn->prepare("SELECT status FROM sellers WHERE id = ? LIMIT 1");
+                $s->execute([$product['seller_id']]);
+                $sellerRow = $s->fetch(PDO::FETCH_ASSOC);
+                if ($sellerRow && isset($sellerRow['status']) && $sellerRow['status'] === 'banned') {
+                    return [
+                        "success" => false,
+                        "message" => "This seller is currently disabled. For further information, contact the seller."
+                    ];
+                }
             }
 
             // Auto-adjust quantity for certain offers (e.g., B1G1 when adding 1)

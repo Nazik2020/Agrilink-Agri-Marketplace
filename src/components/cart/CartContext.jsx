@@ -175,16 +175,23 @@ export const CartProvider = ({ children }) => {
   };
 
   // Add item to cart
-  const addToCart = async (product) => {
+  const addToCart = async (product, options = {}) => {
+    const suppressPopup = options && options.suppressPopup === true;
     if (!customerId) {
-      return;
+      if (!suppressPopup) {
+        showPopup("Please login as a customer to add items to cart.", "error");
+      }
+      return { success: false, message: "Not logged in as customer" };
     }
 
     // Determine the correct product ID
     const productId = product.id || product.product_id;
 
     if (!productId) {
-      return;
+      if (!suppressPopup) {
+        showPopup("Invalid product", "error");
+      }
+      return { success: false, message: "Invalid product" };
     }
 
     console.log("Adding to cart:", {
@@ -211,9 +218,23 @@ export const CartProvider = ({ children }) => {
         console.log("Successfully added to cart:", response.data);
         // Reload cart from database to get updated state
         await loadCartFromDatabase();
+        if (!suppressPopup) {
+          showPopup("Item added to cart", "success");
+        }
+        return { success: true, message: response.data.message, data: response.data };
       } else {
+        const msg = response?.data?.message || "Failed to add item to cart";
+        if (!suppressPopup) {
+          showPopup(msg, "error");
+        }
+        return { success: false, message: msg, data: response?.data };
       }
     } catch (error) {
+      const msg = error?.response?.data?.message || error?.message || "Failed to add item to cart";
+      if (!suppressPopup) {
+        showPopup(msg, "error");
+      }
+      return { success: false, message: msg };
     }
   };
 

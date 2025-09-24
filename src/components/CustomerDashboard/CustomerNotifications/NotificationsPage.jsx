@@ -15,6 +15,7 @@ function getNotificationColor(type, read) {
 
 import React, { useEffect, useState } from 'react';
 import { Bell, Package, Heart, ShoppingCart, Gift, Settings, Palette, Check, X, Clock, ShoppingBag } from 'lucide-react';
+import authService from '../../../services/AuthService';
 
 const NotificationsPage = () => {
   // Mark notification as read
@@ -26,11 +27,10 @@ const NotificationsPage = () => {
         body: JSON.stringify({ notification_id: id })
       });
       // Re-fetch notifications from backend to ensure UI is in sync
-      const userString = sessionStorage.getItem('user');
+      const currentUser = authService.getCurrentUser();
       let customerId = null;
-      if (userString) {
-        const user = JSON.parse(userString);
-        if (user.role === 'customer') customerId = user.id;
+      if (currentUser && currentUser.role === 'customer') {
+        customerId = currentUser.id;
       }
       if (!customerId) return;
       const res = await fetch(`http://localhost/Agrilink-Agri-Marketplace/backend/notifications/get_customer_notifications.php?customerId=${customerId}`);
@@ -51,12 +51,11 @@ const NotificationsPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get customer ID from sessionStorage
-    const userString = sessionStorage.getItem('user');
+    // Get customer ID from AuthService
+    const currentUser = authService.getCurrentUser();
     let customerId = null;
-    if (userString) {
-      const user = JSON.parse(userString);
-      if (user.role === 'customer') customerId = user.id;
+    if (currentUser && currentUser.role === 'customer') {
+      customerId = currentUser.id;
     }
     if (!customerId) return;
     fetch(`http://localhost/Agrilink-Agri-Marketplace/backend/notifications/get_customer_notifications.php?customerId=${customerId}`)

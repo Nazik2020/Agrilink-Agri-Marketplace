@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Link } from "react-router-dom";
 import { FaShoppingCart } from "react-icons/fa";
-import axios from "axios";
+import StarRating from "./StarRating";
 import { useCart } from "../cart/CartContext";
 import SimpleWishlistButton from "../wishlist/SimpleWishlistButton";
-import StarRating from "./StarRating";
 
 const Seeds = ({ displayCount = 8 }) => {
   const { addToCart } = useCart();
@@ -20,7 +20,7 @@ const Seeds = ({ displayCount = 8 }) => {
           "http://localhost/Agrilink-Agri-Marketplace/backend/get_products.php?category=Seeds"
         );
         if (response.data.success) {
-          setProducts(response.data.products);
+          setProducts(response.data.products || []);
         } else {
           setError("Failed to fetch seeds");
         }
@@ -35,38 +35,16 @@ const Seeds = ({ displayCount = 8 }) => {
     fetchProducts();
   }, []);
 
-  // Instant stock update when an order is paid
-  useEffect(() => {
-    const handleOrderPaid = (e) => {
-      const { productId } = e.detail || {};
-      const qtyToSubtract = (e.detail && (e.detail.deliveredQuantity ?? e.detail.quantity)) || 1;
-      if (!productId) return;
-      setProducts((prev) =>
-        prev.map((p) =>
-          String(p.id) === String(productId)
-            ? { ...p, stock: Math.max(0, (parseInt(p.stock, 10) || 0) - (qtyToSubtract || 1)) }
-            : p
-        )
-      );
-    };
-    window.addEventListener("orderPaid", handleOrderPaid);
-    return () => window.removeEventListener("orderPaid", handleOrderPaid);
-  }, []);
-
   const handleAddToCart = (product) => {
-    if (!product || !product.id || !product.product_name) {
-      console.error("Invalid product data for cart:", product);
-      return;
-    }
-
-    const priceToUse = product.effective_price != null ? parseFloat(product.effective_price) : parseFloat(product.price || 0);
     addToCart({
       id: product.id,
       name: product.product_name,
-      seller: product.seller_name || "Unknown Seller",
-      category: product.category || "Seeds",
-      price: priceToUse,
-      maxQuantity: 10,
+      price: parseFloat(product.effective_price ?? product.price ?? 0),
+      image:
+        product.product_images && product.product_images.length > 0
+          ? product.product_images[0]
+          : undefined,
+      stock: product.stock ?? 0,
     });
   };
 
@@ -96,7 +74,7 @@ const Seeds = ({ displayCount = 8 }) => {
   }
 
   // No products state
-  if (products.length === 0) {
+  if (!products || products.length === 0) {
     return (
       <div className="text-center py-16">
         <div className="max-w-md mx-auto">
@@ -146,6 +124,16 @@ const Seeds = ({ displayCount = 8 }) => {
           </Link>
 
           <div className="flex flex-col flex-1 px-4 pt-3 pb-4">
+            {/* Rating above the category label, like Products Collection */}
+            {typeof product.average_rating !== "undefined" && (
+              <div className="flex items-center gap-2 mb-1">
+                <StarRating rating={Number(product.average_rating) || 0} size="sm" />
+                <span className="text-sm text-gray-600">
+                  {Number(product.average_rating || 0).toFixed(1)}
+                </span>
+              </div>
+            )}
+
             <div className="flex items-center justify-between mb-1">
               <span className="text-green-600 font-semibold text-sm">
                 {product.category}

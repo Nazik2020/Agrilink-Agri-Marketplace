@@ -1,10 +1,12 @@
 import { Route, Routes, useLocation } from "react-router";
+import { useEffect } from "react";
 import Navbar from "./components/common/Navbar"; //"./components/common/Navbar";
 //import Hero from "./components/Hero";
 
 import { CartProvider } from "./components/cart/CartContext";
 import { WishlistProvider } from "./components/wishlist/WishlistContext";
 import CartModal from "./components/cart/CartModal";
+import authService from "./services/AuthService";
 import Home from "./pages/Home";
 import Marketplace from "./pages/Marketplace";
 import Blog from "./pages/Blog";
@@ -38,9 +40,27 @@ import OrderHistoryPage from "./components/CustomerDashboard/CustomerOrderHistor
 import CustomerNotificationsPage from "./components/CustomerDashboard/CustomerNotifications/NotificationsPage";
 import CustomizedProducts from "./pages/CustomizedProducts";
 import CustomizedProductsSection from "./components/RequestCustomization/CustomizedProductsSection";
+import Logout from "./pages/Logout";
 
 function App() {
   const location = useLocation();
+
+  // Check authentication status on app load
+  useEffect(() => {
+    const run = async () => {
+      // Respect logout guard: if set, skip immediate auth check to avoid flicker
+      try {
+        const flag = sessionStorage.getItem('logout_in_progress');
+        if (flag) {
+          const ts = parseInt(flag, 10);
+          const ageMs = Date.now() - (Number.isFinite(ts) ? ts : 0);
+          if (!Number.isNaN(ageMs) && ageMs < 5000) return;
+        }
+      } catch (_) {}
+      authService.checkAuthStatus();
+    };
+    run();
+  }, []);
 
   // Check if we are in seller or customer dashboard
   const hideNavbar =
@@ -73,6 +93,7 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/admin-dashboard" element={<AdminDashboard />} />
               <Route path="/customized-products" element={<CustomizedProducts />} />
+              <Route path="/logout" element={<Logout />} />
 
               {/* Seller Dashboard with nested routes */}
               <Route path="/seller-dashboard" element={<SellerDashboard />}>

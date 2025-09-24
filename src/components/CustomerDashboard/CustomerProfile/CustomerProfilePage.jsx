@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ChevronDown, Upload } from "lucide-react";
 import CountryDropdown from "../../SellerDashboard/SellerProfile/CountryDropdown";
 import { API_CONFIG } from "../../../config/api";
+import authService from "../../../services/AuthService";
 
 const CustomerProfilePage = () => {
   const [formData, setFormData] = useState({
@@ -19,8 +20,6 @@ const CustomerProfilePage = () => {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Store the original email from localStorage
-  const originalEmail = sessionStorage.getItem("userEmail");
 
   const validateForm = () => {
     const newErrors = {};
@@ -40,28 +39,31 @@ const CustomerProfilePage = () => {
   };
 
   useEffect(() => {
-    // Get email from user object in localStorage
-    const userString = sessionStorage.getItem("user");
-    let email = null;
-
-    if (userString) {
-      try {
-        const user = JSON.parse(userString);
-        email = user.email;
-      } catch (error) {
-        // Error parsing user from localStorage
-      }
-    }
-    if (!email) {
-      email = sessionStorage.getItem("userEmail");
-    }
-
-    if (!email) {
+    // Get user data from AuthService
+    const currentUser = authService.getCurrentUser();
+    
+    if (!currentUser || !currentUser.email) {
+      console.error("No user data found in session");
       setLoading(false);
       return;
     }
 
-    fetchProfile(email);
+    console.log("Loading profile for user:", currentUser);
+    fetchProfile(currentUser.email);
+  }, []);
+
+  // Listen for user state changes to refresh profile data
+  useEffect(() => {
+    const handleUserStateChange = () => {
+      const currentUser = authService.getCurrentUser();
+      if (currentUser && currentUser.email) {
+        console.log("User state changed, refreshing profile for:", currentUser);
+        fetchProfile(currentUser.email);
+      }
+    };
+
+    window.addEventListener('userStateChanged', handleUserStateChange);
+    return () => window.removeEventListener('userStateChanged', handleUserStateChange);
   }, []);
 
   const handleInputChange = (e) => {
@@ -83,19 +85,8 @@ const CustomerProfilePage = () => {
   };
 
   const getOriginalEmail = () => {
-    const userString = sessionStorage.getItem("user");
-    let email = null;
-    if (userString) {
-      try {
-        const user = JSON.parse(userString);
-        email = user.email;
-      } catch (error) {
-      }
-    }
-    if (!email) {
-      email = sessionStorage.getItem("userEmail");
-    }
-    return email;
+    const currentUser = authService.getCurrentUser();
+    return currentUser ? currentUser.email : null;
   };
 
   const fetchProfile = (emailToFetch) => {
@@ -122,13 +113,15 @@ const CustomerProfilePage = () => {
           }));
           // Sync sidebar/name with latest profile info immediately
           try {
-            const user = JSON.parse(sessionStorage.getItem("user")) || {};
-            const newFullName = data.profile.full_name || user.full_name;
-            if (newFullName && user.full_name !== newFullName) {
-              user.full_name = newFullName;
-              sessionStorage.setItem("user", JSON.stringify(user));
-              window.dispatchEvent(new Event("storage"));
-              window.dispatchEvent(new Event("userStateChanged"));
+            const currentUser = authService.getCurrentUser();
+            if (currentUser) {
+              const newFullName = data.profile.full_name || currentUser.full_name;
+              if (newFullName && currentUser.full_name !== newFullName) {
+                currentUser.full_name = newFullName;
+                sessionStorage.setItem("user", JSON.stringify(currentUser));
+                window.dispatchEvent(new Event("storage"));
+                window.dispatchEvent(new Event("userStateChanged"));
+              }
             }
           } catch (e) {}
           if (data.profile.profile_image) {
@@ -208,21 +201,24 @@ const CustomerProfilePage = () => {
           });
           // Update sessionStorage user object with new profile_image for sidebar/navbar
           try {
-            const user = JSON.parse(sessionStorage.getItem("user"));
-            if (user && data.profile_image_path) {
+            const currentUser = authService.getCurrentUser();
+            if (currentUser && data.profile_image_path) {
               const rel = data.profile_image_path.replace(/^\/?/, "");
               const base = API_CONFIG.BASE_URL.replace(/\/$/, "");
-              user.profile_image = /^https?:\/\//i.test(data.profile_image_path)
+              currentUser.profile_image = /^https?:\/\//i.test(data.profile_image_path)
                 ? data.profile_image_path
                 : `${base}/${rel}`;
-              sessionStorage.setItem("user", JSON.stringify(user));
+              sessionStorage.setItem("user", JSON.stringify(currentUser));
               // Trigger events for sidebar/nav update (large and mobile)
               window.dispatchEvent(new Event("storage"));
               window.dispatchEvent(new Event("userStateChanged"));
             }
           } catch (e) {}
           // Always re-fetch profile to update image and data
-          fetchProfile(originalEmail);
+          const currentUser = authService.getCurrentUser();
+          if (currentUser && currentUser.email) {
+            fetchProfile(currentUser.email);
+          }
         } else {
           setToast({
             show: true,
@@ -461,3 +457,4 @@ const CustomerProfilePage = () => {
 };
 
 export default CustomerProfilePage;
+

@@ -59,11 +59,14 @@ const FlagModal = ({
       if (response.data.success) {
         onSuccess();
       } else {
-        if (showPopup) showPopup(response.data.message || "Error submitting flag", 'error');
+        const msg = response.data.message || "Unable to submit flag";
+        if (showPopup) showPopup(msg, "error");
+        onClose();
       }
     } catch (error) {
       console.error("Error submitting flag:", error);
-      if (showPopup) showPopup("Network error. Please try again.", 'error');
+      if (showPopup) showPopup("Network error. Please try again.", "error");
+      onClose();
     } finally {
       setIsSubmitting(false);
     }

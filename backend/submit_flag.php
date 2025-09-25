@@ -16,8 +16,8 @@ $category = $data['category'];
 $reason = trim($data['reason']);
 
 // Validate required fields
-if (empty($flagged_by_customer_id) || empty($seller_id) || empty($category) || empty($reason)) {
-    echo json_encode(["success" => false, "message" => "All fields are required"]);
+if (empty($flagged_by_customer_id) || empty($seller_id) || empty($product_id) || empty($category) || empty($reason)) {
+    echo json_encode(["success" => false, "message" => "All fields are required (including product_id)"]);
     exit;
 }
 

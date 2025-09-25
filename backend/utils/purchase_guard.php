@@ -44,6 +44,16 @@ if (!function_exists('hasCustomerPurchased')) {
                 "SELECT COUNT(*) AS c FROM orders WHERE customer_id = ? AND product_id = ? AND (payment_status IN ('completed','paid','succeeded') OR order_status IN ('confirmed','delivered','completed','paid'))",
                 [$customerId, $productId]
             ],
+            // If reviewing/flagging an original product that was purchased as a customized variant
+            [
+                "SELECT COUNT(*) AS c FROM orders WHERE customer_id = ? AND product_id IN (SELECT id FROM customized_products WHERE original_product_id = ?) AND (payment_status IN ('completed','paid','succeeded') OR order_status IN ('confirmed','delivered','completed','paid'))",
+                [$customerId, $productId]
+            ],
+            // If reviewing/flagging a customized product, but purchase was for the original product
+            [
+                "SELECT COUNT(*) AS c FROM orders WHERE customer_id = ? AND product_id = (SELECT original_product_id FROM customized_products WHERE id = ?) AND (payment_status IN ('completed','paid','succeeded') OR order_status IN ('confirmed','delivered','completed','paid'))",
+                [$customerId, $productId]
+            ],
             // Common join patterns
             [
                 "SELECT COUNT(*) AS c FROM orders o JOIN order_items oi ON oi.order_id = o.id WHERE o.customer_id = ? AND oi.product_id = ? AND (o.status IS NULL OR o.status IN ('paid','completed','delivered','confirmed'))",
